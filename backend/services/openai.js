@@ -14,9 +14,10 @@ const openai = new OpenAI({
  * Get or create a commit summary
  * @param {Object} commit - Commit data
  * @param {string} repository - Repository name
- * @returns {Promise<Object>} - The commit summary
+ * @param {boolean} trackTokens - Whether to track token usage
+ * @returns {Promise<Object>} - The commit summary with usage statistics if trackTokens is enabled
  */
-const getOrCreateCommitSummary = async (commit, repository) => {
+const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) => {
   try {
     // Check if this commit summary already exists in the database
     const existingSummary = await CommitSummary.findOne({
@@ -38,7 +39,8 @@ const getOrCreateCommitSummary = async (commit, repository) => {
         author: existingSummary.author,
         date: existingSummary.date,
         summary: existingSummary.summary,
-        filesChanged: existingSummary.filesChanged || 0
+        filesChanged: existingSummary.filesChanged || 0,
+        fromCache: true
       };
     }
 
@@ -51,6 +53,8 @@ const getOrCreateCommitSummary = async (commit, repository) => {
       'No summary available';
     
     let summary = fallbackSummary;
+    let usage = null;
+    let model = null;
     
     try {
       // Use the new template for the OpenAI analysis
@@ -74,6 +78,16 @@ const getOrCreateCommitSummary = async (commit, repository) => {
 
       // Extract the summary from the response
       summary = response.choices[0].message.content.trim();
+      
+      // Track token usage if requested
+      if (trackTokens && response.usage) {
+        usage = {
+          prompt_tokens: response.usage.prompt_tokens,
+          completion_tokens: response.usage.completion_tokens,
+          total_tokens: response.usage.total_tokens
+        };
+        model = response.model || process.env.OPENAI_MODEL || 'gpt-4o';
+      }
       
       if (!summary || summary.length === 0) {
         console.log(`No summary generated for commit ${commit.sha.substring(0, 7)}, using fallback`);
@@ -101,15 +115,24 @@ const getOrCreateCommitSummary = async (commit, repository) => {
     await newSummary.save();
     console.log(`Saved new summary for commit ${commit.sha.substring(0, 7)}`);
 
-    // Return the analyzed commit data
-    return {
+    // Return the analyzed commit data with usage info if available
+    const result = {
       sha: commit.sha,
       message: commit.message || 'No message',
       author: commit.author?.name || commit.author?.login || 'Unknown',
       date: commit.date || new Date(),
       summary,
-      filesChanged: commit.filesChanged || 0
+      filesChanged: commit.filesChanged || 0,
+      fromCache: false
     };
+    
+    // Add token usage if tracked
+    if (trackTokens && usage) {
+      result.usage = usage;
+      result.model = model;
+    }
+    
+    return result;
   } catch (error) {
     console.error(`Error in commit summary cache for ${commit.sha}:`, error);
     // If caching fails, still return the commit with a default summary
@@ -119,7 +142,8 @@ const getOrCreateCommitSummary = async (commit, repository) => {
       author: commit.author?.name || commit.author?.login || 'Unknown',
       date: commit.date || new Date(),
       summary: commit.message ? commit.message.split('\n')[0].substring(0, 100) : 'No summary available',
-      filesChanged: commit.filesChanged || 0
+      filesChanged: commit.filesChanged || 0,
+      fromCache: false
     };
   }
 };
@@ -173,7 +197,7 @@ const openaiService = {
    * @returns {Promise<Array>} - Analyzed commits
    */
   analyzeCommits: async (options) => {
-    const { repository, commits } = options;
+    const { repository, commits, trackTokens = false } = options;
     
     try {
       // Process commits in parallel with a concurrency limit of 3
@@ -184,7 +208,7 @@ const openaiService = {
       for (let i = 0; i < commits.length; i += concurrencyLimit) {
         const batch = commits.slice(i, i + concurrencyLimit);
         const batchResults = await Promise.all(
-          batch.map(commit => getOrCreateCommitSummary(commit, repository))
+          batch.map(commit => getOrCreateCommitSummary(commit, repository, trackTokens))
         );
         analyzedCommits.push(...batchResults);
       }
@@ -199,22 +223,33 @@ const openaiService = {
         author: commit.author?.name || commit.author?.login || 'Unknown',
         date: commit.date || new Date(),
         summary: 'OpenAI analysis failed.',
-        filesChanged: commit.filesChanged || 0
+        filesChanged: commit.filesChanged || 0,
+        fromCache: false
       }));
     }
   },
   
   /**
    * Generate a comprehensive report from a list of commits
+   * @param {Object} options - Report generation options
+   * @param {string} options.repository - Repository name
+   * @param {Array} options.commits - List of commits
+   * @param {string} options.title - Report title
+   * @param {boolean} options.includeCode - Whether to include code snippets
+   * @param {string} options.branchInfo - Branch information
+   * @param {string} options.authorInfo - Author information
+   * @param {boolean} options.trackTokens - Whether to track token usage
+   * @returns {Promise<Object>} - Generated report with usage statistics if trackTokens is enabled
    */
-  async generateReportFromCommits({ repository, commits, title, includeCode, branchInfo, authorInfo }) {
+  async generateReportFromCommits({ repository, commits, title, includeCode, branchInfo, authorInfo, trackTokens = true }) {
     try {
       console.log(`Generating report for ${repository} with ${commits.length} commits`);
 
       // First, ensure all commits have summaries using our caching system
       const analyzedCommits = await this.analyzeCommits({
         repository,
-        commits
+        commits,
+        trackTokens
       });
 
       // Format the commits for the prompt
@@ -248,6 +283,7 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
       });
 
       console.log('Sending report generation request to OpenAI');
+      
       // Call the OpenAI API for report generation
       const response = await openai.chat.completions.create({
         model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
@@ -262,7 +298,7 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
         temperature: 0.7
       });
 
-      // Return the generated report
+      // Create the result object
       const result = {
         title,
         content: response.choices[0].message.content.trim(),
@@ -271,12 +307,24 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
         dateGenerated: new Date()
       };
       
+      // Add token usage information if requested
+      if (trackTokens && response.usage) {
+        result.usage = {
+          prompt_tokens: response.usage.prompt_tokens,
+          completion_tokens: response.usage.completion_tokens,
+          total_tokens: response.usage.total_tokens
+        };
+        result.model = response.model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      }
+      
       console.log('OpenAI report generated:', {
         resultType: typeof result,
         hasContent: !!result.content,
         contentType: typeof result.content,
         contentLength: result.content.length,
-        contentSample: result.content.substring(0, 200) + '...'
+        contentSample: result.content.substring(0, 200) + '...',
+        trackingTokens: trackTokens,
+        tokenUsage: trackTokens ? result.usage : 'Not tracked'
       });
       
       return result;

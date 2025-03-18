@@ -1,4 +1,5 @@
 const githubService = require('../services/github');
+const UsageStatsService = require('../services/usageStats');
 
 // Get repositories info
 exports.getRepositoryInfo = async (req, res) => {
@@ -54,6 +55,8 @@ exports.getCommits = async (req, res) => {
     }
 
     const accessToken = req.user.accessToken;
+    const userId = req.user.id;
+    
     const commits = await githubService.getCommits({
       accessToken,
       repository,
@@ -62,6 +65,15 @@ exports.getCommits = async (req, res) => {
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null
     });
+
+    // Track commit analysis
+    if (commits && commits.length > 0) {
+      await UsageStatsService.trackCommitAnalysis(
+        userId,
+        commits.length, // Total commits analyzed
+        0              // None summarized
+      );
+    }
 
     res.json(commits);
   } catch (error) {
@@ -178,6 +190,7 @@ exports.getCommitsWithDiffs = async (req, res) => {
     
     // Get user access token
     const accessToken = req.user.accessToken;
+    const userId = req.user.id;
     
     // Parse branch names
     const branchNames = branches.split(',');
@@ -196,6 +209,15 @@ exports.getCommitsWithDiffs = async (req, res) => {
       includeFiles: includeFiles === 'true'
     });
     
+    // Track commit analysis
+    if (commits && commits.length > 0) {
+      await UsageStatsService.trackCommitAnalysis(
+        userId,
+        commits.length, // Total commits analyzed
+        0              // None summarized
+      );
+    }
+
     res.json(commits);
   } catch (error) {
     console.error('Error getting commits with diffs:', error);

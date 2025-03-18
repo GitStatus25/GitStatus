@@ -4,6 +4,7 @@ const openaiService = require('../services/openai');
 const pdfService = require('../services/pdf');
 const s3Service = require('../services/s3');
 const crypto = require('crypto');
+const UsageStatsService = require('../services/usageStats');
 
 /**
  * Generate a hash from an array of commit IDs
@@ -115,6 +116,19 @@ exports.generateReport = async (req, res) => {
     
     // Get user access token
     const accessToken = req.user.accessToken;
+    const userId = req.user.id;
+    
+    // Track if this is a cached report or newly generated
+    let isCachedReport = false;
+    
+    // Check if user has reached their report limit
+    const hasReachedLimit = await UsageStatsService.hasReachedReportLimit(userId);
+    if (hasReachedLimit) {
+      return res.status(403).json({ 
+        error: 'Monthly report generation limit reached',
+        limitReached: true
+      });
+    }
     
     // Fetch commit details
     const commits = await githubService.getCommitsByIds({
@@ -126,6 +140,9 @@ exports.generateReport = async (req, res) => {
     if (!commits || commits.length === 0) {
       return res.status(404).json({ error: 'No commits found for the specified IDs' });
     }
+    
+    // Determine report type based on commit count
+    const reportType = commits.length <= 5 ? 'standard' : 'big';
     
     // Generate a hash to uniquely identify this set of commits
     const commitsHash = generateCommitsHash(commits);
@@ -139,6 +156,9 @@ exports.generateReport = async (req, res) => {
       // Update the access stats
       await updateReportAccessStats(existingReport);
       
+      // Track report reuse
+      isCachedReport = true;
+      
       // Return the existing report
       return res.json({
         message: 'Existing report found with identical commits',
@@ -150,6 +170,11 @@ exports.generateReport = async (req, res) => {
     // No existing report, so generate a new one
     console.log('No existing report found, generating new one');
     
+    // Initialize token tracking
+    let inputTokenCount = 0;
+    let outputTokenCount = 0;
+    let modelName = 'gpt-4';
+    
     // Proceed with normal report generation
     const reportContent = await openaiService.generateReportFromCommits({
       repository,
@@ -157,7 +182,65 @@ exports.generateReport = async (req, res) => {
       title,
       includeCode: includeCode || false,
       branchInfo: branches.join(', '),
-      authorInfo: authors.join(', ')
+      authorInfo: authors.join(', '),
+      trackTokens: true  // Enable token tracking
+    });
+    
+    // Extract token usage if provided
+    if (reportContent.usage) {
+      inputTokenCount = reportContent.usage.prompt_tokens || 0;
+      outputTokenCount = reportContent.usage.completion_tokens || 0;
+      modelName = reportContent.model || 'gpt-4';
+      
+      console.log('Token usage tracked:', {
+        model: modelName,
+        inputTokens: inputTokenCount,
+        outputTokens: outputTokenCount,
+        totalTokens: inputTokenCount + outputTokenCount
+      });
+    } else {
+      // If no token tracking, estimate based on text length (rough estimate)
+      const text = typeof reportContent === 'string' ? reportContent : JSON.stringify(reportContent);
+      // Roughly estimate 4 chars per token for input (prompt) and output (completion)
+      inputTokenCount = Math.ceil(JSON.stringify(commits).length / 4);
+      outputTokenCount = Math.ceil(text.length / 4);
+    }
+    
+    // Determine the content to use for the PDF
+    const reportContentText = typeof reportContent === 'string' ? 
+      reportContent : 
+      (reportContent.content || JSON.stringify(reportContent));
+    
+    // Estimate cost based on token usage (these are example rates, adjust as needed)
+    const tokenCosts = {
+      'gpt-4': {
+        input: 0.00003,  // $0.03 per 1000 tokens
+        output: 0.00006  // $0.06 per 1000 tokens
+      },
+      'gpt-3.5-turbo': {
+        input: 0.0000015,  // $0.0015 per 1000 tokens
+        output: 0.000002   // $0.002 per 1000 tokens
+      },
+      'gpt-4o': {
+        input: 0.00001,  // $0.01 per 1000 tokens
+        output: 0.00003  // $0.03 per 1000 tokens
+      },
+      'gpt-4o-mini': {
+        input: 0.000005,  // $0.005 per 1000 tokens
+        output: 0.000015  // $0.015 per 1000 tokens
+      }
+    };
+    
+    const defaultCost = { input: 0.00003, output: 0.00006 }; // Default to GPT-4 rates
+    const { input: inputCost, output: outputCost } = tokenCosts[modelName] || defaultCost;
+    
+    const estimatedCost = (inputTokenCount * inputCost) + (outputTokenCount * outputCost);
+    
+    console.log('Estimated cost:', {
+      model: modelName,
+      inputCost: inputTokenCount * inputCost,
+      outputCost: outputTokenCount * outputCost,
+      totalCost: estimatedCost
     });
     
     // Use provided branches from the request if available, otherwise detect them
@@ -298,7 +381,7 @@ exports.generateReport = async (req, res) => {
       console.log('Calling PDF service to generate PDF...');
       const pdfBuffer = await pdfService.generatePDF({
         title: report.name,
-        content: reportContent,
+        content: reportContentText,
         repository: report.repository,
         startDate: report.startDate,
         endDate: report.endDate
@@ -332,6 +415,30 @@ exports.generateReport = async (req, res) => {
       // Update report with PDF URL 
       report.pdfUrl = pdfUrl;
       await report.save();
+      
+      // Track report generation with UsageStatsService
+      if (!isCachedReport) {
+        // Track report generation
+        await UsageStatsService.trackReportGeneration(
+          userId, 
+          reportType // 'standard' or 'big'
+        );
+        
+        // Track commit analysis
+        await UsageStatsService.trackCommitAnalysis(
+          userId,
+          commits.length, // Total commits analyzed
+          commits.length  // All commits were summarized
+        );
+        
+        // Track token usage and cost
+        await UsageStatsService.trackTokenUsage(
+          userId,
+          inputTokenCount + outputTokenCount, // Total tokens used
+          modelName,
+          estimatedCost
+        );
+      }
       
       // Return the report
       return res.json({
@@ -373,178 +480,6 @@ exports.generateReport = async (req, res) => {
   } catch (error) {
     console.error('Error generating report:', error);
     res.status(500).json({ error: 'Failed to generate report' });
-  }
-};
-
-// Generate a test report without analyzing individual commits
-exports.generateTestReport = async (req, res) => {
-  let reportId;
-  let report;
-  
-  try {
-    const fs = require('fs').promises;
-    const path = require('path');
-    
-    // Default test repository
-    const repository = 'facebook/react';
-    const title = 'Test Report - Facebook React';
-    
-    // Read commits summary from file
-    const outputDir = path.join(__dirname, '..', 'output');
-    const summaryFilePath = path.join(outputDir, `${repository.replace('/', '_')}_commits_summary.json`);
-    
-    let commitsData;
-    try {
-      const fileData = await fs.readFile(summaryFilePath, 'utf8');
-      commitsData = JSON.parse(fileData);
-      
-      // Ensure each commit has an author
-      commitsData = commitsData.map(commit => ({
-        ...commit,
-        author: commit.author || 'Unknown Author'
-      }));
-      
-      console.log(`Loaded ${commitsData.length} commits from summary file`);
-    } catch (error) {
-      console.error(`Error reading commits summary file: ${error.message}`);
-      // If file doesn't exist, create a sample dataset
-      commitsData = [
-        {
-          sha: '1234567890abcdef',
-          message: 'Improve rendering performance',
-          author: 'React Team',
-          date: '2018-05-15T12:00:00Z', // Fixed date in the past
-          summary: 'Optimized the rendering pipeline to reduce unnecessary re-renders by implementing more efficient diffing algorithm.',
-          filesChanged: 7
-        },
-        {
-          sha: '0987654321fedcba',
-          message: 'Add new concurrent features API',
-          author: 'React Developer',
-          date: '2018-05-17T14:30:00Z', // Fixed date in the past
-          summary: 'Introduced a new API for concurrent features that allows developers to better control rendering priorities.',
-          filesChanged: 12
-        }
-      ];
-    }
-    
-    try {
-      // Create report in database
-      report = new Report({
-        user: req.user.id,
-        name: title,
-        repository,
-        branch: 'main',
-        author: commitsData.map(c => c.author).join(', '), // Include all authors
-        // Use the actual dates from the commits, rather than hardcoded ranges
-        startDate: new Date(Math.min(...commitsData.map(c => new Date(c.date).getTime()))),
-        endDate: new Date(Math.max(...commitsData.map(c => new Date(c.date).getTime()))),
-        commits: commitsData.map(commit => ({
-          commitId: commit.sha,
-          message: commit.message,
-          author: commit.author || 'Unknown Author', 
-          date: new Date(commit.date),
-          summary: commit.summary || ''
-        })),
-        pdfUrl: 'pending' 
-      });
-      
-      await report.save();
-      reportId = report.id;
-      
-      // Generate report using OpenAI service
-      const reportContent = await openaiService.generateReportFromCommits({
-        repository,
-        commits: commitsData,
-        title,
-        includeCode: false
-      });
-
-      console.log('OpenAI Report Content:', {
-        type: typeof reportContent,
-        isString: typeof reportContent === 'string',
-        hasContentProperty: typeof reportContent === 'object' && reportContent.content !== undefined,
-        length: typeof reportContent === 'string' ? reportContent.length : 
-               (typeof reportContent === 'object' && reportContent.content ? reportContent.content.length : 'N/A')
-      });
-
-      // Verify the report content
-      if (!reportContent) {
-        throw new Error('Failed to generate report content');
-      }
-
-      // Extract the content string from the report object
-      const reportText = typeof reportContent === 'string' 
-        ? reportContent 
-        : (reportContent.content || JSON.stringify(reportContent, null, 2));
-      
-      console.log('Report Text after extraction:', {
-        type: typeof reportText,
-        length: reportText.length,
-        sample: reportText.substring(0, 200) + '...'
-      });
-      
-      // Create PDF from the report
-      try {
-        const pdfFilename = await pdfService.generatePDF({
-          title: report.name,
-          content: reportText,
-          repository: report.repository,
-          startDate: report.startDate,
-          endDate: report.endDate
-        });
-        report.filename = pdfFilename;
-        
-        // Upload the file to S3
-        try {
-          const s3Result = await s3Service.uploadFile(pdfFilename);
-          report.downloadUrl = s3Result.Location;
-          await report.save();
-        } catch (s3Error) {
-          console.error('Error uploading to S3:', s3Error);
-        }
-      } catch (pdfError) {
-        console.error('Error generating PDF:', pdfError);
-      }
-      
-      // Send the response with the report ID
-      return res.status(201).json({
-        message: 'Report generated successfully',
-        reportId: report.id,
-        commitIds: report.commits.map(c => c.commitId)
-      });
-    } catch (innerError) {
-      console.error('Error in test report generation process:', innerError);
-      
-      // Clean up database entry if needed
-      if (reportId) {
-        try {
-          // Check if the report exists
-          report = await Report.findById(reportId);
-          if (report) {
-            if (report.pdfUrl === 'pending') {
-              // Failed before S3 upload - delete the report
-              await Report.findByIdAndDelete(reportId);
-              console.log(`Deleted incomplete test report ${reportId} due to error`);
-            } else {
-              // Check if the PDF actually exists in S3
-              const pdfExists = await s3Service.objectExists(report.pdfUrl);
-              if (!pdfExists) {
-                await Report.findByIdAndDelete(reportId);
-                console.log(`Deleted test report ${reportId} with missing S3 file`);
-              }
-            }
-          }
-        } catch (cleanupError) {
-          console.error('Error cleaning up failed test report:', cleanupError);
-        }
-      }
-      
-      throw innerError; // Re-throw to be caught by the outer catch block
-    }
-  } catch (error) {
-    console.error('Error generating test report:', error);
-    res.status(500).json({ error: `Failed to generate test report: ${error.message}` });
   }
 };
 
