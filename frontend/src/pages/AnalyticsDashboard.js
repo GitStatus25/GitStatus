@@ -330,25 +330,9 @@ const AnalyticsDashboard = () => {
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
                   Advanced Commit Analysis
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Coming in Phase 2
+                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300, lineHeight: 1.6 }}>
+                  Unlock deeper insights with AI-powered commit analysis, code complexity metrics, and contribution patterns
                 </Typography>
-                <Button
-                  variant="outlined"
-                  startIcon={<GitHubIcon />}
-                  href="https://github.com/yourusername/GitStatus/issues/1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      backgroundColor: 'rgba(77, 171, 245, 0.08)',
-                    }
-                  }}
-                >
-                  View on GitHub
-                </Button>
               </Box>
               <Box sx={{ opacity: 0.15, position: 'relative', zIndex: 0 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
