@@ -217,11 +217,11 @@ const AnalyticsDashboard = () => {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Reports Generated"
-            value={stats?.currentUsage?.reportsGenerated || 0}
+            value={stats?.monthlyStats?.reports?.total || 0}
             icon={<DescriptionIcon sx={{ color: theme.palette.primary.main }} />}
             color={theme.palette.primary.main}
-            subtitle="This Month"
-            tooltip="Number of reports you've generated this month"
+            subtitle="All Time"
+            tooltip="Total number of reports you've generated"
           />
         </Grid>
         <Grid item xs={12} md={4}>
@@ -230,8 +230,8 @@ const AnalyticsDashboard = () => {
             value={stats?.monthlyStats?.commits?.summarized || 0}
             icon={<CodeIcon sx={{ color: theme.palette.success.main }} />}
             color={theme.palette.success.main}
-            subtitle="This Month"
-            tooltip="Number of commits you've analyzed this month"
+            subtitle="All Time"
+            tooltip="Total number of commits you've analyzed"
           />
         </Grid>
         <Grid item xs={12} md={4}>
@@ -240,8 +240,8 @@ const AnalyticsDashboard = () => {
             value={stats?.monthlyStats?.tokenUsage?.total?.toLocaleString() || 0}
             icon={<SpeedIcon sx={{ color: theme.palette.warning.main }} />}
             color={theme.palette.warning.main}
-            subtitle="This Month"
-            tooltip="Total tokens used for AI processing this month"
+            subtitle="All Time"
+            tooltip="Total tokens used for AI processing"
           />
         </Grid>
 
@@ -257,18 +257,18 @@ const AnalyticsDashboard = () => {
           >
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
               <StorageIcon sx={{ mr: 1, color: theme.palette.info.main }} />
-              Usage Limits
+              Monthly Usage Limits
             </Typography>
             <Divider sx={{ my: 2 }} />
             <UsageProgress
               current={stats?.currentUsage?.reportsGenerated || 0}
-              limit={stats?.limits?.reportsPerMonth || 50}
+              limit={stats?.plan?.limits?.reportsPerMonth || 50}
               label="Reports per Month"
               color={theme.palette.primary.main}
             />
             <UsageProgress
-              current={stats?.monthlyStats?.commits?.summarized || 0}
-              limit={stats?.limits?.commitsPerMonth || 500}
+              current={stats?.currentUsage?.commitsAnalyzed || 0}
+              limit={stats?.plan?.limits?.commitsPerMonth || 500}
               label="Commits per Month"
               color={theme.palette.success.main}
             />
@@ -287,7 +287,7 @@ const AnalyticsDashboard = () => {
           >
             <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
               <TrendingUpIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
-              Monthly Breakdown
+              This Month's Usage
             </Typography>
             <Divider sx={{ my: 2 }} />
             <Box sx={{ mb: 3 }}>
@@ -298,12 +298,20 @@ const AnalyticsDashboard = () => {
                 {stats?.currentUsage?.reportsGenerated || 0}
               </Typography>
             </Box>
-            <Box>
+            <Box sx={{ mb: 3 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Commits Analyzed
               </Typography>
               <Typography variant="h4" component="div">
-                {stats?.monthlyStats?.commits?.summarized || 0}
+                {stats?.currentUsage?.commitsAnalyzed || 0}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Token Usage
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats?.currentUsage?.tokensUsed?.toLocaleString() || 0}
               </Typography>
             </Box>
           </Paper>
