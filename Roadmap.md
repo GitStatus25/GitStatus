@@ -2,18 +2,30 @@
 
 ## EPIC 1: Tier Management & Monetization (Highest Priority)
 
-### Feature: Free Tier Implementation
-- Define and implement usage limits
-- Remove code snippet option from free tier
-- Add watermark to PDF exports
-- Implement basic prompt version
+### Phase 1: Free Tier Launch (Initial Release)
+- Implement enhanced free tier with promotional limits
+  - Standard reports (5 commits per report)
+  - Big reports (20 commits per report)
+- Track usage metrics to inform future pricing
+- Implement PDF watermarking
+- Basic prompt version
 
-### Feature: Paid Tier Structure
-- Premium tier with higher usage limits
+### Phase 2: First Paid Tier (Premium)
+- Higher limits for both standard and big reports
 - Remove PDF watermark
+- Include code snippets option
 - Enhanced prompt quality
-- Technical detail prompt option with code snippets
-- Remove footer affiliation option (highest tier)
+- Keep GitStatus footer
+- Usage-based pricing option
+
+### Phase 3: Second Paid Tier (Enterprise)
+- Remove footer affiliation option
+- Technical detail prompt option
+- Interactive report refinement
+  - PDF preview with feedback loop
+  - Ability to iterate with model before finalizing
+  - Limited number of iterations per report
+- Pay-per-report options with variable pricing
 
 ## EPIC 2: Performance Optimization (High Priority)
 
@@ -23,7 +35,7 @@
 - Optimize large repository performance
 
 ### Feature: Usage Analytics
-- Track report generation
+- Track report generation by type (standard/big)
 - Monitor commit analysis
 - Implement token usage tracking
 - Create usage dashboard
@@ -60,6 +72,19 @@
 - Enhanced author dropdown
 - Commit statistics by author
 - Branch-specific filtering
+
+### Feature: Commit Token System
+- Develop algorithm for measuring commit "weight"
+- Smaller commits count as fewer tokens
+- Token-based limit system
+- Visual token usage indicators
+
+## Product Philosophy
+
+- Continuously improve the free tier experience
+- Not all new features should be paywalled
+- Regular feature releases for all tiers
+- Premium features should provide clear additional value
 
 ## Strategic Questions to Address
 
