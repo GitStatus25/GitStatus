@@ -84,29 +84,58 @@ class UsageStatsService {
   /**
    * Track token usage for AI services
    * @param {string} userId - The user ID
-   * @param {number} tokenCount - Number of tokens used
+   * @param {number} inputTokenCount - Number of input tokens used
+   * @param {number} outputTokenCount - Number of output tokens used
    * @param {string} modelName - Name of the AI model used
-   * @param {number} cost - Estimated cost in USD
+   * @param {number} totalCost - Total estimated cost in USD
+   * @param {number} inputCost - Estimated cost for input tokens in USD
+   * @param {number} outputCost - Estimated cost for output tokens in USD
    * @returns {Promise<void>}
    */
-  static async trackTokenUsage(userId, tokenCount, modelName = 'default', cost = 0) {
+  static async trackTokenUsage(
+    userId, 
+    inputTokenCount, 
+    outputTokenCount, 
+    modelName = 'default', 
+    totalCost = 0,
+    inputCost = 0,
+    outputCost = 0
+  ) {
     try {
       const currentMonth = this.getCurrentMonth();
+      const totalTokenCount = inputTokenCount + outputTokenCount;
 
       // Update monthly stats
       const updateQuery = {
         $inc: {
-          'tokenUsage.total': tokenCount,
-          'costEstimate.total': cost
+          // Update total token counts
+          'tokenUsage.total': totalTokenCount,
+          'tokenUsage.input': inputTokenCount,
+          'tokenUsage.output': outputTokenCount,
+          
+          // Update cost estimates
+          'costEstimate.total': totalCost,
+          'costEstimate.input': inputCost,
+          'costEstimate.output': outputCost
         }
       };
 
-      // Add model breakdown if provided
-      updateQuery.$inc[`tokenUsage.byModel.${modelName}`] = tokenCount;
+      // Add model breakdowns
+      updateQuery.$inc[`tokenUsage.byModel.${modelName}`] = totalTokenCount;
+      updateQuery.$inc[`tokenUsage.inputByModel.${modelName}`] = inputTokenCount;
+      updateQuery.$inc[`tokenUsage.outputByModel.${modelName}`] = outputTokenCount;
       
-      // Add cost breakdown if provided
-      if (cost > 0) {
-        updateQuery.$inc[`costEstimate.byService.${modelName}`] = cost;
+      // Add cost breakdowns
+      if (totalCost > 0) {
+        updateQuery.$inc[`costEstimate.byService.${modelName}`] = totalCost;
+      }
+      
+      if (inputCost > 0) {
+        updateQuery.$inc[`costEstimate.inputByService.${modelName}`] = inputCost;
+      }
+      
+      if (outputCost > 0) {
+        updateQuery.$inc[`costEstimate.outputByService.${modelName}`] = outputCost;
       }
 
       await UsageStats.findOneAndUpdate(
@@ -114,6 +143,17 @@ class UsageStatsService {
         updateQuery,
         { upsert: true, new: true }
       );
+      
+      console.log('Token usage tracked:', {
+        user: userId,
+        model: modelName,
+        inputTokens: inputTokenCount,
+        outputTokens: outputTokenCount,
+        totalTokens: totalTokenCount,
+        inputCost,
+        outputCost,
+        totalCost
+      });
     } catch (error) {
       console.error('Error tracking token usage:', error);
     }
@@ -172,10 +212,24 @@ class UsageStatsService {
         limits: user.usageLimits,
         currentUsage: user.currentUsage,
         monthlyStats: monthlyStats || {
-          reports: { total: 0 },
+          reports: { total: 0, byType: {} },
           commits: { total: 0, summarized: 0 },
-          tokenUsage: { total: 0 },
-          costEstimate: { total: 0 }
+          tokenUsage: { 
+            total: 0, 
+            input: 0, 
+            output: 0,
+            byModel: {},
+            inputByModel: {},
+            outputByModel: {}
+          },
+          costEstimate: { 
+            total: 0,
+            input: 0,
+            output: 0,
+            byService: {},
+            inputByService: {},
+            outputByService: {} 
+          }
         }
       };
     } catch (error) {
@@ -201,7 +255,11 @@ class UsageStatsService {
             totalReports: { $sum: '$reports.total' },
             totalCommits: { $sum: '$commits.total' },
             totalTokens: { $sum: '$tokenUsage.total' },
+            inputTokens: { $sum: '$tokenUsage.input' },
+            outputTokens: { $sum: '$tokenUsage.output' },
             totalCost: { $sum: '$costEstimate.total' },
+            inputCost: { $sum: '$costEstimate.input' },
+            outputCost: { $sum: '$costEstimate.output' },
             uniqueUsers: { $addToSet: '$user' }
           }
         }
@@ -216,7 +274,11 @@ class UsageStatsService {
             reportsTotal: '$reports.total',
             commitsTotal: '$commits.total',
             tokensTotal: '$tokenUsage.total',
-            costTotal: '$costEstimate.total'
+            inputTokens: '$tokenUsage.input',
+            outputTokens: '$tokenUsage.output',
+            costTotal: '$costEstimate.total',
+            inputCost: '$costEstimate.input',
+            outputCost: '$costEstimate.output'
           }
         },
         { $sort: { reportsTotal: -1 } },
@@ -235,8 +297,16 @@ class UsageStatsService {
         username: userMap[item.user.toString()] || 'Unknown',
         reports: item.reportsTotal,
         commits: item.commitsTotal,
-        tokens: item.tokensTotal,
-        cost: item.costTotal
+        tokens: {
+          total: item.tokensTotal,
+          input: item.inputTokens,
+          output: item.outputTokens
+        },
+        cost: {
+          total: item.costTotal,
+          input: item.inputCost,
+          output: item.outputCost
+        }
       }));
 
       return {
@@ -245,7 +315,11 @@ class UsageStatsService {
           totalReports: 0,
           totalCommits: 0,
           totalTokens: 0,
+          inputTokens: 0,
+          outputTokens: 0,
           totalCost: 0,
+          inputCost: 0,
+          outputCost: 0,
           uniqueUsers: []
         },
         topUsers: userStats

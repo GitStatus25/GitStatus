@@ -48,12 +48,35 @@ const UsageStatsSchema = new mongoose.Schema({
   
   // Token usage tracking for AI services
   tokenUsage: {
+    // Total tokens (input + output)
     total: {
       type: Number,
       default: 0
     },
-    // Breakdown by model/service
+    // Input tokens (prompts)
+    input: {
+      type: Number,
+      default: 0
+    },
+    // Output tokens (completions)
+    output: {
+      type: Number,
+      default: 0
+    },
+    // Breakdown by model/service for total tokens
     byModel: {
+      type: Map,
+      of: Number,
+      default: () => ({})
+    },
+    // Breakdown by model/service for input tokens
+    inputByModel: {
+      type: Map,
+      of: Number,
+      default: () => ({})
+    },
+    // Breakdown by model/service for output tokens
+    outputByModel: {
       type: Map,
       of: Number,
       default: () => ({})
@@ -66,8 +89,30 @@ const UsageStatsSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    // Input token costs
+    input: {
+      type: Number,
+      default: 0
+    },
+    // Output token costs 
+    output: {
+      type: Number,
+      default: 0
+    },
     // Breakdown by service type
     byService: {
+      type: Map,
+      of: Number,
+      default: () => ({})
+    },
+    // Breakdown by service for input costs
+    inputByService: {
+      type: Map,
+      of: Number,
+      default: () => ({})
+    },
+    // Breakdown by service for output costs
+    outputByService: {
       type: Map,
       of: Number,
       default: () => ({})

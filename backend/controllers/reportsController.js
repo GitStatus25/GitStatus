@@ -434,9 +434,12 @@ exports.generateReport = async (req, res) => {
         // Track token usage and cost
         await UsageStatsService.trackTokenUsage(
           userId,
-          inputTokenCount + outputTokenCount, // Total tokens used
-          modelName,
-          estimatedCost
+          inputTokenCount,                   // Input tokens
+          outputTokenCount,                  // Output tokens
+          modelName,                         // Model name
+          estimatedCost,                     // Total cost
+          inputTokenCount * inputCost,       // Input cost
+          outputTokenCount * outputCost      // Output cost
         );
       }
       
