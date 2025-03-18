@@ -217,7 +217,7 @@ const AnalyticsDashboard = () => {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Reports Generated"
-            value={stats?.monthlyStats?.reports?.total || 0}
+            value={stats?.allTimeStats?.reports || 0}
             icon={<DescriptionIcon sx={{ color: theme.palette.primary.main }} />}
             color={theme.palette.primary.main}
             subtitle="All Time"
@@ -227,7 +227,7 @@ const AnalyticsDashboard = () => {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Commits Analyzed"
-            value={stats?.monthlyStats?.commits?.summarized || 0}
+            value={stats?.allTimeStats?.commits || 0}
             icon={<CodeIcon sx={{ color: theme.palette.success.main }} />}
             color={theme.palette.success.main}
             subtitle="All Time"
@@ -237,7 +237,7 @@ const AnalyticsDashboard = () => {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Token Usage"
-            value={stats?.monthlyStats?.tokenUsage?.total?.toLocaleString() || 0}
+            value={stats?.allTimeStats?.tokenUsage?.toLocaleString() || 0}
             icon={<SpeedIcon sx={{ color: theme.palette.warning.main }} />}
             color={theme.palette.warning.main}
             subtitle="All Time"
@@ -295,7 +295,7 @@ const AnalyticsDashboard = () => {
                 Reports Generated
               </Typography>
               <Typography variant="h4" component="div">
-                {stats?.currentUsage?.reportsGenerated || 0}
+                {stats?.currentMonthStats?.reports?.total || 0}
               </Typography>
             </Box>
             <Box sx={{ mb: 3 }}>
@@ -303,7 +303,7 @@ const AnalyticsDashboard = () => {
                 Commits Analyzed
               </Typography>
               <Typography variant="h4" component="div">
-                {stats?.currentUsage?.commitsAnalyzed || 0}
+                {stats?.currentMonthStats?.commits?.summarized || 0}
               </Typography>
             </Box>
             <Box>
@@ -311,7 +311,7 @@ const AnalyticsDashboard = () => {
                 Token Usage
               </Typography>
               <Typography variant="h4" component="div">
-                {stats?.currentUsage?.tokensUsed?.toLocaleString() || 0}
+                {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
               </Typography>
             </Box>
           </Paper>

@@ -203,15 +203,34 @@ class UsageStatsService {
       if (!user) throw new Error('User not found');
 
       const currentMonth = this.getCurrentMonth();
-      const monthlyStats = await UsageStats.findOne({ 
+      
+      // Get current month's stats
+      const currentMonthStats = await UsageStats.findOne({ 
         user: userId, 
         month: currentMonth 
       });
 
+      // Get all-time stats by aggregating all months
+      const allTimeStats = await UsageStats.aggregate([
+        { $match: { user: userId } },
+        {
+          $group: {
+            _id: null,
+            reports: { $sum: '$reports.total' },
+            commits: { $sum: '$commits.summarized' },
+            tokenUsage: { $sum: '$tokenUsage.total' }
+          }
+        }
+      ]);
+
       return {
-        limits: user.usageLimits,
+        plan: {
+          name: user.plan.name,
+          displayName: user.plan.displayName,
+          limits: user.plan.limits
+        },
         currentUsage: user.currentUsage,
-        monthlyStats: monthlyStats || {
+        currentMonthStats: currentMonthStats || {
           reports: { total: 0, byType: {} },
           commits: { total: 0, summarized: 0 },
           tokenUsage: { 
@@ -221,15 +240,12 @@ class UsageStatsService {
             byModel: {},
             inputByModel: {},
             outputByModel: {}
-          },
-          costEstimate: { 
-            total: 0,
-            input: 0,
-            output: 0,
-            byService: {},
-            inputByService: {},
-            outputByService: {} 
           }
+        },
+        allTimeStats: allTimeStats[0] || {
+          reports: 0,
+          commits: 0,
+          tokenUsage: 0
         }
       };
     } catch (error) {
