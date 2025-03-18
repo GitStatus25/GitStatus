@@ -245,8 +245,8 @@ const AnalyticsDashboard = () => {
           />
         </Grid>
 
-        {/* Usage Limits */}
-        <Grid item xs={12} md={6}>
+        {/* Usage Limits and Monthly Breakdown */}
+        <Grid item xs={12}>
           <Paper
             sx={{
               p: 3,
@@ -255,65 +255,61 @@ const AnalyticsDashboard = () => {
               backdropFilter: 'blur(10px)'
             }}
           >
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-              <StorageIcon sx={{ mr: 1, color: theme.palette.info.main }} />
-              Monthly Usage Limits
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            <UsageProgress
-              current={stats?.currentUsage?.reportsGenerated || 0}
-              limit={stats?.plan?.limits?.reportsPerMonth || 50}
-              label="Reports per Month"
-              color={theme.palette.primary.main}
-            />
-            <UsageProgress
-              current={stats?.currentUsage?.commitsAnalyzed || 0}
-              limit={stats?.plan?.limits?.commitsPerMonth || 500}
-              label="Commits per Month"
-              color={theme.palette.success.main}
-            />
-          </Paper>
-        </Grid>
+            <Grid container spacing={3}>
+              {/* Monthly Usage Limits */}
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                  <StorageIcon sx={{ mr: 1, color: theme.palette.info.main }} />
+                  Monthly Usage Limits
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <UsageProgress
+                  current={stats?.currentMonthStats?.reports?.total || 0}
+                  limit={stats?.plan?.limits?.reportsPerMonth || 50}
+                  label="Reports per Month"
+                  color={theme.palette.primary.main}
+                />
+                <UsageProgress
+                  current={stats?.currentMonthStats?.commits?.summarized || 0}
+                  limit={stats?.plan?.limits?.commitsPerMonth || 500}
+                  label="Commits per Month"
+                  color={theme.palette.success.main}
+                />
+              </Grid>
 
-        {/* Monthly Breakdown */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              background: theme.palette.background.cardGradient,
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)'
-            }}
-          >
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-              <TrendingUpIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
-              This Month's Usage
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Reports Generated
-              </Typography>
-              <Typography variant="h4" component="div">
-                {stats?.currentMonthStats?.reports?.total || 0}
-              </Typography>
-            </Box>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Commits Analyzed
-              </Typography>
-              <Typography variant="h4" component="div">
-                {stats?.currentMonthStats?.commits?.summarized || 0}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Token Usage
-              </Typography>
-              <Typography variant="h4" component="div">
-                {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
-              </Typography>
-            </Box>
+              {/* Monthly Breakdown */}
+              <Grid item xs={12} md={6}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                  <TrendingUpIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
+                  This Month's Usage
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Reports Generated
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {stats?.currentMonthStats?.reports?.total || 0}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Commits Analyzed
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {stats?.currentMonthStats?.commits?.summarized || 0}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Token Usage
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
 
