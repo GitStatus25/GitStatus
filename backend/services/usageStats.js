@@ -215,7 +215,7 @@ class UsageStatsService {
       console.log('Current month start:', currentMonth);
 
       const currentMonthStats = await UsageStats.findOne({
-        userId,
+        user: userId,
         month: currentMonth
       });
 
@@ -223,7 +223,7 @@ class UsageStatsService {
 
       // Get all-time stats using aggregation
       const allTimeStats = await UsageStats.aggregate([
-        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        { $match: { user: new mongoose.Types.ObjectId(userId) } },
         {
           $group: {
             _id: null,
