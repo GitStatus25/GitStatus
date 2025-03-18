@@ -209,15 +209,10 @@ class UsageStatsService {
       // Get current month's stats using the same format as tracking methods
       const currentMonth = this.getCurrentMonth();
 
-      console.log('Fetching stats for user:', userId);
-      console.log('Current month:', currentMonth);
-
       const currentMonthStats = await UsageStats.findOne({
         user: userId,
         month: currentMonth
       });
-
-      console.log('Current month stats:', currentMonthStats);
 
       // Get all-time stats using aggregation
       const allTimeStats = await UsageStats.aggregate([
@@ -232,15 +227,11 @@ class UsageStatsService {
         }
       ]);
 
-      console.log('All-time stats aggregation result:', allTimeStats);
-
       // Get current usage from user model
       const currentUsage = {
         reportsGenerated: user.currentUsage?.reportsGenerated || 0,
         commitsAnalyzed: user.currentUsage?.commitsAnalyzed || 0
       };
-
-      console.log('Current usage from user model:', currentUsage);
 
       return {
         plan: user.plan,
