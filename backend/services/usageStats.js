@@ -206,13 +206,11 @@ class UsageStatsService {
         throw new Error('User not found');
       }
 
-      // Get current month's stats
-      const currentMonth = new Date();
-      currentMonth.setDate(1);
-      currentMonth.setHours(0, 0, 0, 0);
+      // Get current month's stats using the same format as tracking methods
+      const currentMonth = this.getCurrentMonth();
 
       console.log('Fetching stats for user:', userId);
-      console.log('Current month start:', currentMonth);
+      console.log('Current month:', currentMonth);
 
       const currentMonthStats = await UsageStats.findOne({
         user: userId,
