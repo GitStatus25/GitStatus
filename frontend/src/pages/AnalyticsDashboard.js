@@ -14,7 +14,8 @@ import {
   Paper,
   Tooltip,
   IconButton,
-  Zoom
+  Zoom,
+  Button
 } from '@mui/material';
 import {
   Description as DescriptionIcon,
@@ -24,7 +25,8 @@ import {
   Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
   Storage as StorageIcon,
-  AccountCircle as AccountCircleIcon
+  AccountCircle as AccountCircleIcon,
+  GitHub as GitHubIcon
 } from '@mui/icons-material';
 import Layout from '../components/Layout';
 import api from '../services/api';
@@ -304,13 +306,56 @@ const AnalyticsDashboard = () => {
                 {stats?.monthlyStats?.commits?.summarized || 0}
               </Typography>
             </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Estimated Cost
-              </Typography>
-              <Typography variant="h4" component="div">
-                ${(stats?.monthlyStats?.costEstimate?.total || 0).toFixed(2)}
-              </Typography>
+            <Box sx={{ position: 'relative' }}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backdropFilter: 'blur(8px)',
+                  bgcolor: 'rgba(0, 0, 0, 0.3)',
+                  borderRadius: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 3,
+                  textAlign: 'center'
+                }}
+              >
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                  Advanced Commit Analysis
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Coming in Phase 2
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<GitHubIcon />}
+                  href="https://github.com/yourusername/GitStatus/issues/1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    '&:hover': {
+                      borderColor: theme.palette.primary.main,
+                      backgroundColor: 'rgba(77, 171, 245, 0.08)',
+                    }
+                  }}
+                >
+                  View on GitHub
+                </Button>
+              </Box>
+              <Box sx={{ opacity: 0.3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Advanced Metrics
+                </Typography>
+                <Typography variant="h4" component="div">
+                  Coming Soon
+                </Typography>
+              </Box>
             </Box>
           </Paper>
         </Grid>
