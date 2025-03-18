@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const UsageStats = require('../models/UsageStats');
+const mongoose = require('mongoose');
 
 /**
  * Service for handling usage statistics tracking
@@ -199,20 +200,30 @@ class UsageStatsService {
    */
   static async getUserUsageStats(userId) {
     try {
-      const user = await User.findById(userId);
-      if (!user) throw new Error('User not found');
+      // Get user's plan
+      const user = await User.findById(userId).populate('plan');
+      if (!user) {
+        throw new Error('User not found');
+      }
 
-      const currentMonth = this.getCurrentMonth();
-      
       // Get current month's stats
-      const currentMonthStats = await UsageStats.findOne({ 
-        user: userId, 
-        month: currentMonth 
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      currentMonth.setHours(0, 0, 0, 0);
+
+      console.log('Fetching stats for user:', userId);
+      console.log('Current month start:', currentMonth);
+
+      const currentMonthStats = await UsageStats.findOne({
+        userId,
+        month: currentMonth
       });
 
-      // Get all-time stats by aggregating all months
+      console.log('Current month stats:', currentMonthStats);
+
+      // Get all-time stats using aggregation
       const allTimeStats = await UsageStats.aggregate([
-        { $match: { user: userId } },
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
         {
           $group: {
             _id: null,
@@ -223,24 +234,23 @@ class UsageStatsService {
         }
       ]);
 
+      console.log('All-time stats aggregation result:', allTimeStats);
+
+      // Get current usage from user model
+      const currentUsage = {
+        reportsGenerated: user.currentUsage?.reportsGenerated || 0,
+        commitsAnalyzed: user.currentUsage?.commitsAnalyzed || 0
+      };
+
+      console.log('Current usage from user model:', currentUsage);
+
       return {
-        plan: {
-          name: user.plan.name,
-          displayName: user.plan.displayName,
-          limits: user.plan.limits
-        },
-        currentUsage: user.currentUsage,
+        plan: user.plan,
+        currentUsage,
         currentMonthStats: currentMonthStats || {
-          reports: { total: 0, byType: {} },
-          commits: { total: 0, summarized: 0 },
-          tokenUsage: { 
-            total: 0, 
-            input: 0, 
-            output: 0,
-            byModel: {},
-            inputByModel: {},
-            outputByModel: {}
-          }
+          reports: { total: 0 },
+          commits: { summarized: 0 },
+          tokenUsage: { total: 0 }
         },
         allTimeStats: allTimeStats[0] || {
           reports: 0,
@@ -249,7 +259,7 @@ class UsageStatsService {
         }
       };
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      console.error('Error in getUserUsageStats:', error);
       throw error;
     }
   }
