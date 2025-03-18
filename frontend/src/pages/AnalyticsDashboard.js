@@ -295,7 +295,7 @@ const AnalyticsDashboard = () => {
                 Reports Generated
               </Typography>
               <Typography variant="h4" component="div">
-                {stats?.monthlyStats?.reports?.total || 0}
+                {stats?.currentUsage?.reportsGenerated || 0}
               </Typography>
             </Box>
             <Box>
