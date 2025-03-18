@@ -12,17 +12,20 @@ const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading, checkAuth } = useContext(AuthContext);
   const location = useLocation();
   const [checkingAuth, setCheckingAuth] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   // Recheck authentication when the component mounts or the route changes
   useEffect(() => {
-    // Only check authentication if we're not already loading or checking
-    if (!loading && !checkingAuth) {
+    // Only check authentication once initially or if we explicitly need to recheck
+    // (not on every route change)
+    if (!loading && !checkingAuth && !hasCheckedAuth) {
       setCheckingAuth(true);
       checkAuth().finally(() => {
         setCheckingAuth(false);
+        setHasCheckedAuth(true);
       });
     }
-  }, [location.pathname, checkAuth, loading, checkingAuth]);
+  }, [checkAuth, loading, checkingAuth, hasCheckedAuth]);
 
   // Show loading spinner while checking authentication
   if (loading || checkingAuth) {
