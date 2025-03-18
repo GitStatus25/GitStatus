@@ -70,8 +70,8 @@ class UsageStatsService {
         { user: userId, month: currentMonth },
         {
           $inc: {
-            'commits.total': commitCount,
-            'commits.summarized': summarizedCount
+            'commits.total': 1,  // Increment total by 1 for each analysis
+            'commits.summarized': summarizedCount  // Track actual commits summarized
           }
         },
         { upsert: true, new: true }
@@ -253,7 +253,7 @@ class UsageStatsService {
           $group: {
             _id: null,
             totalReports: { $sum: '$reports.total' },
-            totalCommits: { $sum: '$commits.total' },
+            totalCommits: { $sum: '$commits.summarized' },
             totalTokens: { $sum: '$tokenUsage.total' },
             inputTokens: { $sum: '$tokenUsage.input' },
             outputTokens: { $sum: '$tokenUsage.output' },
@@ -272,7 +272,7 @@ class UsageStatsService {
           $project: {
             user: 1,
             reportsTotal: '$reports.total',
-            commitsTotal: '$commits.total',
+            commitsTotal: '$commits.summarized',
             tokensTotal: '$tokenUsage.total',
             inputTokens: '$tokenUsage.input',
             outputTokens: '$tokenUsage.output',

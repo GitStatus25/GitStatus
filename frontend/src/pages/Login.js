@@ -12,7 +12,7 @@ import {
   Paper
 } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Login = () => {
   const { isAuthenticated, loading } = useContext(AuthContext);

@@ -14,7 +14,8 @@ exports.getCurrentUser = (req, res) => {
         name: req.user.name,
         username: req.user.username,
         email: req.user.email,
-        avatarUrl: req.user.avatarUrl
+        avatarUrl: req.user.avatarUrl,
+        role: req.user.role
       }
     });
   }

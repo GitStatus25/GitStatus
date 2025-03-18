@@ -41,7 +41,7 @@ import Layout from '../components/Layout';
 import api from '../services/api';
 import toast from '../services/toast'; // Import toast
 import { useModal } from '../contexts/ModalContext';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Dashboard = () => {
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);

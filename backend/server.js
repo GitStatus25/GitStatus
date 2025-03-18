@@ -12,6 +12,7 @@ const commitsRoutes = require('./routes/commits');
 const reportsRoutes = require('./routes/reports');
 const commitSummaryRoutes = require('./routes/commitSummaryRoutes');
 const usageStatsRoutes = require('./routes/usageStats');
+const adminRoutes = require('./routes/admin');
 require('./config/passport');
 
 const app = express();
@@ -73,6 +74,7 @@ app.use('/api/commits', commitsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/commit-summaries', commitSummaryRoutes);
 app.use('/api/usage-stats', usageStatsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Base route
 app.get('/', (req, res) => {

@@ -213,25 +213,17 @@ exports.generateReport = async (req, res) => {
     
     // Estimate cost based on token usage (these are example rates, adjust as needed)
     const tokenCosts = {
-      'gpt-4': {
-        input: 0.00003,  // $0.03 per 1000 tokens
-        output: 0.00006  // $0.06 per 1000 tokens
-      },
-      'gpt-3.5-turbo': {
-        input: 0.0000015,  // $0.0015 per 1000 tokens
-        output: 0.000002   // $0.002 per 1000 tokens
-      },
       'gpt-4o': {
-        input: 0.00001,  // $0.01 per 1000 tokens
-        output: 0.00003  // $0.03 per 1000 tokens
+        input: 0.000002027,  // $0.027 per 13,320 tokens
+        output: 0.00001011   // $0.044 per 4,352 tokens
       },
       'gpt-4o-mini': {
-        input: 0.000005,  // $0.005 per 1000 tokens
-        output: 0.000015  // $0.015 per 1000 tokens
+        input: 0.000000156,  // $0.004 per 25,615 tokens
+        output: 0.000000606  // $0.006 per 9,895 tokens
       }
     };
     
-    const defaultCost = { input: 0.00003, output: 0.00006 }; // Default to GPT-4 rates
+    const defaultCost = { input: 0.000000156, output: 0.000000606 }; // Default to 4o-mini rates
     const { input: inputCost, output: outputCost } = tokenCosts[modelName] || defaultCost;
     
     const estimatedCost = (inputTokenCount * inputCost) + (outputTokenCount * outputCost);

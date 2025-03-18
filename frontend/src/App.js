@@ -2,14 +2,16 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import AuthProvider from './context/AuthContext';
+import AuthProvider from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
 import PrivateRoute from './components/PrivateRoute';
+import AdminRoute from './components/AdminRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CreateReport from './pages/CreateReport';
 import ViewReport from './pages/ViewReport';
 import NotFound from './pages/NotFound';
+import AdminDashboard from './components/AdminDashboard';
 import CreateReportModal from './components/modals/CreateReportModal';
 import ViewCommitsModal from './components/modals/ViewCommitsModal';
 import AuthCallback from './pages/AuthCallback';
@@ -152,6 +154,14 @@ function App() {
                   <PrivateRoute>
                     <Dashboard />
                   </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
                 }
               />
               <Route

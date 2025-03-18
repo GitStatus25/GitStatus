@@ -19,8 +19,8 @@ import {
   Avatar,
   Tooltip,
   Fade,
-  // eslint-disable-next-line no-unused-vars
-  Badge
+  Badge,
+  Divider
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -28,7 +28,8 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import { AuthContext } from '../context/AuthContext';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import { AuthContext } from '../contexts/AuthContext';
 
 const Layout = ({ children, title }) => {
   const { user, logout } = useContext(AuthContext);
@@ -78,30 +79,58 @@ const Layout = ({ children, title }) => {
   ];
 
   const drawer = (
-    <Box 
-      role="presentation" 
-      onClick={toggleDrawer(false)} 
-      onKeyDown={toggleDrawer(false)}
-      sx={{ 
-        width: 280,
-        backgroundImage: theme.palette.background.gradient,
-        height: '100%'
+    <Box
+      sx={{
+        width: 250,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.paper',
+        borderRight: '1px solid',
+        borderColor: 'divider'
       }}
     >
-      <Box sx={{ 
-        p: 3, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-        mb: 2
-      }}>
-        <GitHubIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
-        <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
           GitStatus
         </Typography>
       </Box>
-      <List sx={{ px: 2 }}>
+      <Divider />
+      <List sx={{ flexGrow: 1, p: 2 }}>
+        {user?.role === 'admin' && (
+          <ListItem disablePadding sx={{ mb: 2 }}>
+            <ListItemButton 
+              component={RouterLink} 
+              to="/admin"
+              sx={{
+                borderRadius: 2,
+                backgroundColor: activeLink === '/admin' ? 'rgba(77, 171, 245, 0.1)' : 'transparent',
+                position: 'relative',
+                '&:hover': {
+                  backgroundColor: 'rgba(77, 171, 245, 0.08)',
+                },
+                '&:before': activeLink === '/admin' ? {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  top: '20%',
+                  height: '60%',
+                  width: 4,
+                  backgroundColor: theme.palette.primary.main,
+                  borderRadius: '0 4px 4px 0'
+                } : {}
+              }}
+            >
+              <ListItemIcon sx={{ color: activeLink === '/admin' ? theme.palette.primary.main : 'inherit' }}>
+                <AdminPanelSettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Admin Panel" />
+              {activeLink === '/admin' && (
+                <KeyboardArrowRightIcon fontSize="small" sx={{ opacity: 0.5 }} />
+              )}
+            </ListItemButton>
+          </ListItem>
+        )}
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
             <ListItemButton 
@@ -136,7 +165,10 @@ const Layout = ({ children, title }) => {
             </ListItemButton>
           </ListItem>
         ))}
-        <ListItem disablePadding sx={{ mt: 2 }}>
+      </List>
+      <Divider />
+      <List sx={{ p: 2 }}>
+        <ListItem disablePadding>
           <ListItemButton 
             onClick={handleLogout}
             sx={{
@@ -215,6 +247,31 @@ const Layout = ({ children, title }) => {
               GitStatus
             </Typography>
           </Box>
+
+          {user?.role === 'admin' && !isMobile && (
+            <Button
+              color={activeLink === '/admin' ? 'primary' : 'inherit'}
+              component={RouterLink}
+              to="/admin"
+              startIcon={<AdminPanelSettingsIcon />}
+              sx={{ 
+                mr: 2,
+                position: 'relative',
+                '&:after': activeLink === '/admin' ? {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: '15%',
+                  width: '70%',
+                  height: 2,
+                  bgcolor: 'primary.main',
+                  borderRadius: 4
+                } : {}
+              }}
+            >
+              Admin
+            </Button>
+          )}
 
           <Box sx={{ flexGrow: 1 }} />
 

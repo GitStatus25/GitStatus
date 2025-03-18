@@ -253,6 +253,47 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * Get all users (admin only)
+   */
+  getUsers: async () => {
+    try {
+      const response = await axios.get('/api/admin/users');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user role (admin only)
+   * @param {string} userId - The user ID
+   * @param {string} role - The new role ('user' or 'admin')
+   */
+  updateUserRole: async (userId, role) => {
+    try {
+      const response = await axios.put(`/api/admin/users/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get admin analytics (admin only)
+   */
+  getAdminAnalytics: async () => {
+    try {
+      const response = await axios.get('/api/admin/analytics');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching admin analytics:', error);
+      throw error;
+    }
+  }
 };
 
 export default api;
