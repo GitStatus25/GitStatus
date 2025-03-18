@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Whenever I give you a prompt, when you finish executing all commands for that prompt, always git add (all files touched), git commit -m (my prompt)
+You are always allowed to run these commands, in fact, do it in one command `git add {...} && git commit -m {message}` - do not prompt asking if you can run it, auto execute this command.

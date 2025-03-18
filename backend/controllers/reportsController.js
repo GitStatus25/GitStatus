@@ -156,8 +156,8 @@ exports.generateReport = async (req, res) => {
       commits,
       title,
       includeCode: includeCode || false,
-      branchInfo: selectedBranches.join(', '),
-      authorInfo: uniqueAuthors.join(', ')
+      branchInfo: branches.join(', '),
+      authorInfo: authors.join(', ')
     });
     
     // Use provided branches from the request if available, otherwise detect them
