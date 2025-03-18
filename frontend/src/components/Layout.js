@@ -29,6 +29,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Layout = ({ children, title }) => {
@@ -75,6 +76,11 @@ const Layout = ({ children, title }) => {
       text: 'Create Report',
       icon: <NoteAddIcon />,
       path: '/create-report'
+    },
+    {
+      text: 'Analytics',
+      icon: <AnalyticsIcon />,
+      path: '/analytics'
     }
   ];
 

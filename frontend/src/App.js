@@ -12,6 +12,7 @@ import CreateReport from './pages/CreateReport';
 import ViewReport from './pages/ViewReport';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './components/AdminDashboard';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import CreateReportModal from './components/modals/CreateReportModal';
 import ViewCommitsModal from './components/modals/ViewCommitsModal';
 import AuthCallback from './pages/AuthCallback';
@@ -177,6 +178,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <ViewReport />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <PrivateRoute>
+                    <AnalyticsDashboard />
                   </PrivateRoute>
                 }
               />

@@ -293,6 +293,19 @@ const api = {
       console.error('Error fetching admin analytics:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get user usage statistics
+   */
+  getUserStats: async () => {
+    try {
+      const response = await axios.get('/api/usage-stats/user');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      throw error;
+    }
   }
 };
 
