@@ -22,14 +22,21 @@ app.use(helmet());
 // Rate limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  // TODO: Re-enable proper rate limiting before deployment.
+  // Temporarily increased for development to avoid network errors.
+  max: 1000, // Increased from 100 to 1000 for development
   message: 'Too many requests from this IP, please try again later',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
 // Apply rate limiting to all API routes
-app.use('/api/', apiLimiter);
+// TODO: For development only - conditionally apply rate limiting
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api/', apiLimiter);
+} else {
+  console.log('Rate limiting disabled for development');
+}
 
 // Middleware
 app.use(cors({
