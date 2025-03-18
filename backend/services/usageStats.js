@@ -144,17 +144,6 @@ class UsageStatsService {
         updateQuery,
         { upsert: true, new: true }
       );
-      
-      console.log('Token usage tracked:', {
-        user: userId,
-        model: modelName,
-        inputTokens: inputTokenCount,
-        outputTokens: outputTokenCount,
-        totalTokens: totalTokenCount,
-        inputCost,
-        outputCost,
-        totalCost
-      });
     } catch (error) {
       console.error('Error tracking token usage:', error);
     }
