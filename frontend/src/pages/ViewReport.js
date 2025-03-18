@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Alert,
@@ -65,6 +65,8 @@ const ViewReport = () => {
   // eslint-disable-next-line no-unused-vars
   const [isDeleting, setIsDeleting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const [pdfPreviewFailed, setPdfPreviewFailed] = useState(false);
+  const iframeRef = useRef(null);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -152,6 +154,38 @@ const ViewReport = () => {
       fetchReport();
     }
   }, [id]);
+
+  useEffect(() => {
+    // Check if PDF preview is available after component mounts
+    const checkPdfPreview = () => {
+      try {
+        const iframe = iframeRef.current;
+        if (iframe) {
+          // If the iframe is empty or throws an error, show fallback
+          setTimeout(() => {
+            try {
+              // Check if iframe content is accessible
+              const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+              // If empty or has an error message
+              if (!iframeDoc || iframeDoc.body.innerHTML === '' || 
+                  iframeDoc.body.innerHTML.includes('error')) {
+                setPdfPreviewFailed(true);
+              }
+            } catch (err) {
+              // Cross-origin errors will be caught here
+              setPdfPreviewFailed(true);
+            }
+          }, 3000); // Give it 3 seconds to load
+        }
+      } catch (e) {
+        setPdfPreviewFailed(true);
+      }
+    };
+
+    if (report?.downloadUrl) {
+      checkPdfPreview();
+    }
+  }, [report]);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -751,17 +785,71 @@ const ViewReport = () => {
                         height: '600px',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: 2,
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        position: 'relative'
                       }}
                     >
-                      <iframe
-                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(report.downloadUrl)}&embedded=true`}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        allowFullScreen
-                        title="Report Document Viewer"
-                      ></iframe>
+                      {!pdfPreviewFailed ? (
+                        <iframe
+                          ref={iframeRef}
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(report.downloadUrl)}&embedded=true`}
+                          width="100%"
+                          height="100%"
+                          frameBorder="0"
+                          allowFullScreen
+                          title="Report Document Viewer"
+                          onLoad={(e) => {
+                            try {
+                              const iframe = e.target;
+                              const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                              if (!iframeDoc || iframeDoc.body.innerHTML === '') {
+                                setPdfPreviewFailed(true);
+                              }
+                            } catch (err) {
+                              setPdfPreviewFailed(true);
+                            }
+                          }}
+                          onError={() => setPdfPreviewFailed(true)}
+                        />
+                      ) : (
+                        <Box 
+                          sx={{ 
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(18, 24, 36, 0.9)',
+                            p: 3,
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Typography variant="h6" gutterBottom>
+                            PDF Preview not available
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 500 }}>
+                            Your browser doesn't support the embedded PDF viewer or the document couldn't be loaded. 
+                            Please use the button below to download and view the report.
+                          </Typography>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<DownloadIcon />}
+                            href={report.downloadUrl}
+                            target="_blank"
+                            sx={{
+                              borderRadius: 2,
+                              boxShadow: '0 4px 12px rgba(77, 171, 245, 0.3)',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 6px 16px rgba(77, 171, 245, 0.4)',
+                              }
+                            }}
+                          >
+                            Download Report
+                          </Button>
+                        </Box>
+                      )}
                     </Box>
                   </CardContent>
                 </Card>
