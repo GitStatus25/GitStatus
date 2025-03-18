@@ -298,7 +298,7 @@ const AnalyticsDashboard = () => {
                 {stats?.monthlyStats?.reports?.total || 0}
               </Typography>
             </Box>
-            <Box sx={{ mb: 3 }}>
+            <Box>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Commits Analyzed
               </Typography>
@@ -306,41 +306,85 @@ const AnalyticsDashboard = () => {
                 {stats?.monthlyStats?.commits?.summarized || 0}
               </Typography>
             </Box>
-            <Box sx={{ position: 'relative', mt: 2, p: 3, bgcolor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%)',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)', // For Safari
-                  borderRadius: 2,
+          </Paper>
+        </Grid>
+
+        {/* Advanced Commit Analysis */}
+        <Grid item xs={12}>
+          <Paper
+            sx={{
+              p: 4,
+              background: theme.palette.background.cardGradient,
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 100%)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)', // For Safari
+                zIndex: 1
+              }}
+            />
+            <Box sx={{ position: 'relative', zIndex: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h5" sx={{ 
+                  fontWeight: 600, 
+                  color: 'primary.main',
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  p: 3,
-                  textAlign: 'center',
-                  zIndex: 1
-                }}
-              >
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                  mr: 2
+                }}>
+                  <CodeIcon sx={{ mr: 2, fontSize: 28 }} />
                   Advanced Commit Analysis
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 300, lineHeight: 1.6 }}>
-                  Unlock deeper insights with AI-powered commit analysis, code complexity metrics, and contribution patterns
-                </Typography>
+                <Box sx={{
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 1,
+                  bgcolor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                  <Typography variant="overline" sx={{ color: 'primary.main', letterSpacing: 1 }}>
+                    Coming Soon
+                  </Typography>
+                </Box>
               </Box>
-              <Box sx={{ opacity: 0.15, position: 'relative', zIndex: 0 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Advanced Metrics
+              <Box sx={{ 
+                p: 3,
+                borderRadius: 2,
+                bgcolor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.03)'
+              }}>
+                <Typography variant="body1" sx={{ 
+                  maxWidth: 600,
+                  color: 'text.secondary',
+                  lineHeight: 1.8
+                }}>
+                  Get ready for a powerful upgrade to your Git analytics! Soon you'll be able to:
                 </Typography>
-                <Typography variant="h4" component="div">
-                  Coming Soon
-                </Typography>
+                <Box component="ul" sx={{ 
+                  mt: 2,
+                  pl: 2,
+                  '& li': { 
+                    color: 'text.secondary',
+                    mb: 1,
+                    lineHeight: 1.8
+                  }
+                }}>
+                  <li>Uncover code complexity patterns and trends</li>
+                  <li>Identify potential refactoring opportunities with AI assistance</li>
+                  <li>Track detailed contribution metrics across your team</li>
+                  <li>Generate AI-powered insights about your development workflow</li>
+                </Box>
               </Box>
             </Box>
           </Paper>
