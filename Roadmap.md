@@ -7,8 +7,15 @@
   - Standard reports (5 commits per report)
   - Big reports (20 commits per report)
 - Track usage metrics to inform future pricing
+  - Per-user report usage and limits tracking
+  - API call counting and rate limiting
+  - Token usage monitoring for cost analysis
 - Implement PDF watermarking
 - Basic prompt version
+- Admin management system
+  - Create admin role designation
+  - Admin dashboard with system-wide analytics
+  - Financial monitoring tools (usage costs, revenue metrics)
 
 ### Phase 2: First Paid Tier (Premium)
 - Higher limits for both standard and big reports
@@ -17,6 +24,7 @@
 - Enhanced prompt quality
 - Keep GitStatus footer
 - Usage-based pricing option
+- Progressive commit loading implementation
 
 ### Phase 3: Second Paid Tier (Enterprise)
 - Remove footer affiliation option
@@ -29,16 +37,21 @@
 
 ## EPIC 2: Performance Optimization (High Priority)
 
-### Feature: Async Commit Loading
-- Implement progressive commit loading
-- Add loading states and indicators
-- Optimize large repository performance
-
-### Feature: Usage Analytics
+### Feature: Usage Analytics (Phase 1 Priority)
 - Track report generation by type (standard/big)
 - Monitor commit analysis
 - Implement token usage tracking
 - Create usage dashboard
+  - User-facing dashboard showing personal usage
+  - Admin-facing dashboard showing system-wide metrics
+- Cost monitoring and analysis
+  - Track AI model costs
+  - Calculate per-report and per-user costs
+
+### Feature: Async Commit Loading (Phase 2)
+- Implement progressive commit loading
+- Add loading states and indicators
+- Optimize large repository performance
 
 ## EPIC 3: Target Audience Expansion (Medium Priority)
 
@@ -85,9 +98,3 @@
 - Not all new features should be paywalled
 - Regular feature releases for all tiers
 - Premium features should provide clear additional value
-
-## Strategic Questions to Address
-
-1. How should we determine free tier limits? (commits/tokens/time period?)
-2. What's the target pricing structure for different tiers?
-3. Should we implement a gradual rollout of premium features or launch them all at once? 
