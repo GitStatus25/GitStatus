@@ -227,7 +227,7 @@ const AnalyticsDashboard = () => {
         <Grid item xs={12} md={4}>
           <StatCard
             title="Commits Analyzed"
-            value={stats?.currentUsage?.commitsAnalyzed || 0}
+            value={stats?.monthlyStats?.commits?.summarized || 0}
             icon={<CodeIcon sx={{ color: theme.palette.success.main }} />}
             color={theme.palette.success.main}
             subtitle="This Month"
@@ -267,7 +267,7 @@ const AnalyticsDashboard = () => {
               color={theme.palette.primary.main}
             />
             <UsageProgress
-              current={stats?.currentUsage?.commitsAnalyzed || 0}
+              current={stats?.monthlyStats?.commits?.summarized || 0}
               limit={stats?.limits?.commitsPerMonth || 500}
               label="Commits per Month"
               color={theme.palette.success.main}
@@ -306,7 +306,7 @@ const AnalyticsDashboard = () => {
                 {stats?.monthlyStats?.commits?.summarized || 0}
               </Typography>
             </Box>
-            <Box sx={{ position: 'relative' }}>
+            <Box sx={{ position: 'relative', mt: 2, p: 3, bgcolor: 'rgba(0, 0, 0, 0.2)', borderRadius: 2 }}>
               <Box
                 sx={{
                   position: 'absolute',
@@ -314,18 +314,20 @@ const AnalyticsDashboard = () => {
                   left: 0,
                   right: 0,
                   bottom: 0,
+                  background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%)',
                   backdropFilter: 'blur(8px)',
-                  bgcolor: 'rgba(0, 0, 0, 0.3)',
+                  WebkitBackdropFilter: 'blur(8px)', // For Safari
                   borderRadius: 2,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   p: 3,
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  zIndex: 1
                 }}
               >
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
                   Advanced Commit Analysis
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -348,7 +350,7 @@ const AnalyticsDashboard = () => {
                   View on GitHub
                 </Button>
               </Box>
-              <Box sx={{ opacity: 0.3 }}>
+              <Box sx={{ opacity: 0.15, position: 'relative', zIndex: 0 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Advanced Metrics
                 </Typography>
