@@ -12,9 +12,9 @@ import {
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import DownloadIcon from '@mui/icons-material/Download';
-import './PDFPreviewComponent.css';
+import './ViewReportPDFPreviewComponent.css';
 
-const PDFPreviewComponentTemplate = ({ 
+const ViewReportPDFPreviewComponentTemplate = ({ 
   report, 
   pdfStatus = 'loading', 
   pdfProgress = 0,
@@ -135,4 +135,4 @@ const PDFPreviewComponentTemplate = ({
   );
 };
 
-export default PDFPreviewComponentTemplate; 
+export default ViewReportPDFPreviewComponentTemplate; 

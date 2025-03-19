@@ -9,13 +9,13 @@ import {
   Grid
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Layout from '../../components/Layout';
+import Layout from '../../components/PagePartials/Layout';
 import {
-  ReportHeaderComponent,
-  ReportMetadataComponent,
-  CommitListComponent,
-  PDFPreviewComponent
-} from '.';
+  ViewReportReportHeaderComponent,
+  ViewReportReportMetadataComponent,
+  ViewReportCommitListComponent,
+  ViewReportPDFPreviewComponent
+} from '../PagePartials/ViewReport';
 import './ViewReportComponent.css';
 
 const ViewReportComponentTemplate = ({
@@ -86,22 +86,22 @@ const ViewReportComponentTemplate = ({
     <Layout title={report.name}>
       <Fade in={true} timeout={800}>
         <Box className="view-report-container">
-          <ReportHeaderComponent report={report} />
+          <ViewReportReportHeaderComponent report={report} />
 
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <ReportMetadataComponent report={report} />
+              <ViewReportReportMetadataComponent report={report} />
             </Grid>
 
             {/* Commit List Section */}
             <Grid item xs={12}>
-              <CommitListComponent commits={report.commits || []} />
+              <ViewReportCommitListComponent commits={report.commits || []} />
             </Grid>
 
             {/* PDF Preview Section */}
             {report && (
               <Grid item xs={12}>
-                <PDFPreviewComponent 
+                <ViewReportPDFPreviewComponent 
                   report={report} 
                   pdfStatus={pdfStatus} 
                   pdfProgress={pdfProgress} 

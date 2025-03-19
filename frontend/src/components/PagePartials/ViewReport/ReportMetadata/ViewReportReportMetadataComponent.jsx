@@ -15,9 +15,9 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PersonIcon from '@mui/icons-material/Person';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import './ReportMetadataComponent.css';
+import './ViewReportReportMetadataComponent.css';
 
-const ReportMetadataComponentTemplate = ({ report, formatDate }) => {
+const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
   const theme = useTheme();
 
   return (
@@ -182,4 +182,4 @@ const ReportMetadataComponentTemplate = ({ report, formatDate }) => {
   );
 };
 
-export default ReportMetadataComponentTemplate; 
+export default ViewReportReportMetadataComponentTemplate; 

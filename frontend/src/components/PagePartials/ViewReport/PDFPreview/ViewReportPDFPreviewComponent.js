@@ -1,16 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import PDFPreviewComponentTemplate from './PDFPreviewComponent.jsx';
+import ViewReportPDFPreviewComponentTemplate from './ViewReportPDFPreviewComponent.jsx';
 
 /**
  * Component for previewing PDFs with various states (loading, failed, preview)
  */
-const PDFPreviewComponent = ({ 
+const ViewReportPDFPreviewComponent = ({ 
   report, 
   pdfStatus = 'loading', 
   pdfProgress = 0 
 }) => {
   const iframeRef = useRef(null);
   const [pdfPreviewFailed, setPdfPreviewFailed] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [numPages, setNumPages] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
     // Check if PDF preview is available after component mounts
@@ -60,8 +63,28 @@ const PDFPreviewComponent = ({
     setPdfPreviewFailed(true);
   };
 
+  const handleDocumentLoadSuccess = ({ numPages }) => {
+    setNumPages(numPages);
+  };
+
+  const handleZoomIn = () => {
+    setScale(prevScale => Math.min(prevScale + 0.2, 2.5));
+  };
+
+  const handleZoomOut = () => {
+    setScale(prevScale => Math.max(prevScale - 0.2, 0.5));
+  };
+
+  const handlePrevPage = () => {
+    setPageNumber(prevPageNumber => Math.max(prevPageNumber - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setPageNumber(prevPageNumber => Math.min(prevPageNumber + 1, numPages));
+  };
+
   return (
-    <PDFPreviewComponentTemplate
+    <ViewReportPDFPreviewComponentTemplate
       report={report}
       pdfStatus={pdfStatus}
       pdfProgress={pdfProgress}
@@ -69,8 +92,16 @@ const PDFPreviewComponent = ({
       iframeRef={iframeRef}
       handleIframeLoad={handleIframeLoad}
       handleIframeError={handleIframeError}
+      scale={scale}
+      numPages={numPages}
+      pageNumber={pageNumber}
+      handleDocumentLoadSuccess={handleDocumentLoadSuccess}
+      handleZoomIn={handleZoomIn}
+      handleZoomOut={handleZoomOut}
+      handlePrevPage={handlePrevPage}
+      handleNextPage={handleNextPage}
     />
   );
 };
 
-export default PDFPreviewComponent; 
+export default ViewReportPDFPreviewComponent; 
