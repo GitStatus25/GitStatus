@@ -11,7 +11,7 @@ import Dashboard from './pages/Dashboard';
 import CreateReport from './pages/CreateReport';
 import ViewReport from './pages/ViewReport';
 import NotFound from './pages/NotFound';
-import AdminDashboard from './components/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import CreateReportModal from './components/modals/CreateReportModal';
 import ViewCommitsModal from './components/modals/ViewCommitsModal';
