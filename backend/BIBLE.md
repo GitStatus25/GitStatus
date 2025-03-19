@@ -19,6 +19,10 @@
      - **Modals**: Dialog components that appear over the main UI
      - Group related components in feature-based folders (e.g., `components/ViewReport/`)
      - Include an index.js in feature folders to re-export components for easier importing
+   - Use a clear nested structure for component organization:
+     - For PagePartials related to a specific parent component, use nested folders: `PagePartials/[ParentComponent]/[ChildComponent]/`
+     - Name nested component files with both parent and child component names: `[ParentComponent][ChildComponent]Component.{js,jsx,css}`
+     - Example: `PagePartials/ViewReport/CommitList/ViewReportCommitListComponent.{js,jsx,css}`
    - Separate logic from presentation in components:
      - Use the folder structure: `/ComponentName/ComponentName.js` (logic), `/ComponentName/ComponentName.jsx` (template), `/ComponentName/ComponentName.css` (styles), `/ComponentName/index.js` (export)
      - Keep business logic (state management, data fetching, event handlers) in .js files
@@ -40,6 +44,7 @@
    - File names should indicate their type based on their purpose:
      - Components: suffix with "Component" (e.g., `DashboardComponent.js`, `LoginComponent.js`)
      - PagePartials: suffix with "Partial" (e.g., `HeaderPartial.js`, `FooterPartial.js`)
+     - Nested PagePartials: prefix with parent component name and suffix with "Component" (e.g., `ViewReportCommitListComponent.js`)
      - Context providers: suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
      - Services: suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
      - Controllers: suffix with "Controller" (e.g., `UserController.js`, `ReportController.js`)

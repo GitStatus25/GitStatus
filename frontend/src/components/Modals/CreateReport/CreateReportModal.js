@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../../../services/api';
-import { useModal } from '../../../contexts/ModalContext';
-import CreateReportModalComponentTemplate from './CreateReportModalComponent.jsx';
+import api from '../../../services/api.js';
+import { useModal } from '../../../contexts/ModalContext.js';
+import CreateReportModalComponentTemplate from './CreateReportModal.jsx';
 
 /**
  * CreateReportModal component - Modal for selecting repository and parameters for report creation

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { useModal } from '../../../contexts/ModalContext';
-import ViewCommitsModalComponent from './ViewCommitsModalComponent';
+import ViewCommitsModalComponent from './ViewCommitsModal';
 
 const ViewCommitsModal = () => {
   const navigate = useNavigate();
