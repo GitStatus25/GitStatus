@@ -41,22 +41,42 @@ The frontend codebase is organized with a clear component structure:
    - Smaller, reusable UI elements that compose the main Components
    - Focus on specific UI functionality and presentation
    - Generally receive data and callbacks as props
-   - Named with the "Partial" suffix (e.g., `HeaderPartial.js`, `CommitListPartial.js`)
+   - Named with the "Partial" suffix (e.g., `HeaderPartial.js`, `FooterPartial.js`)
    - Examples: `LayoutPartial`, `CommitListPartial`, `ReportHeaderPartial`
 
-3. **Modals (`src/components/Modals/`)**: 
+3. **Nested PagePartials**: 
+   - PagePartials that belong to a specific parent component
+   - Organized in subdirectories within PagePartials based on their parent component:
+     ```
+     PagePartials/
+     ├── ViewReport/              # For ViewReport-specific partials
+     │   ├── CommitList/          # A specific ViewReport partial
+     │   │   ├── ViewReportCommitListComponent.js
+     │   │   ├── ViewReportCommitListComponent.jsx
+     │   │   ├── ViewReportCommitListComponent.css
+     │   │   └── index.js
+     │   └── ReportHeader/        # Another ViewReport partial
+     │       ├── ViewReportReportHeaderComponent.js
+     │       └── ...
+     └── Dashboard/               # For Dashboard-specific partials
+         └── ...
+     ```
+   - Named by combining the parent component name with the partial name and "Component" suffix
+   - Example: `ViewReportCommitListComponent.js` for a CommitList partial used in the ViewReport component
+
+4. **Modals (`src/components/Modals/`)**: 
    - Dialog components that appear over the main UI
    - Named with the "Modal" suffix (e.g., `CreateReportModal.js`)
    - Examples: `CreateReportModal`, `ViewCommitsModal`
 
-4. **Component Organization Strategy**:
+5. **Component Organization Strategy**:
    - When a component becomes too large (>300 lines), it should be split into smaller focused components
    - Related components are grouped in feature-based folders (e.g., `components/ViewReport/`)
    - Each feature folder includes an `index.js` file that re-exports its components for easier importing
    - Complex UI elements are composed from multiple smaller PagePartials
    - This approach improves maintainability, readability, and allows for component reuse
 
-5. **Component Structure**:
+6. **Component Structure**:
    - Each component has its own folder containing separate files for logic, presentation, and styles
    - The structure follows this pattern:
      ```
@@ -70,7 +90,7 @@ The frontend codebase is organized with a clear component structure:
    - This separation of concerns makes the codebase more maintainable and testable
    - Example: `ViewReport/ViewReportComponent.js` contains the business logic, while `ViewReport/ViewReportComponent.jsx` contains the template/JSX markup, and `ViewReport/ViewReportComponent.css` contains the styles
 
-6. **Styling Approach**:
+7. **Styling Approach**:
    - CSS is kept in separate files rather than inline styles or CSS-in-JS
    - Class names follow kebab-case convention (e.g., `view-report-container`)
    - Material-UI theme configuration is centralized in `styles/theme.js`
@@ -83,9 +103,10 @@ To maintain consistency and clarity across the codebase, we follow these naming 
 
 1. **Components**: Suffix with "Component" (e.g., `DashboardComponent.js`, `LoginComponent.js`)
 2. **PagePartials**: Suffix with "Partial" (e.g., `HeaderPartial.js`, `FooterPartial.js`)
-3. **Modals**: Suffix with "Modal" (e.g., `CreateReportModal.js`, `ViewCommitsModal.js`)
-4. **Context Providers**: Suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
-5. **Services**: Suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
+3. **Nested PagePartials**: Prefix with parent component name and suffix with "Component" (e.g., `ViewReportCommitListComponent.js`)
+4. **Modals**: Suffix with "Modal" (e.g., `CreateReportModal.js`, `ViewCommitsModal.js`) - Modals are special components that use the "Modal" suffix instead of "Component"
+5. **Context Providers**: Suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
+6. **Services**: Suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
 
 These conventions make it immediately clear what type of file you're working with, especially when imported from other locations in the codebase.
 
