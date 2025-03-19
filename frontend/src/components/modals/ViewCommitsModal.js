@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -18,7 +18,8 @@ import {
   CircularProgress,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Tooltip
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CodeIcon from '@mui/icons-material/Code';
@@ -51,6 +52,50 @@ const ViewCommitsModal = () => {
   const [expandedFiles, setExpandedFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [userStats, setUserStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Fetch user stats when component mounts
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await api.getUserStats();
+        setUserStats(response.data);
+      } catch (err) {
+        console.error('Error fetching user stats:', err);
+        setError('Failed to load user limits. Please try again.');
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
+
+  // Determine report type and button state based on selected commits
+  const getReportTypeInfo = () => {
+    if (!userStats?.plan?.limits) return { disabled: true, message: 'Loading plan limits...' };
+
+    const commitCount = selectedCommits.length;
+    const { commitsPerStandardReport, commitsPerLargeReport } = userStats.plan.limits;
+
+    if (commitCount === 0) {
+      return { disabled: true, message: 'Select commits to generate a report' };
+    }
+
+    if (commitCount <= commitsPerStandardReport) {
+      return { disabled: false, message: 'Generate Standard Report' };
+    }
+
+    if (commitCount <= commitsPerLargeReport) {
+      return { disabled: false, message: 'Generate Large Report' };
+    }
+
+    return {
+      disabled: true,
+      message: `Exceeds maximum commits allowed (${commitsPerLargeReport} commits)`
+    };
+  };
 
   // Toggle a commit's selection status
   const toggleCommitSelection = (commitSha) => {
@@ -142,6 +187,27 @@ const ViewCommitsModal = () => {
   // Format date for display
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  // Get usage info for current report type
+  const getUsageInfo = () => {
+    if (!userStats?.plan?.limits || !userStats?.currentUsage) return null;
+
+    const commitCount = selectedCommits.length;
+    const { commitsPerStandardReport, commitsPerLargeReport } = userStats.plan.limits;
+    const { reportsGenerated } = userStats.currentUsage;
+
+    if (commitCount === 0) return null;
+
+    const isStandard = commitCount <= commitsPerStandardReport;
+    const current = isStandard ? reportsGenerated.standard : reportsGenerated.large;
+    const limit = isStandard ? userStats.plan.limits.reportsPerMonth : userStats.plan.limits.reportsPerMonth;
+
+    return {
+      current,
+      limit,
+      isStandard
+    };
   };
 
   return (
@@ -331,28 +397,39 @@ const ViewCommitsModal = () => {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
-        <Typography color="error" variant="body2">
-          {error}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography color="error" variant="body2">
+            {error}
+          </Typography>
+          {getUsageInfo() && (
+            <Typography variant="body2" color="text.secondary">
+              {getUsageInfo().isStandard ? 'Standard' : 'Large'} Report: {getUsageInfo().current} of {getUsageInfo().limit} used this month
+            </Typography>
+          )}
+        </Box>
         <Box>
           <Button onClick={handleBackToForm} variant="outlined" sx={{ mr: 2 }}>
             Back to Form
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={generateReport}
-            disabled={loading || selectedCommits.length === 0}
-          >
-            {loading ? (
-              <>
-                <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                Generating Report...
-              </>
-            ) : (
-              'Generate Report'
-            )}
-          </Button>
+          <Tooltip title={getReportTypeInfo().message}>
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={generateReport}
+                disabled={loading || loadingStats || getReportTypeInfo().disabled}
+              >
+                {loading ? (
+                  <>
+                    <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                    Generating Report...
+                  </>
+                ) : (
+                  getReportTypeInfo().message
+                )}
+              </Button>
+            </span>
+          </Tooltip>
         </Box>
       </DialogActions>
     </Dialog>
