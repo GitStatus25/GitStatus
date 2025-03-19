@@ -163,8 +163,9 @@ class UsageStatsService {
    */
   static async hasReachedReportLimit(userId) {
     try {
-      const user = await User.findById(userId);
+      const user = await User.findById(userId).populate('plan');
       if (!user) throw new Error('User not found');
+      if (!user.plan) throw new Error('User plan not found');
 
       // Check if we need to reset the counter (new month)
       const lastReset = new Date(user.currentUsage.lastResetDate);
@@ -174,14 +175,21 @@ class UsageStatsService {
           lastReset.getFullYear() !== now.getFullYear()) {
         // Reset counters for new month
         await User.findByIdAndUpdate(userId, {
-          'currentUsage.reportsGenerated': 0,
+          'currentUsage.reportsGenerated': {
+            small: 0,
+            big: 0,
+            total: 0
+          },
           'currentUsage.commitsAnalyzed': 0,
           'currentUsage.lastResetDate': now
         });
         return false;
       }
 
-      return user.currentUsage.reportsGenerated >= user.plan.limits.reportsPerMonth;
+      // Check if total reports have reached the monthly limit
+      const totalReportsGenerated = (user.currentUsage?.reportsGenerated?.small || 0) + 
+                                  (user.currentUsage?.reportsGenerated?.big || 0);
+      return totalReportsGenerated >= user.plan.limits.reportsPerMonth;
     } catch (error) {
       console.error('Error checking report limit:', error);
       // Default to false to prevent blocking users due to errors
