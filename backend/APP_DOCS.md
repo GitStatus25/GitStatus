@@ -84,7 +84,32 @@ The application follows a client-server architecture:
    - `GET /api/auth/me`: Get current user info
    - `GET /api/auth/logout`: Log out current user
 
-2. **Commits** (`/api/commits`)
+2. **Reports** (`/api/reports`)
+   The reports functionality is split into focused controllers for better maintainability:
+
+   **Report Generation** (`ReportGenerationController`)
+   - `POST /api/reports`: Generate a new report
+   - `POST /api/reports/commit-info`: Get commit information for report generation
+   - `GET /api/reports/:id/pdf-status`: Get PDF generation status
+   
+   **Report Viewing** (`ReportViewController`)
+   - `GET /api/reports`: Get user's reports
+   - `GET /api/reports/:id`: Get a specific report
+   
+   **Report Management** (`ReportManagementController`)
+   - `DELETE /api/reports/:id`: Delete a report
+   - `POST /api/reports/cleanup`: Clean up invalid reports
+   
+   **Report Cache** (`ReportCacheController`)
+   - `GET /api/reports/cache/stats`: Get cache statistics
+   - `POST /api/reports/cache/cleanup`: Clean up old reports
+
+3. **Usage Stats** (`/api/usage-stats`)
+   - `GET /api/usage-stats/user`: Get user usage statistics
+   - `GET /api/usage-stats/check-limit`: Check usage limits
+   - `GET /api/usage-stats/admin`: Get admin analytics
+
+4. **Commits** (`/api/commits`)
    - `GET /api/commits`: Get commits with filtering
    - `GET /api/commits/repository`: Get repository info
    - `GET /api/commits/branches`: Get repository branches
@@ -92,20 +117,6 @@ The application follows a client-server architecture:
    - `GET /api/commits/search-repositories`: Search repositories
    - `GET /api/commits/branch-authors`: Get authors for branches
    - `GET /api/commits/date-range`: Get commit date range
-
-3. **Reports** (`/api/reports`)
-   - `GET /api/reports`: Get user's reports
-   - `POST /api/reports`: Generate a new report
-   - `GET /api/reports/:id`: Get a specific report
-   - `GET /api/reports/:id/pdf-status`: Get PDF generation status
-   - `DELETE /api/reports/:id`: Delete a report
-   - `GET /api/reports/cache/stats`: Get cache statistics
-   - `POST /api/reports/cache/cleanup`: Clean up old reports
-
-4. **Usage Stats** (`/api/usage-stats`)
-   - `GET /api/usage-stats/user`: Get user usage statistics
-   - `GET /api/usage-stats/check-limit`: Check usage limits
-   - `GET /api/usage-stats/admin`: Get admin analytics
 
 5. **Admin** (`/api/admin`)
    - `GET /api/admin/users`: Get all users
@@ -226,6 +237,47 @@ The application follows a client-server architecture:
    - Manages file storage in AWS S3
    - Handles PDF upload and retrieval
    - Generates pre-signed URLs for secure access
+
+#### Controllers
+
+1. **Report Controllers** (`controllers/Report/`)
+   
+   The report functionality is split into four focused controllers:
+
+   a. **ReportGenerationController**
+   - Handles report creation and PDF generation
+   - Manages commit analysis and content generation
+   - Tracks usage statistics and limits
+   - Key functions:
+     - `generateReport`: Creates new reports from commits
+     - `getCommitInfo`: Retrieves commit details with branch info
+     - `getPdfStatus`: Tracks PDF generation progress
+
+   b. **ReportViewController**
+   - Handles report retrieval and viewing
+   - Manages report access statistics
+   - Key functions:
+     - `getReports`: Lists all user reports
+     - `getReportById`: Retrieves specific report details
+
+   c. **ReportManagementController**
+   - Handles report lifecycle management
+   - Manages cleanup of invalid reports
+   - Key functions:
+     - `deleteReport`: Removes reports and associated files
+     - `cleanupInvalidReports`: Cleans up reports with missing files
+
+   d. **ReportCacheController**
+   - Handles report caching and statistics
+   - Manages cleanup of old/unused reports
+   - Key functions:
+     - `getCacheStats`: Retrieves caching statistics
+     - `cleanupReportsCache`: Removes old cached reports
+
+2. **Authentication Controller** (`controllers/auth.js`)
+   - Handles user authentication
+   - Manages GitHub OAuth flow
+   - Maintains user sessions
 
 ### Error Handling System
 
