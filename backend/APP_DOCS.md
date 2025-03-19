@@ -27,32 +27,37 @@ The application follows a client-server architecture:
 
 #### Frontend Organization
 
-The frontend codebase is organized with a clear separation between pages and components:
+The frontend codebase is organized with a clear component structure:
 
-1. **Pages (`src/pages/`)**: 
-   - Top-level components that represent entire pages/routes in the application
-   - Generally contain the main layout and composition of components
-   - Handle page-level state, data fetching, and routing logic
-   - Named with the "Page" suffix (e.g., `DashboardPage.js`, `ViewReportPage.js`)
-   - Examples: `LoginPage`, `DashboardPage`, `ViewReportPage`
+1. **Components (`src/components/`)**: 
+   - Top-level components that represent entire routes/screens in the application
+   - Generally contain the main layout and composition of smaller elements
+   - Handle state, data fetching, and routing logic
+   - Named with the "Component" suffix (e.g., `DashboardComponent.js`, `LoginComponent.js`)
+   - Examples: `LoginComponent`, `DashboardComponent`, `ViewReportComponent`
+   - All components representing full screens/pages are placed directly in the components directory in their own feature folder (e.g., `components/Dashboard/`)
 
-2. **Components (`src/components/`)**: 
-   - Reusable UI elements that can be composed within pages
+2. **PagePartials (`src/components/PagePartials/`)**: 
+   - Smaller, reusable UI elements that compose the main Components
    - Focus on specific UI functionality and presentation
    - Generally receive data and callbacks as props
-   - Named with the "Component" suffix (e.g., `HeaderComponent.js`, `CommitListComponent.js`)
-   - Can be organized in feature-based folders for related components
-   - Examples: `LayoutComponent`, `CommitListComponent`, `ReportHeaderComponent`
+   - Named with the "Partial" suffix (e.g., `HeaderPartial.js`, `CommitListPartial.js`)
+   - Examples: `LayoutPartial`, `CommitListPartial`, `ReportHeaderPartial`
 
-3. **Component Organization Strategy**:
+3. **Modals (`src/components/Modals/`)**: 
+   - Dialog components that appear over the main UI
+   - Named with the "Modal" suffix (e.g., `CreateReportModal.js`)
+   - Examples: `CreateReportModal`, `ViewCommitsModal`
+
+4. **Component Organization Strategy**:
    - When a component becomes too large (>300 lines), it should be split into smaller focused components
    - Related components are grouped in feature-based folders (e.g., `components/ViewReport/`)
    - Each feature folder includes an `index.js` file that re-exports its components for easier importing
-   - Complex UI elements are composed from multiple smaller components
+   - Complex UI elements are composed from multiple smaller PagePartials
    - This approach improves maintainability, readability, and allows for component reuse
 
-4. **Component/Page Structure**:
-   - Each component or page has its own folder containing separate files for logic, presentation, and styles
+5. **Component Structure**:
+   - Each component has its own folder containing separate files for logic, presentation, and styles
    - The structure follows this pattern:
      ```
      ComponentName/
@@ -63,9 +68,9 @@ The frontend codebase is organized with a clear separation between pages and com
      └── [other related files]
      ```
    - This separation of concerns makes the codebase more maintainable and testable
-   - Example: `ViewReport/ViewReportPage.js` contains the business logic, while `ViewReport/ViewReportPage.jsx` contains the template/JSX markup, and `ViewReport/ViewReportPage.css` contains the styles
+   - Example: `ViewReport/ViewReportComponent.js` contains the business logic, while `ViewReport/ViewReportComponent.jsx` contains the template/JSX markup, and `ViewReport/ViewReportComponent.css` contains the styles
 
-5. **Styling Approach**:
+6. **Styling Approach**:
    - CSS is kept in separate files rather than inline styles or CSS-in-JS
    - Class names follow kebab-case convention (e.g., `view-report-container`)
    - Material-UI theme configuration is centralized in `styles/theme.js`
@@ -76,10 +81,11 @@ The frontend codebase is organized with a clear separation between pages and com
 
 To maintain consistency and clarity across the codebase, we follow these naming conventions:
 
-1. **Page Components**: Suffix with "Page" (e.g., `DashboardPage.js`, `LoginPage.js`)
-2. **Regular Components**: Suffix with "Component" (e.g., `HeaderComponent.js`, `FooterComponent.js`)
-3. **Context Providers**: Suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
-4. **Services**: Suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
+1. **Components**: Suffix with "Component" (e.g., `DashboardComponent.js`, `LoginComponent.js`)
+2. **PagePartials**: Suffix with "Partial" (e.g., `HeaderPartial.js`, `FooterPartial.js`)
+3. **Modals**: Suffix with "Modal" (e.g., `CreateReportModal.js`, `ViewCommitsModal.js`)
+4. **Context Providers**: Suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
+5. **Services**: Suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
 
 These conventions make it immediately clear what type of file you're working with, especially when imported from other locations in the codebase.
 
@@ -95,44 +101,44 @@ These conventions make it immediately clear what type of file you're working wit
    - Coordinates data flow between modals
    - Provides modal open/close functionality
 
-3. **LayoutComponent** (`src/components/LayoutComponent.js`)
+3. **LayoutPartial** (`src/components/PagePartials/LayoutPartial.js`)
    - Main application layout with navigation
    - Responsive design with mobile support
    - Handles theme and styling
 
-#### Page Components
+#### Main Application Components
 
-1. **DashboardPage** (`src/pages/DashboardPage.js`)
+1. **DashboardComponent** (`src/components/Dashboard/DashboardComponent.js`)
    - Displays user's generated reports
    - Provides report management functionality
    - Entry point for creating new reports
 
-2. **CreateReportPage** (via modals)
-   - **CreateReportModalComponent** (`src/components/modals/CreateReportModalComponent.js`)
+2. **CreateReportComponent** (via modals)
+   - **CreateReportModal** (`src/components/Modals/CreateReportModal.js`)
      - Repository and branch selection
      - Date range and author filtering
      - Report configuration
-   - **ViewCommitsModalComponent** (`src/components/modals/ViewCommitsModalComponent.js`)
+   - **ViewCommitsModal** (`src/components/Modals/ViewCommitsModal.js`)
      - Commit selection and preview
      - Diff viewing functionality
      - Report generation trigger
 
-3. **ViewReportPage** (`src/pages/ViewReport/ViewReportPage.js`)
+3. **ViewReportComponent** (`src/components/ViewReport/ViewReportComponent.js`)
    - Displays generated report details
    - Shows commit list and summaries
    - Provides PDF preview and download
-   - Follows the new folder structure with separated logic and presentation:
-     - `ViewReportPage.js` - Contains business logic (data fetching, state management)
-     - `ViewReportPage.jsx` - Contains the template/JSX markup
-     - `ViewReportPage.css` - Contains styles
+   - Follows the component structure with separated logic and presentation:
+     - `ViewReportComponent.js` - Contains business logic (data fetching, state management)
+     - `ViewReportComponent.jsx` - Contains the template/JSX markup
+     - `ViewReportComponent.css` - Contains styles
      - `index.js` - Re-exports the component
 
-4. **AnalyticsDashboardPage** (`src/pages/AnalyticsDashboardPage.js`)
+4. **AnalyticsDashboardComponent** (`src/components/AnalyticsDashboard/AnalyticsDashboardComponent.js`)
    - Displays usage statistics
    - Shows limits and quotas
    - Visualizes report generation trends
 
-5. **AdminDashboardComponent** (`src/components/AdminDashboardComponent.js`)
+5. **AdminDashboardComponent** (`src/components/AdminDashboard/AdminDashboardComponent.js`)
    - User management functionality
    - System-wide analytics
    - Plan management
@@ -218,9 +224,9 @@ These conventions make it immediately clear what type of file you're working wit
 ### Data Flow
 
 1. **Report Generation Flow**
-   1. User selects repository, branches, and filters in CreateReportModalComponent
+   1. User selects repository, branches, and filters in CreateReportModal
    2. Backend fetches commits from GitHub API
-   3. User selects specific commits in ViewCommitsModalComponent
+   3. User selects specific commits in ViewCommitsModal
    4. Backend analyzes commits with OpenAI
    5. Backend submits PDF generation to the job queue and returns immediately with a pending status
    6. Bull worker processes the PDF generation job in the background
@@ -238,7 +244,7 @@ These conventions make it immediately clear what type of file you're working wit
 3. **Usage Tracking Flow**
    1. User performs actions (generates reports, analyzes commits)
    2. Backend tracks usage in UsageStats collection
-   3. Frontend displays usage statistics in AnalyticsDashboardPage
+   3. Frontend displays usage statistics in AnalyticsDashboardComponent
    4. Admin can view system-wide statistics in AdminDashboardComponent
 
 ### Integration Points

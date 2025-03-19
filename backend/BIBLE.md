@@ -13,13 +13,14 @@
    - Avoid circular dependencies by carefully planning the service hierarchy
    - Never implement controller logic directly in route files - always create a dedicated controller file and import it in the route file, even for simple endpoints
    - Route files should only define routes and connect them to controller methods, never handle business logic or data manipulation
-   - Maintain a clear distinction between pages and components:
-     - **Pages**: Top-level components that represent entire routes, handle page-level state and data fetching
-     - **Components**: Reusable UI elements that receive data via props and focus on specific UI functionality
+   - Maintain a clear component organization structure:
+     - **Components**: Top-level components that represent entire routes/screens in the application
+     - **PagePartials**: Smaller, reusable UI elements that compose the Components
+     - **Modals**: Dialog components that appear over the main UI
      - Group related components in feature-based folders (e.g., `components/ViewReport/`)
      - Include an index.js in feature folders to re-export components for easier importing
-   - Separate logic from presentation in components and pages:
-     - Use the folder structure: `/ComponentName/ComponentName{Page/Component}.js` (logic), `/ComponentName/ComponentName{Page/Component}.jsx` (template), `/ComponentName/ComponentName{Page/Component}.css` (styles), `/ComponentName/index.js` (export)
+   - Separate logic from presentation in components:
+     - Use the folder structure: `/ComponentName/ComponentName.js` (logic), `/ComponentName/ComponentName.jsx` (template), `/ComponentName/ComponentName.css` (styles), `/ComponentName/index.js` (export)
      - Keep business logic (state management, data fetching, event handlers) in .js files
      - Keep presentation (JSX markup) in .jsx files
      - Keep styles in separate CSS files, not inline styles or CSS-in-JS
@@ -37,8 +38,8 @@
    - Folders for grouped services/components: PascalCase (e.g., `GitHub/`, `UserProfile/`)
    - Always include provider/source prefix in file names (e.g., `GitHubRepositoryController.js`, `StripePaymentService.js`) even when inside a folder with the same prefix, to maintain clarity when the files are imported elsewhere
    - File names should indicate their type based on their purpose:
-     - Page components: suffix with "Page" (e.g., `DashboardPage.js`, `LoginPage.js`)
-     - Regular components: suffix with "Component" (e.g., `HeaderComponent.js`, `FooterComponent.js`)
+     - Components: suffix with "Component" (e.g., `DashboardComponent.js`, `LoginComponent.js`)
+     - PagePartials: suffix with "Partial" (e.g., `HeaderPartial.js`, `FooterPartial.js`)
      - Context providers: suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
      - Services: suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
      - Controllers: suffix with "Controller" (e.g., `UserController.js`, `ReportController.js`)
