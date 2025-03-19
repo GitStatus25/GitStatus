@@ -20,6 +20,7 @@ The application follows a client-server architecture:
 - **Frontend**: React.js application with Material-UI
 - **Backend**: Node.js with Express.js
 - **Database**: MongoDB for data storage
+- **Queue System**: Bull with Redis for background job processing
 - **External Services**: GitHub API, OpenAI API, AWS S3
 
 ### Frontend Components
@@ -96,6 +97,7 @@ The application follows a client-server architecture:
    - `GET /api/reports`: Get user's reports
    - `POST /api/reports`: Generate a new report
    - `GET /api/reports/:id`: Get a specific report
+   - `GET /api/reports/:id/pdf-status`: Get PDF generation status
    - `DELETE /api/reports/:id`: Delete a report
    - `GET /api/reports/cache/stats`: Get cache statistics
    - `POST /api/reports/cache/cleanup`: Clean up old reports
@@ -124,6 +126,7 @@ The application follows a client-server architecture:
    - Stores generated reports
    - Contains commit information and metadata
    - Tracks PDF location and access statistics
+   - Includes job status tracking fields for background processing
    - See `docs/DATABASE_INDEXES.md` for details on performance optimization
 
 3. **CommitSummary** (`models/CommitSummary.js`)
@@ -145,8 +148,10 @@ The application follows a client-server architecture:
    2. Backend fetches commits from GitHub API
    3. User selects specific commits in ViewCommitsModal
    4. Backend analyzes commits with OpenAI
-   5. Backend generates PDF report and stores in S3
-   6. Frontend displays the report and provides download link
+   5. Backend submits PDF generation to the job queue and returns immediately with a pending status
+   6. Bull worker processes the PDF generation job in the background
+   7. When complete, the PDF is uploaded to S3 and the report is updated
+   8. Frontend polls for job status and displays the report when ready
 
 2. **Authentication Flow**
    1. User clicks "Login with GitHub" button
@@ -191,5 +196,35 @@ The application follows a client-server architecture:
    - Rate limiting to prevent abuse
    - Helmet.js for security headers
    - Input validation and sanitization
+
+### Backend Components
+
+#### Services
+
+1. **GitHub Service** (`services/github.js`)
+   - Interacts with GitHub API
+   - Retrieves repository and commit information
+   - Handles authentication with GitHub
+
+2. **OpenAI Service** (`services/openai.js`)
+   - Analyzes commit data using OpenAI models
+   - Generates summaries and reports
+   - Provides caching mechanisms for AI responses
+
+3. **PDF Service** (`services/pdf.js`)
+   - Handles PDF generation using Puppeteer
+   - Converts Markdown to properly formatted PDFs
+   - Interfaces with the job queue for background processing
+
+4. **Queue Service** (`services/queue.js`)
+   - Manages background job processing with Bull
+   - Handles PDF generation jobs
+   - Provides job status tracking and error handling
+   - Implements automatic job cleanup
+
+5. **S3 Service** (`services/s3.js`)
+   - Manages file storage in AWS S3
+   - Handles PDF upload and retrieval
+   - Generates pre-signed URLs for secure access
 
 This documentation provides a high-level overview of the GitStatus application architecture and functionality. For detailed implementation information, refer to the specific files and components mentioned above.
