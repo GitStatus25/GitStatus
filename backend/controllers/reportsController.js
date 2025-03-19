@@ -3,9 +3,10 @@ const githubService = require('../services/github');
 const openaiService = require('../services/openai');
 const pdfService = require('../services/pdf');
 const s3Service = require('../services/s3');
-const crypto = require('crypto');
+const reportService = require('../services/reportService');
 const UsageStatsService = require('../services/usageStats');
 const User = require('../models/User');
+const { NotFoundError, ValidationError } = require('../utils/errors');
 
 /**
  * Generate a hash from an array of commit IDs
@@ -80,20 +81,7 @@ exports.getReports = async (req, res) => {
           }
         }
         
-        return {
-          id: report.id,
-          title: report.name,
-          repository: report.repository,
-          branch: report.branch,
-          author: report.author,
-          startDate: report.startDate,
-          endDate: report.endDate,
-          pdfUrl: report.pdfUrl,
-          downloadUrl,
-          createdAt: report.createdAt,
-          accessCount: report.accessCount || 1,
-          lastAccessed: report.lastAccessed || report.createdAt
-        };
+        return reportService.formatReportResponse(report, { downloadUrl });
       })
     );
     
@@ -180,14 +168,14 @@ exports.generateReport = async (req, res) => {
     }
     
     // Generate a hash to uniquely identify this set of commits
-    const commitsHash = generateCommitsHash(commits);
+    const commitsHash = reportService.generateCommitsHash(commits);
     
     // Check if a report with this exact set of commits already exists
-    const existingReport = await findReportByCommitsHash(commitsHash);
+    const existingReport = await reportService.findReportByCommitsHash(commitsHash);
     
     if (existingReport) {
       // Update the access stats
-      await updateReportAccessStats(existingReport);
+      await reportService.updateReportAccessStats(existingReport);
       
       // Track report reuse
       isCachedReport = true;
@@ -571,43 +559,21 @@ exports.cleanupInvalidReports = async (req, res) => {
 
 exports.getReportById = async (req, res) => {
   try {
-    const report = await Report.findOne({ 
-      _id: req.params.id,
-      user: req.user.id
-    });
-    
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
+    const report = await reportService.getReportById(req.params.id, req.user.id);
     
     // Update access stats
-    await updateReportAccessStats(report);
+    await reportService.updateReportAccessStats(report);
     
     // Generate pre-signed URLs for both viewing and downloading
-    const [viewUrl, downloadUrl] = await Promise.all([
-      s3Service.getSignedUrl(report.pdfUrl),
-      s3Service.getDownloadUrl(report.pdfUrl, `${report.name.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.pdf`)
-    ]);
+    const urls = await reportService.generateReportUrls(report);
     
-    // Return the report object directly with URLs added
-    res.json({
-      id: report.id,
-      name: report.name,
-      repository: report.repository,
-      branch: report.branch,
-      author: report.author,
-      startDate: report.startDate,
-      endDate: report.endDate,
-      commits: report.commits || [],
-      pdfUrl: report.pdfUrl,
-      createdAt: report.createdAt,
-      accessCount: report.accessCount,
-      lastAccessed: report.lastAccessed,
-      viewUrl,
-      downloadUrl
-    });
+    // Return the formatted report
+    res.json(reportService.formatReportResponse(report, urls));
   } catch (error) {
     console.error('Error fetching report:', error);
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
     res.status(500).json({ message: 'Error fetching report', error: error.message });
   }
 };
@@ -711,14 +677,7 @@ exports.deleteReport = async (req, res) => {
     const { confirmationName } = req.body;
     
     // Find the report
-    const report = await Report.findOne({ 
-      _id: id,
-      user: req.user.id
-    });
-    
-    if (!report) {
-      return res.status(404).json({ error: 'Report not found' });
-    }
+    const report = await reportService.getReportById(id, req.user.id);
     
     // Verify confirmation name matches
     if (!confirmationName || confirmationName !== report.name) {
@@ -749,6 +708,9 @@ exports.deleteReport = async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting report:', error);
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
     res.status(500).json({ error: 'Failed to delete report' });
   }
 };
@@ -758,31 +720,18 @@ exports.deleteReport = async (req, res) => {
  */
 exports.getPdfStatus = async (req, res) => {
   try {
-    const { id } = req.params;
-    
-    // Find the report
-    const report = await Report.findOne({
-      _id: id,
-      user: req.user.id
-    });
-    
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
+    const report = await reportService.getReportById(req.params.id, req.user.id);
     
     // If PDF URL exists and is not 'pending' or 'failed', it's ready
     if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
       // Generate pre-signed URLs
-      const [viewUrl, downloadUrl] = await Promise.all([
-        s3Service.getSignedUrl(report.pdfUrl),
-        s3Service.getDownloadUrl(report.pdfUrl, `${report.name.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.pdf`)
-      ]);
+      const urls = await reportService.generateReportUrls(report);
       
       return res.json({
         status: 'completed',
         progress: 100,
-        viewUrl,
-        downloadUrl
+        viewUrl: urls.viewUrl,
+        downloadUrl: urls.downloadUrl
       });
     }
     
@@ -812,6 +761,9 @@ exports.getPdfStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting PDF status:', error);
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
     res.status(500).json({ message: 'Error getting PDF status', error: error.message });
   }
 };
