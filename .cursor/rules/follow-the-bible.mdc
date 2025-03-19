@@ -3,8 +3,8 @@ description:
 globs: 
 alwaysApply: true
 ---
-[BIBLE.md](mdc:backend/BIBLE.md) is your BIBLE.
+[BIBLE.md](mdc:BIBLE.md) is your BIBLE.
 Follow every rule in the BIBLE to maintain a clean code base.
 
-[APP_DOCS.md](mdc:backend/APP_DOCS.md) contain a general documentation structure for the application. Use this doc as your guide. Also keep this doc updated AT ALL TIMES.
-If you add documentation elsewhere (like in {backend,frontend}/docs), REFERENCE THE DOCS IN [APP_DOCS.md](mdc:backend/APP_DOCS.md)
+[APP_DOCS.md](mdc:APP_DOCS.md) contain a general documentation structure for the application. Use this doc as your guide. Also keep this doc updated AT ALL TIMES.
+If you add documentation elsewhere (like in {backend,frontend}/docs), REFERENCE THE DOCS IN [APP_DOCS.md](mdc:APP_DOCS.md)
