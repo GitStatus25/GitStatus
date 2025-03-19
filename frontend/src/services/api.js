@@ -361,11 +361,10 @@ const api = {
     return Math.max(0, limit - current);
   },
 
-  // Plan Management
-  getPlans: () => axios.get('/api/plans'),
-  createPlan: (planData) => axios.post('/api/plans', planData),
-  updatePlan: (planId, planData) => axios.put(`/api/plans/${planId}`, planData),
-  deletePlan: (planId) => axios.delete(`/api/plans/${planId}`)
+  // Plan management
+  getPlans: () => axios.get('/api/plans').then(response => response.data),
+  updatePlanLimits: (planId, limits) => 
+    axios.put(`/api/plans/${planId}/limits`, { limits }).then(response => response.data)
 };
 
 export default api;

@@ -22,10 +22,17 @@ const AdminDashboard = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
+  const [plans, setPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [planLimits, setPlanLimits] = useState({
+    reportsPerMonth: 0,
+    commitsPerMonth: 0
+  });
 
   useEffect(() => {
     fetchUsers();
     fetchAnalytics();
+    fetchPlans();
   }, []);
 
   const fetchUsers = async () => {
@@ -46,6 +53,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchPlans = async () => {
+    try {
+      const response = await api.getPlans();
+      setPlans(response.plans);
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to fetch plans' });
+    }
+  };
+
   const handleRoleChange = async () => {
     if (!selectedUser) return;
     
@@ -56,6 +72,35 @@ const AdminDashboard = () => {
       fetchUsers();
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to update user role' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePlanChange = (event, newValue) => {
+    setSelectedPlan(newValue);
+    if (newValue) {
+      setPlanLimits(newValue.limits);
+    }
+  };
+
+  const handleLimitChange = (field) => (event) => {
+    setPlanLimits(prev => ({
+      ...prev,
+      [field]: parseInt(event.target.value) || 0
+    }));
+  };
+
+  const handleUpdateLimits = async () => {
+    if (!selectedPlan) return;
+    
+    setLoading(true);
+    try {
+      await api.updatePlanLimits(selectedPlan._id, planLimits);
+      setMessage({ type: 'success', text: 'Plan limits updated successfully' });
+      fetchPlans();
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to update plan limits' });
     } finally {
       setLoading(false);
     }
@@ -134,8 +179,60 @@ const AdminDashboard = () => {
           </Paper>
         </Grid>
 
-        {/* Analytics Section */}
+        {/* Plan Management Section */}
         <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Plan Management
+            </Typography>
+            
+            <Autocomplete
+              options={plans}
+              getOptionLabel={(option) => `${option.displayName} (${option.name})`}
+              value={selectedPlan}
+              onChange={handlePlanChange}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Select Plan"
+                  variant="outlined"
+                />
+              )}
+              sx={{ mb: 2 }}
+            />
+
+            {selectedPlan && (
+              <>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Reports per Month"
+                  value={planLimits.reportsPerMonth}
+                  onChange={handleLimitChange('reportsPerMonth')}
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Commits per Month"
+                  value={planLimits.commitsPerMonth}
+                  onChange={handleLimitChange('commitsPerMonth')}
+                  sx={{ mb: 2 }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleUpdateLimits}
+                  disabled={loading}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Update Limits'}
+                </Button>
+              </>
+            )}
+          </Paper>
+        </Grid>
+
+        {/* Analytics Section */}
+        <Grid item xs={12}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               System Analytics
