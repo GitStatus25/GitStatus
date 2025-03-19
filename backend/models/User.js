@@ -40,8 +40,14 @@ const UserSchema = new mongoose.Schema({
   },
   currentUsage: {
     reportsGenerated: {
-      type: Number,
-      default: 0
+      standard: {
+        type: Number,
+        default: 0
+      },
+      large: {
+        type: Number,
+        default: 0
+      }
     },
     commitsAnalyzed: {
       type: Number,
@@ -69,7 +75,10 @@ UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
   if (lastReset.getMonth() !== now.getMonth() || 
       lastReset.getFullYear() !== now.getFullYear()) {
     this.currentUsage = {
-      reportsGenerated: 0,
+      reportsGenerated: {
+        standard: 0,
+        large: 0
+      },
       commitsAnalyzed: 0,
       tokensUsed: 0,
       lastResetDate: now
@@ -80,7 +89,7 @@ UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
 
   switch (type) {
     case 'reports':
-      return (this.currentUsage.reportsGenerated + amount) > this.plan.limits.reportsPerMonth;
+      return (this.currentUsage.reportsGenerated.standard + this.currentUsage.reportsGenerated.large + amount) > this.plan.limits.reportsPerMonth;
     case 'commits':
       return (this.currentUsage.commitsAnalyzed + amount) > this.plan.limits.commitsPerMonth;
     case 'tokens':
@@ -91,14 +100,14 @@ UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
 };
 
 // Method to increment usage
-UserSchema.methods.incrementUsage = async function(type, amount = 1) {
+UserSchema.methods.incrementUsage = async function(type, amount = 1, reportType = 'standard') {
   if (await this.hasExceededLimits(type, amount)) {
     throw new Error(`Monthly ${type} limit exceeded`);
   }
 
   switch (type) {
     case 'reports':
-      this.currentUsage.reportsGenerated += amount;
+      this.currentUsage.reportsGenerated[reportType] += amount;
       break;
     case 'commits':
       this.currentUsage.commitsAnalyzed += amount;
