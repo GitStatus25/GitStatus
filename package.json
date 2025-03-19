@@ -2,5 +2,8 @@
   "devDependencies": {
     "marked": "^15.0.7",
     "open": "^10.1.0"
+  },
+  "dependencies": {
+    "bull": "^4.16.5"
   }
 }

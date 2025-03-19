@@ -73,7 +73,7 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
           { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 300
+        maxTokens: 300
       });
 
       // Extract the summary from the response
@@ -82,9 +82,9 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
       // Track token usage if requested
       if (trackTokens && response.usage) {
         usage = {
-          prompt_tokens: response.usage.prompt_tokens,
-          completion_tokens: response.usage.completion_tokens,
-          total_tokens: response.usage.total_tokens
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens
         };
         model = response.model || process.env.OPENAI_MODEL || 'gpt-4o';
       }
@@ -179,7 +179,7 @@ const openaiService = {
           { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 150,
+        maxTokens: 150,
         temperature: 0.7
       });
 
@@ -294,7 +294,7 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
           },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 2500,
+        maxTokens: 2500,
         temperature: 0.7
       });
 
@@ -310,9 +310,9 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
       // Add token usage information if requested
       if (trackTokens && response.usage) {
         result.usage = {
-          prompt_tokens: response.usage.prompt_tokens,
-          completion_tokens: response.usage.completion_tokens,
-          total_tokens: response.usage.total_tokens
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens
         };
         result.model = response.model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
       }

@@ -207,8 +207,8 @@ exports.generateReport = async (req, res) => {
     
     // Extract token usage if provided
     if (reportContent.usage) {
-      inputTokenCount = reportContent.usage.prompt_tokens || 0;
-      outputTokenCount = reportContent.usage.completion_tokens || 0;
+      inputTokenCount = reportContent.usage.promptTokens || 0;
+      outputTokenCount = reportContent.usage.completionTokens || 0;
       modelName = reportContent.model || 'gpt-4';
     } else {
       // If no token tracking, estimate based on text length (rough estimate)

@@ -23,7 +23,7 @@ const githubService = {
     // Set up the parameters for the API request
     const params = {
       sha: branch,
-      per_page: 100
+      perPage: 100
     };
     
     if (author) {
@@ -64,7 +64,7 @@ const githubService = {
       message: commit.commit.message,
       author: commit.commit.author.name,
       date: commit.commit.author.date,
-      url: commit.html_url
+      url: commit.htmlUrl
     }));
   },
   
@@ -98,7 +98,7 @@ const githubService = {
       message: commit.commit.message,
       author: commit.commit.author.name,
       date: commit.commit.author.date,
-      url: commit.html_url,
+      url: commit.htmlUrl,
       diff
     };
   },
@@ -136,12 +136,11 @@ const githubService = {
 
       return {
         name: response.data.name,
-        fullName: response.data.full_name,
+        fullName: response.data.fullName,
         description: response.data.description,
-        defaultBranch: response.data.default_branch,
-        private: response.data.private,
-        owner: response.data.owner.login,
-        avatarUrl: response.data.owner.avatar_url
+        defaultBranch: response.data.defaultBranch,
+        isPrivate: response.data.private,
+        avatarUrl: response.data.owner.avatarUrl
       };
     } catch (error) {
       // Handle GitHub API errors
@@ -175,7 +174,7 @@ const githubService = {
       
       const response = await axios.get(url, { 
         headers,
-        params: { per_page: 100 }
+        params: { perPage: 100 }
       });
       
       return response.data.map(branch => ({
@@ -204,12 +203,12 @@ const githubService = {
       
       const response = await axios.get(url, { 
         headers,
-        params: { per_page: 100 }
+        params: { perPage: 100 }
       });
       
       return response.data.map(contributor => ({
         login: contributor.login,
-        avatarUrl: contributor.avatar_url,
+        avatarUrl: contributor.avatarUrl,
         contributions: contributor.contributions
       }));
     } catch (error) {
@@ -236,7 +235,7 @@ const githubService = {
       const userReposResponse = await axios.get(userReposUrl, { 
         headers, 
         params: { 
-          per_page: 100,
+          perPage: 100,
           sort: 'updated',
           direction: 'desc'
         } 
@@ -244,17 +243,17 @@ const githubService = {
       
       // Filter user repos by the query
       const matchingUserRepos = userReposResponse.data
-        .filter(repo => repo.full_name.toLowerCase().includes(query.toLowerCase()))
+        .filter(repo => repo.fullName.toLowerCase().includes(query.toLowerCase()))
         .slice(0, limit)
         .map(repo => ({
           id: repo.id,
-          fullName: repo.full_name,
+          fullName: repo.fullName,
           name: repo.name,
           owner: repo.owner.login,
           description: repo.description,
           isPrivate: repo.private,
-          stars: repo.stargazers_count,
-          defaultBranch: repo.default_branch
+          stars: repo.stargazersCount,
+          defaultBranch: repo.defaultBranch
         }));
       
       // If we have enough user repos, just return those
@@ -270,19 +269,19 @@ const githubService = {
         headers, 
         params: { 
           q: query,
-          per_page: limit - matchingUserRepos.length
+          perPage: limit - matchingUserRepos.length
         } 
       });
       
       const searchResults = searchResponse.data.items.map(repo => ({
         id: repo.id,
-        fullName: repo.full_name,
+        fullName: repo.fullName,
         name: repo.name,
         owner: repo.owner.login,
         description: repo.description,
         isPrivate: repo.private,
-        stars: repo.stargazers_count,
-        defaultBranch: repo.default_branch
+        stars: repo.stargazersCount,
+        defaultBranch: repo.defaultBranch
       }));
       
       // Combine results, prioritizing user's own repos
@@ -313,21 +312,21 @@ const githubService = {
       const userReposResponse = await axios.get('https://api.github.com/user/repos', {
         headers,
         params: {
-          per_page: 100
+          perPage: 100
         }
       });
 
       userRepos.push(...userReposResponse.data
-        .filter(repo => repo.full_name.toLowerCase().includes(query.toLowerCase()))
+        .filter(repo => repo.fullName.toLowerCase().includes(query.toLowerCase()))
         .map(repo => ({
           id: repo.id,
-          fullName: repo.full_name,
+          fullName: repo.fullName,
           name: repo.name,
           owner: repo.owner.login,
-          ownerAvatar: repo.owner.avatar_url,
+          ownerAvatar: repo.owner.avatarUrl,
           description: repo.description,
           isPrivate: repo.private,
-          defaultBranch: repo.default_branch
+          defaultBranch: repo.defaultBranch
         }))
       );
     } catch (error) {
@@ -340,20 +339,20 @@ const githubService = {
         headers,
         params: {
           q: query,
-          per_page: 10
+          perPage: 10
         }
       });
 
       searchRepos = searchResponse.data.items
         .map(repo => ({
           id: repo.id,
-          fullName: repo.full_name,
+          fullName: repo.fullName,
           name: repo.name,
           owner: repo.owner.login,
-          ownerAvatar: repo.owner.avatar_url,
+          ownerAvatar: repo.owner.avatarUrl,
           description: repo.description,
           isPrivate: repo.private,
-          defaultBranch: repo.default_branch
+          defaultBranch: repo.defaultBranch
         }))
         // Filter out duplicates that might be in userRepos
         .filter(searchRepo => !userRepos.some(userRepo => userRepo.id === searchRepo.id));
@@ -386,7 +385,7 @@ const githubService = {
             headers,
             params: {
               sha: branch,
-              per_page: 100,
+              perPage: 100,
               page
             }
           });
@@ -435,7 +434,7 @@ const githubService = {
           headers,
           params: {
             sha: branch,
-            per_page: 1,
+            perPage: 1,
             page: 1,
             ...(authors && authors.length > 0 ? { author: authors.join(',') } : {})
           }
@@ -460,7 +459,7 @@ const githubService = {
             headers,
             params: {
               sha: branch,
-              per_page: 100,
+              perPage: 100,
               page,
               ...(authors && authors.length > 0 ? { author: authors.join(',') } : {})
             }
@@ -514,7 +513,7 @@ const githubService = {
       // Set up query parameters
       const params = {
         sha: branch,
-        per_page: 100 // Maximum per page
+        perPage: 100 // Maximum per page
       };
       
       // Add date range if provided
@@ -576,10 +575,10 @@ const githubService = {
                 login: commit.author?.login,
                 name: commit.commit.author.name,
                 email: commit.commit.author.email,
-                avatar_url: commit.author?.avatar_url
+                avatarUrl: commit.author?.avatarUrl
               },
               date: commit.commit.author.date,
-              html_url: commit.html_url,
+              htmlUrl: commit.htmlUrl,
               files: commit.files ? commit.files.map(file => ({
                 filename: file.filename,
                 status: file.status,
@@ -629,10 +628,10 @@ const githubService = {
             login: commit.author?.login,
             name: commit.commit.author.name,
             email: commit.commit.author.email,
-            avatar_url: commit.author?.avatar_url
+            avatarUrl: commit.author?.avatarUrl
           },
           date: commit.commit.author.date,
-          html_url: commit.html_url,
+          htmlUrl: commit.htmlUrl,
           files: commit.files ? commit.files.map(file => ({
             filename: file.filename,
             status: file.status,
@@ -731,7 +730,7 @@ const githubService = {
             // If not, we need to check if it's in the branch history
             try {
               // Use the git/commits API to check commit ancestry
-              const commitAncestryUrl = `https://api.github.com/repos/${repository}/commits?sha=${branch.name}&per_page=100`;
+              const commitAncestryUrl = `https://api.github.com/repos/${repository}/commits?sha=${branch.name}&perPage=100`;
               const ancestryResponse = await axios.get(commitAncestryUrl, { headers });
               
               // Check if our commit is in the returned commits

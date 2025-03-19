@@ -16,7 +16,7 @@ class AuthService {
         // Update existing user
         user.accessToken = accessToken;
         user.name = profile.displayName || profile.username;
-        user.avatarUrl = profile._json.avatar_url;
+        user.avatarUrl = profile._json.avatarUrl;
         if (profile.emails && profile.emails.length > 0) {
           user.email = profile.emails[0].value;
         }
@@ -39,7 +39,7 @@ class AuthService {
           username: profile.username,
           name: profile.displayName || profile.username,
           email: profile.emails?.[0]?.value,
-          avatarUrl: profile._json.avatar_url,
+          avatarUrl: profile._json.avatarUrl,
           accessToken,
           plan: defaultPlan._id
         });

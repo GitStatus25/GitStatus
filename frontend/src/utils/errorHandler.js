@@ -11,7 +11,7 @@
  */
 export const ErrorTypes = {
   AUTHENTICATION: 'AUTHENTICATION_REQUIRED',
-  AUTHORIZATION: 'FORBIDDEN',
+  AUTHORIZATION: 'AUTHORIZATION_DENIED',
   VALIDATION: 'VALIDATION_ERROR',
   NETWORK: 'NETWORK_ERROR',
   RATE_LIMIT: 'RATE_LIMIT_EXCEEDED',
@@ -48,8 +48,9 @@ export const parseApiError = (error) => {
       switch (data.error.code) {
         case 'AUTHENTICATION_REQUIRED':
           parsedError.type = ErrorTypes.AUTHENTICATION;
+          parsedError.message = error.message || 'You need to be logged in to access this resource';
           break;
-        case 'FORBIDDEN':
+        case 'AUTHORIZATION_DENIED':
           parsedError.type = ErrorTypes.AUTHORIZATION;
           break;
         case 'VALIDATION_ERROR':
