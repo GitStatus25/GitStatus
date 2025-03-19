@@ -1,22 +1,31 @@
 #!/bin/bash
 # Script to update imports to the new component structure
 
-# Update in JS files
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*LayoutComponent" | xargs sed -i 's/from.*LayoutComponent/from ".\/components\/Layout"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*components\/PrivateRouteComponent" | xargs sed -i 's/from.*components\/PrivateRouteComponent/from ".\/components\/PrivateRoute"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*components\/AdminRouteComponent" | xargs sed -i 's/from.*components\/AdminRouteComponent/from ".\/components\/AdminRoute"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*components\/AdminDashboardComponent" | xargs sed -i 's/from.*components\/AdminDashboardComponent/from ".\/components\/AdminDashboard"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*components\/DiffViewerComponent" | xargs sed -i 's/from.*components\/DiffViewerComponent/from ".\/components\/DiffViewer"/g'
+# Enable extended globbing for more complex patterns
+shopt -s extglob
+
+# Components
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*components/Layout"|from "../../components/Layout"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*components/PrivateRoute"|from "../../components/PrivateRoute"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*components/AdminRoute"|from "../../components/AdminRoute"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*components/AdminDashboard"|from "../../components/AdminDashboard"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*components/DiffViewer"|from "../../components/DiffViewer"|g'
 
 # Pages
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*pages\/LoginPage" | xargs sed -i 's/from.*pages\/LoginPage/from ".\/pages\/Login"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*pages\/NotFoundPage" | xargs sed -i 's/from.*pages\/NotFoundPage/from ".\/pages\/NotFound"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*pages\/CreateReportPage" | xargs sed -i 's/from.*pages\/CreateReportPage/from ".\/pages\/CreateReport"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*pages\/AnalyticsDashboardPage" | xargs sed -i 's/from.*pages\/AnalyticsDashboardPage/from ".\/pages\/AnalyticsDashboard"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*pages\/AuthCallbackPage" | xargs sed -i 's/from.*pages\/AuthCallbackPage/from ".\/pages\/AuthCallback"/g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/Login"|from "../../pages/Login"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/NotFound"|from "../../pages/NotFound"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/CreateReport"|from "../../pages/CreateReport"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/AnalyticsDashboard"|from "../../pages/AnalyticsDashboard"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/AuthCallback"|from "../../pages/AuthCallback"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/Dashboard"|from "../../pages/Dashboard"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*pages/ViewReport"|from "../../pages/ViewReport"|g'
 
 # Modals
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*modals\/CreateReportModalComponent" | xargs sed -i 's/from.*modals\/CreateReportModalComponent/from ".\/components\/modals\/CreateReportModal"/g'
-find frontend/src -name "*.js" -not -path "*/node_modules/*" | xargs grep -l "from.*modals\/ViewCommitsModalComponent" | xargs sed -i 's/from.*modals\/ViewCommitsModalComponent/from ".\/components\/modals\/ViewCommitsModal"/g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*modals/CreateReportModal"|from "../../components/modals/CreateReportModal"|g'
+find frontend/src -name "*.js" | xargs sed -i 's|from ".*modals/ViewCommitsModal"|from "../../components/modals/ViewCommitsModal"|g'
 
-echo "Import paths updated" 
+# Fix App.js imports specifically (they need different relative paths)
+sed -i 's|from "../../components/|from "./components/|g' frontend/src/App.js
+sed -i 's|from "../../pages/|from "./pages/|g' frontend/src/App.js
+
+echo "Import paths updated successfully" 
