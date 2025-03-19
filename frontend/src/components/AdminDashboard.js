@@ -26,7 +26,8 @@ const AdminDashboard = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [planLimits, setPlanLimits] = useState({
     reportsPerMonth: 0,
-    commitsPerMonth: 0
+    commitsPerSmallReport: 0,
+    commitsPerBigReport: 0
   });
 
   useEffect(() => {
@@ -203,6 +204,9 @@ const AdminDashboard = () => {
 
             {selectedPlan && (
               <>
+                <Typography variant="subtitle1" gutterBottom>
+                  Report Limits
+                </Typography>
                 <TextField
                   fullWidth
                   type="number"
@@ -210,15 +214,32 @@ const AdminDashboard = () => {
                   value={planLimits.reportsPerMonth}
                   onChange={handleLimitChange('reportsPerMonth')}
                   sx={{ mb: 2 }}
+                  helperText="This determines the number of small reports allowed per month"
+                />
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Big reports allowed: {Math.floor(planLimits.reportsPerMonth * 0.1)}
+                </Typography>
+
+                <Typography variant="subtitle1" gutterBottom sx={{ mt: 3 }}>
+                  Commits per Report
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Commits per Small Report"
+                  value={planLimits.commitsPerSmallReport}
+                  onChange={handleLimitChange('commitsPerSmallReport')}
+                  sx={{ mb: 2 }}
                 />
                 <TextField
                   fullWidth
                   type="number"
-                  label="Commits per Month"
-                  value={planLimits.commitsPerMonth}
-                  onChange={handleLimitChange('commitsPerMonth')}
+                  label="Commits per Big Report"
+                  value={planLimits.commitsPerBigReport}
+                  onChange={handleLimitChange('commitsPerBigReport')}
                   sx={{ mb: 2 }}
                 />
+
                 <Button
                   variant="contained"
                   onClick={handleUpdateLimits}
