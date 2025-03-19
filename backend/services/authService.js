@@ -20,6 +20,13 @@ class AuthService {
         if (profile.emails && profile.emails.length > 0) {
           user.email = profile.emails[0].value;
         }
+
+        // Ensure user has a plan
+        if (!user.plan) {
+          const defaultPlan = await PlanService.getDefaultPlan();
+          user.plan = defaultPlan._id;
+        }
+
         await user.save();
       } else {
         // Get default plan for new user
