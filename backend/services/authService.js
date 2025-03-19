@@ -31,6 +31,7 @@ class AuthService {
       } else {
         // Get default plan for new user
         const defaultPlan = await PlanService.getDefaultPlan();
+        console.log('Default plan:', defaultPlan);
         
         // Create new user
         user = await User.create({
