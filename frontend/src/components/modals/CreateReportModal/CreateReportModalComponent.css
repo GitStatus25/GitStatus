@@ -1,0 +1,75 @@
+.modal-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.modal-title-text {
+  font-weight: 600;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.form-field {
+  margin-bottom: 16px;
+}
+
+.search-loading-indicator {
+  margin-right: 8px;
+}
+
+.date-picker-container {
+  width: 100%;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.author-chip {
+  margin: 2px;
+}
+
+.date-range-indicator {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.date-range-text {
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+.loading-indicator {
+  margin-right: 8px;
+}
+
+.validation-error {
+  color: #f44336;
+  margin-top: 8px;
+}
+
+.submit-button {
+  margin-left: 8px;
+}
+
+.include-code-option {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.chip-with-icon {
+  display: flex;
+  align-items: center;
+}
+
+.chip-icon {
+  margin-right: 4px;
+}

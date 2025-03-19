@@ -1,0 +1,143 @@
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.menu-button {
+  margin-right: 1rem;
+  transition: transform 0.2s;
+}
+
+.menu-button:hover {
+  transform: rotate(180deg);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+}
+
+.logo-container:hover .logo-icon {
+  transform: rotate(360deg);
+}
+
+.logo-icon {
+  margin-right: 0.5rem;
+  transition: transform 0.5s ease-in-out;
+}
+
+.app-title {
+  color: white; 
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, #fff, #81d4fa);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.title-container {
+  display: flex;
+  flex: 1;
+}
+
+.page-title {
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  transition: all 0.2s ease-in-out;
+}
+
+.user-avatar:hover {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.drawer-container {
+  width: 250px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid;
+}
+
+.drawer-header {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drawer-list {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.menu-item {
+  margin-bottom: 0.5rem;
+}
+
+.menu-button-active {
+  background-color: rgba(77, 171, 245, 0.1);
+}
+
+.menu-button-active:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+.menu-button-item {
+  border-radius: 8px;
+  position: relative;
+}
+
+.menu-button-item:hover {
+  background-color: rgba(77, 171, 245, 0.08);
+}
+
+.active-link-indicator {
+  opacity: 0.5;
+}
+
+.logout-button {
+  border-radius: 8px;
+}
+
+.logout-button:hover {
+  background-color: rgba(244, 67, 54, 0.08);
+}
+
+.logout-icon {
+  color: #f44336;
+}
+
+.footer {
+  padding: 1.5rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.footer-text {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}

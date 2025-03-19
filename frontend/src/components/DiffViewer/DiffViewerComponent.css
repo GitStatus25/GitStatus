@@ -1,0 +1,53 @@
+.diff-viewer {
+  font-family: Consolas, Monaco, "Andale Mono", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: auto;
+  width: 100%;
+}
+
+.diff-header {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font-weight: bold;
+}
+
+.diff-content {
+  padding: 0;
+}
+
+.diff-line {
+  padding: 0 8px;
+  display: flex;
+}
+
+.diff-line:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.line-number {
+  color: rgba(0, 0, 0, 0.6);
+  padding-right: 16px;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  min-width: 2.5rem;
+}
+
+.line-content {
+  padding-left: 16px;
+  width: 100%;
+}
+
+.addition {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.deletion {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.info {
+  background-color: rgba(0, 0, 255, 0.05);
+}
