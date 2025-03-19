@@ -212,10 +212,9 @@ The application follows a client-server architecture:
 
 #### Services
 
-1. **GitHub Service** (`services/GitHub/`)
-   The GitHub service is organized into a folder with multiple specialized services:
+1. **GitHub Services** (`services/GitHub/`)
+   GitHub functionality is organized into a folder with multiple specialized services:
    
-   - `GitHubService.js` - Aggregates functionality from specialized services
    - `GitHubRepositoryService.js` - Handles repository-related operations
    - `GitHubCommitService.js` - Handles commit-related operations
    - `GitHubBranchService.js` - Handles branch-related operations
@@ -223,12 +222,14 @@ The application follows a client-server architecture:
    - `index.js` - Exports all services for convenient importing
    
    Key functions across these services include:
-   - Repository information retrieval
-   - Commit analysis and filtering
-   - Branch listing and analysis
+   - Repository information retrieval and contributor listing
+   - Commit analysis, filtering, and diff handling
+   - Branch listing and author tracking
    - Repository search functionality
-   - Author tracking
    - Date range analysis for commits
+   
+   These services are imported directly where needed, rather than through a unified service,
+   promoting better modularity and clearer dependencies.
 
 2. **OpenAI Service** (`services/OpenAIService.js`)
    - Analyzes commit data using OpenAI models
