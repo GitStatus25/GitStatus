@@ -213,127 +213,136 @@ const AnalyticsDashboard = () => {
           </Box>
         </Grid>
 
-        {/* Usage Statistics */}
+        {/* Usage Stats Cards */}
         <Grid item xs={12} md={4}>
-          <StatCard
-            title="Reports Generated"
-            value={stats?.allTimeStats?.reports || 0}
-            icon={<DescriptionIcon sx={{ color: theme.palette.primary.main }} />}
-            color={theme.palette.primary.main}
-            subtitle="All Time"
-            tooltip="Total number of reports you've generated"
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard
-            title="Commits Analyzed"
-            value={stats?.allTimeStats?.commits || 0}
-            icon={<CodeIcon sx={{ color: theme.palette.success.main }} />}
-            color={theme.palette.success.main}
-            subtitle="All Time"
-            tooltip="Total number of commits you've analyzed"
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <StatCard
-            title="Token Usage"
-            value={stats?.allTimeStats?.tokenUsage?.toLocaleString() || 0}
-            icon={<SpeedIcon sx={{ color: theme.palette.warning.main }} />}
-            color={theme.palette.warning.main}
-            subtitle="All Time"
-            tooltip="Total tokens used for AI processing"
-          />
-        </Grid>
-
-        {/* Usage Limits */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              background: theme.palette.background.cardGradient,
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)'
-            }}
-          >
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-              <StorageIcon sx={{ mr: 1, color: theme.palette.info.main }} />
-              Monthly Usage Limits
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            
-            {/* Small Reports Progress */}
-            <UsageProgress
-              current={stats?.currentUsage?.reportsGenerated || 0}
-              limit={stats?.plan?.limits?.reportsPerMonth || 50}
-              label="Small Reports per Month"
-              color={theme.palette.primary.main}
-            />
-
-            {/* Big Reports Progress */}
-            <UsageProgress
-              current={stats?.currentUsage?.bigReportsGenerated || 0}
-              limit={Math.floor((stats?.plan?.limits?.reportsPerMonth || 50) * 0.1)}
-              label="Big Reports per Month"
-              color={theme.palette.secondary.main}
-            />
-
-            {/* Commit Information */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Commits per Report
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Reports Generated
               </Typography>
-              <Box sx={{ pl: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Small Reports: {stats?.plan?.limits?.commitsPerSmallReport || 5} commits
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Big Reports: {stats?.plan?.limits?.commitsPerBigReport || 20} commits
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
+              <Typography variant="h4">
+                {stats?.allTimeStats?.reports || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                All-time total
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Commits Analyzed
+              </Typography>
+              <Typography variant="h4">
+                {stats?.allTimeStats?.commits || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                All-time total
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Token Usage
+              </Typography>
+              <Typography variant="h4">
+                {stats?.allTimeStats?.tokenUsage?.toLocaleString() || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                All-time total
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Monthly Usage Limits */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Monthly Usage Limits
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Small Reports
+                  </Typography>
+                  <UsageProgress
+                    current={stats?.currentUsage?.reportsGenerated?.small || 0}
+                    limit={stats?.plan?.limits?.reportsPerMonth || 0}
+                    label={`${stats?.currentUsage?.reportsGenerated?.small || 0} / ${stats?.plan?.limits?.reportsPerMonth || 0} small reports`}
+                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Up to {stats?.plan?.limits?.commitsPerSmallReport || 0} commits per report
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Big Reports
+                  </Typography>
+                  <UsageProgress
+                    current={stats?.currentUsage?.reportsGenerated?.big || 0}
+                    limit={Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)}
+                    label={`${stats?.currentUsage?.reportsGenerated?.big || 0} / ${Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)} big reports`}
+                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Up to {stats?.plan?.limits?.commitsPerBigReport || 0} commits per report
+                  </Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
 
         {/* Monthly Breakdown */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              background: theme.palette.background.cardGradient,
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)'
-            }}
-          >
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-              <TrendingUpIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
-              This Month's Usage
-            </Typography>
-            <Divider sx={{ my: 2 }} />
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Small Reports Generated
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                This Month's Usage
               </Typography>
-              <Typography variant="h4" component="div">
-                {stats?.currentMonthStats?.reports?.small || 0}
-              </Typography>
-            </Box>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Big Reports Generated
-              </Typography>
-              <Typography variant="h4" component="div">
-                {stats?.currentMonthStats?.reports?.big || 0}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Token Usage
-              </Typography>
-              <Typography variant="h4" component="div">
-                {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
-              </Typography>
-            </Box>
-          </Paper>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Reports Generated
+                  </Typography>
+                  <Typography variant="h4">
+                    {stats?.currentMonthStats?.reports?.total || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stats?.currentMonthStats?.reports?.small || 0} small, {stats?.currentMonthStats?.reports?.big || 0} big
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Commits Analyzed
+                  </Typography>
+                  <Typography variant="h4">
+                    {stats?.currentMonthStats?.commits?.total || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stats?.currentMonthStats?.commits?.small || 0} small, {stats?.currentMonthStats?.commits?.big || 0} big
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Token Usage
+                  </Typography>
+                  <Typography variant="h4">
+                    {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stats?.currentMonthStats?.tokenUsage?.input?.toLocaleString() || 0} input, {stats?.currentMonthStats?.tokenUsage?.output?.toLocaleString() || 0} output
+                  </Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
 
         {/* Advanced Commit Analysis */}
