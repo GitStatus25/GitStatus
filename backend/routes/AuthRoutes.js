@@ -1,7 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const router = express.Router();
-const authController = require('../controllers/authController');
+const authController = require('../controllers/AuthController');
 
 // GitHub OAuth routes
 router.get('/github', passport.authenticate('github', { scope: ['user', 'repo'] }));

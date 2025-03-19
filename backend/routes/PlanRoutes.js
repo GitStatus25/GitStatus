@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const planController = require('../controllers/planController');
+const planController = require('../controllers/PlanController');
 const { isAdmin } = require('../middleware/auth');
 
 // All routes require admin privileges

@@ -11,6 +11,8 @@
    - Import specific service modules directly where needed rather than through aggregating services, promoting clear dependencies and better modularity
    - When refactoring, update all existing references to use the new structure directly, rather than creating backward compatibility wrappers
    - Avoid circular dependencies by carefully planning the service hierarchy
+   - Never implement controller logic directly in route files - always create a dedicated controller file and import it in the route file, even for simple endpoints
+   - Route files should only define routes and connect them to controller methods, never handle business logic or data manipulation
 
 2. **Naming Conventions**
    - Use descriptive, consistent naming throughout the codebase

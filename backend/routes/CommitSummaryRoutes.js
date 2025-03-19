@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const commitSummaryController = require('../controllers/commitSummaryController');
+const commitSummaryController = require('../controllers/CommitSummaryController');
 const { isAuthenticated } = require('../middleware/auth');
 
 // All routes require authentication
