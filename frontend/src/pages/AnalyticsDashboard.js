@@ -326,7 +326,7 @@ const AnalyticsDashboard = () => {
                     {stats?.currentMonthStats?.commits?.total || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {stats?.currentMonthStats?.commits?.small || 0} small, {stats?.currentMonthStats?.commits?.big || 0} big
+                    Total commits this month
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>

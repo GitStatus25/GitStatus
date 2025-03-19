@@ -79,8 +79,7 @@ class UsageStatsService {
         { user: userId, month: currentMonth },
         {
           $inc: {
-            'commits.total': 1,  // Increment total by 1 for each analysis
-            'commits.summarized': summarizedCount  // Track actual commits summarized
+            'commits.total': commitCount  // Use actual commit count
           }
         },
         { upsert: true, new: true }
