@@ -13,6 +13,11 @@
    - Avoid circular dependencies by carefully planning the service hierarchy
    - Never implement controller logic directly in route files - always create a dedicated controller file and import it in the route file, even for simple endpoints
    - Route files should only define routes and connect them to controller methods, never handle business logic or data manipulation
+   - Maintain a clear distinction between pages and components:
+     - **Pages**: Top-level components that represent entire routes, handle page-level state and data fetching
+     - **Components**: Reusable UI elements that receive data via props and focus on specific UI functionality
+     - Group related components in feature-based folders (e.g., `components/ViewReport/`)
+     - Include an index.js in feature folders to re-export components for easier importing
 
 2. **Naming Conventions**
    - Use descriptive, consistent naming throughout the codebase

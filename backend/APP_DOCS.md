@@ -25,6 +25,32 @@ The application follows a client-server architecture:
 
 ### Frontend Components
 
+#### Frontend Organization
+
+The frontend codebase is organized with a clear separation between pages and components:
+
+1. **Pages (`src/pages/`)**: 
+   - Top-level components that represent entire pages/routes in the application
+   - Generally contain the main layout and composition of components
+   - Handle page-level state, data fetching, and routing logic
+   - Named with the "Page" suffix (e.g., `DashboardPage.js`, `ViewReportPage.js`)
+   - Examples: `LoginPage`, `DashboardPage`, `ViewReportPage`
+
+2. **Components (`src/components/`)**: 
+   - Reusable UI elements that can be composed within pages
+   - Focus on specific UI functionality and presentation
+   - Generally receive data and callbacks as props
+   - Named with the "Component" suffix (e.g., `HeaderComponent.js`, `CommitListComponent.js`)
+   - Can be organized in feature-based folders for related components
+   - Examples: `LayoutComponent`, `CommitListComponent`, `ReportHeaderComponent`
+
+3. **Component Organization Strategy**:
+   - When a component becomes too large (>300 lines), it should be split into smaller focused components
+   - Related components are grouped in feature-based folders (e.g., `components/ViewReport/`)
+   - Each feature folder includes an `index.js` file that re-exports its components for easier importing
+   - Complex UI elements are composed from multiple smaller components
+   - This approach improves maintainability, readability, and allows for component reuse
+
 #### File Naming Conventions
 
 To maintain consistency and clarity across the codebase, we follow these naming conventions:
