@@ -22,11 +22,11 @@ const UsageStatsSchema = new mongoose.Schema({
   
   // Report generation metrics
   reports: {
-    small: {
+    standard: {
       type: Number,
       default: 0
     },
-    big: {
+    large: {
       type: Number,
       default: 0
     }
@@ -34,11 +34,11 @@ const UsageStatsSchema = new mongoose.Schema({
   
   // Commit analysis metrics
   commits: {
-    small: {
+    standard: {
       type: Number,
       default: 0
     },
-    big: {
+    large: {
       type: Number,
       default: 0
     }

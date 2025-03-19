@@ -13,12 +13,35 @@ class UsageStatsController {
   static async getUserStats(req, res) {
     try {
       const userId = req.user.id;
+      const user = await User.findById(userId).populate('plan');
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
       const stats = await UsageStatsService.getUserUsageStats(userId);
       
-      res.status(200).json({
+      // Include plan information in response
+      const response = {
         success: true,
-        data: stats
-      });
+        data: {
+          ...stats,
+          plan: {
+            name: user.plan.name,
+            displayName: user.plan.displayName,
+            limits: user.plan.limits
+          },
+          currentUsage: {
+            ...stats.currentUsage,
+            tokensUsed: user.currentUsage.tokensUsed || 0
+          }
+        }
+      };
+
+      res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching user stats:', error);
       res.status(500).json({

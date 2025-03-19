@@ -270,28 +270,34 @@ const AnalyticsDashboard = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <Typography variant="subtitle1" gutterBottom>
-                    Small Reports
+                    Standard Reports
                   </Typography>
-                  <UsageProgress
-                    current={stats?.currentUsage?.reportsGenerated?.small || 0}
-                    limit={stats?.plan?.limits?.reportsPerMonth || 0}
-                    label={`${stats?.currentUsage?.reportsGenerated?.small || 0} / ${stats?.plan?.limits?.reportsPerMonth || 0} small reports`}
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, ((stats?.currentUsage?.reportsGenerated?.standard || 0) / (stats?.plan?.limits?.reportsPerMonth || 1)) * 100)}
+                    sx={{ mb: 1 }}
                   />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Up to {stats?.plan?.limits?.commitsPerSmallReport || 0} commits per report
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {`${stats?.currentUsage?.reportsGenerated?.standard || 0} / ${stats?.plan?.limits?.reportsPerMonth || 0} standard reports`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Up to {stats?.plan?.limits?.commitsPerStandardReport || 0} commits per report
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Typography variant="subtitle1" gutterBottom>
-                    Big Reports
+                    Large Reports
                   </Typography>
-                  <UsageProgress
-                    current={stats?.currentUsage?.reportsGenerated?.big || 0}
-                    limit={Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)}
-                    label={`${stats?.currentUsage?.reportsGenerated?.big || 0} / ${Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)} big reports`}
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, ((stats?.currentUsage?.reportsGenerated?.large || 0) / (Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1))) * 100)}
+                    sx={{ mb: 1 }}
                   />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Up to {stats?.plan?.limits?.commitsPerBigReport || 0} commits per report
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {`${stats?.currentUsage?.reportsGenerated?.large || 0} / ${Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)} large reports`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Up to {stats?.plan?.limits?.commitsPerLargeReport || 0} commits per report
                   </Typography>
                 </Grid>
               </Grid>
@@ -315,7 +321,7 @@ const AnalyticsDashboard = () => {
                     {stats?.currentMonthStats?.reports?.total || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {stats?.currentMonthStats?.reports?.small || 0} small, {stats?.currentMonthStats?.reports?.big || 0} big
+                    {stats?.currentMonthStats?.reports?.standard || 0} standard, {stats?.currentMonthStats?.reports?.large || 0} large
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>

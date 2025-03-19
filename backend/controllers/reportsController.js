@@ -148,14 +148,14 @@ exports.generateReport = async (req, res) => {
       return res.status(500).json({ error: 'User plan not found' });
     }
     
-    // Determine report type based on commit count and plan limits
-    const reportType = commits.length <= user.plan.commitsPerSmallReport ? 'small' : 'big';
-    
-    // Check if this would exceed the user's plan limits
-    if (reportType === 'big' && commits.length > user.plan.commitsPerBigReport) {
-      return res.status(403).json({
-        error: `Report exceeds maximum commits allowed for big reports (${user.plan.commitsPerBigReport} commits)`,
-        limitReached: true
+    // Determine report type based on commit count
+    const reportType = commits.length <= user.plan.commitsPerStandardReport ? 'standard' : 'large';
+
+    // Check if commit count exceeds the limit for the report type
+    if (reportType === 'large' && commits.length > user.plan.commitsPerLargeReport) {
+      return res.status(400).json({
+        error: `Report exceeds maximum commits allowed for large reports (${user.plan.commitsPerLargeReport} commits)`,
+        limit: user.plan.commitsPerLargeReport
       });
     }
     
@@ -428,7 +428,7 @@ exports.generateReport = async (req, res) => {
         // Track report generation
         await UsageStatsService.trackReportGeneration(
           userId, 
-          reportType // 'standard' or 'big'
+          reportType // 'standard' or 'large'
         );
         
         // Track commit analysis

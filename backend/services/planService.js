@@ -15,9 +15,8 @@ class PlanService {
           description: 'Basic GitHub analytics for individual developers',
           limits: {
             reportsPerMonth: 50,
-            commitsPerMonth: 500,
-            tokensPerMonth: 100000,
-            maxReportSize: 1000
+            commitsPerStandardReport: 5,
+            commitsPerLargeReport: 20
           },
           isDefault: true
         });

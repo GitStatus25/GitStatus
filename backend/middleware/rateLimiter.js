@@ -57,6 +57,20 @@ const rateLimiter = {
         });
       }
 
+      // Get the appropriate commit limit based on report type
+      const commitLimit = reportType === 'large' 
+        ? user.plan.limits.commitsPerLargeReport
+        : user.plan.limits.commitsPerStandardReport;
+
+      const commits = req.body.commits || [];
+      if (commits.length > commitLimit) {
+        return res.status(429).json({
+          error: `Report exceeds maximum commits allowed for ${reportType} reports (${commitLimit} commits)`,
+          limit: commitLimit,
+          type: reportType
+        });
+      }
+
       next();
     } catch (error) {
       console.error('Error checking commit limit:', error);

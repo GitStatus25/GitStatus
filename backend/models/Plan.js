@@ -20,12 +20,12 @@ const planSchema = new mongoose.Schema({
       required: true,
       default: 50
     },
-    commitsPerSmallReport: {
+    commitsPerStandardReport: {
       type: Number,
       required: true,
       default: 5
     },
-    commitsPerBigReport: {
+    commitsPerLargeReport: {
       type: Number,
       required: true,
       default: 20
