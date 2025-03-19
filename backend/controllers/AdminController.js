@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const UsageStatsService = require('../services/UsageStatsService');
+const { UsageAnalyticsService } = require('../services/UsageStats');
 
 /**
  * Admin controller for user management and analytics
@@ -48,7 +48,7 @@ class AdminController {
    */
   static async getAnalytics(req, res) {
     try {
-      const analytics = await UsageStatsService.getAdminAnalytics();
+      const analytics = await UsageAnalyticsService.getAdminAnalytics();
       res.json({ analytics });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching analytics', error: error.message });

@@ -1,5 +1,5 @@
 const { GitHubCommitService } = require('../../services/GitHub');
-const UsageStatsService = require('../../services/UsageStatsService');
+const { CommitUsageTrackerService } = require('../../services/UsageStats');
 
 /**
  * Controller for handling GitHub commit-related operations

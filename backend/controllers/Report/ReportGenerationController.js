@@ -4,7 +4,7 @@ const openaiService = require('../../services/openai');
 const pdfService = require('../../services/pdf');
 const s3Service = require('../../services/s3');
 const reportService = require('../../services/reportService');
-const UsageStatsService = require('../../services/usageStats');
+const { ReportUsageTrackerService, CommitUsageTrackerService, TokenUsageTrackerService } = require('../../services/UsageStats');
 const User = require('../../models/User');
 const { NotFoundError, ValidationError } = require('../../utils/errors');
 
@@ -27,7 +27,7 @@ exports.generateReport = async (req, res) => {
     let isCachedReport = false;
     
     // Check if user has reached their report limit
-    const hasReachedLimit = await UsageStatsService.hasReachedReportLimit(userId);
+    const hasReachedLimit = await ReportUsageTrackerService.hasReachedReportLimit(userId);
     if (hasReachedLimit) {
       return res.status(403).json({ 
         error: 'Monthly report generation limit reached',
@@ -302,10 +302,10 @@ async function createReport({ userId, title, repository, branches, authors, star
 
 async function trackReportUsage({ userId, reportType, uniqueCommitCount, inputTokenCount, outputTokenCount, modelName }) {
   // Track report generation
-  await UsageStatsService.trackReportGeneration(userId, reportType);
+  await ReportUsageTrackerService.trackReportGeneration(userId, reportType);
   
   // Track commit analysis
-  await UsageStatsService.trackCommitAnalysis(
+  await CommitUsageTrackerService.trackCommitAnalysis(
     userId,
     uniqueCommitCount,
     uniqueCommitCount
@@ -320,7 +320,7 @@ async function trackReportUsage({ userId, reportType, uniqueCommitCount, inputTo
   const { input: inputCost, output: outputCost } = tokenCosts[modelName] || tokenCosts['gpt-4-mini'];
   const estimatedCost = (inputTokenCount * inputCost) + (outputTokenCount * outputCost);
   
-  await UsageStatsService.trackTokenUsage(
+  await TokenUsageTrackerService.trackTokenUsage(
     userId,
     inputTokenCount,
     outputTokenCount,

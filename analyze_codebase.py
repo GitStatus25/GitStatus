@@ -154,13 +154,13 @@ def analyze_codebase():
 
     # System prompt (role)
     system_prompt = """
-You are an expert full-stack developer and code auditor with deep knowledge of React (JS/JSX), Express.js, and MongoDB, tasked with analyzing GitStatus, a ~10k-line MVP that generates AI-powered reports from GitHub commit history.
+You are an expert full-stack developer and code auditor with deep knowledge of React (JS/JSX), Express.js, and MongoDB, tasked with evaluating a full-stack application.
 """
 
-    # Instructions (updated but will iterate further)
+    # Instructions
     instructions = """
 ### Context
-The codebase has undergone recent changes, including removing hardcoded API keys, adding PDF watermarking, and separating concerns into smaller, single-duty units. The app is likely broken and won’t deploy due to untested changes, but the code is cleaner and more modular. It includes the current Claude Bible (`BIBLE.md`), app docs (`APP_DOCS.md`), and additional documentation for reference.
+The application recently underwent a massive restructuring and is likely broken due to untested changes, though the code should be cleaner and more modular. It includes the current Claude Bible (`BIBLE.md`), app docs (`APP_DOCS.md`), and additional documentation for reference.
 
 ---
 
@@ -169,54 +169,45 @@ The codebase has undergone recent changes, including removing hardcoded API keys
 ---
 
 ### Instructions
-Use extended thinking mode with an 8,000-token thinking budget to reason step-by-step, breaking down your analysis into detailed steps for each section. Think deeply about stability, scalability (e.g., 10x users), and long-term maintainability, considering edge cases, performance under load, and potential tech debt from recent fixes.
+Use extended thinking mode with an 8,000-token thinking budget to reason step-by-step, breaking down your analysis into detailed steps for each section. Think deeply about stability, scalability (e.g., 10x users), and long-term maintainability, considering edge cases, performance under load, and potential tech debt from the recent restructuring.
 
-1. **Documentation Gaps**:
-   - List missing or vague info in `.md` files, especially `roadmap.md` (file, note).
-   - Suggest specific additions (e.g., code snippets, examples) to make docs more actionable.
-   - Think: How can docs better support scalability and onboarding? What gaps might hinder future AI analysis?
-
-2. **Roadmap Progress**:
-   - Parse `roadmap.md` Phase 1 tasks—list what’s undone (file/line or "not found") and future tasks done (file/line).
-   - Analyze how recent fixes (e.g., PDF watermarking, modular refactors) impact roadmap progress.
-   - Think: Are there new blockers for Phase 1? How can undone tasks be prioritized? What edge cases might affect completion?
-
-3. **Code Issues**:
+1. **Code Issues**:
    - Scan `.js`, `.jsx`, `.md`, `.css`, `package.json` for bugs, security flaws, duplication, unused code, bad naming, wrong structure, bad practices, fragility (file, line, severity, fix).
-   - Re-evaluate security post-fixes (e.g., environment variable mismanagement, new vulnerabilities from refactors).
-   - Analyze edge cases (e.g., GitHub API rate limits, large commit histories, report generation failures, race conditions in async PDF generation).
-   - Think: What new issues might my fixes have introduced? How can I prevent future bugs? What are the security implications of my modular structure?
+   - Evaluate security vulnerabilities, especially those that might have been introduced by the restructuring (e.g., environment variable mismanagement, new vulnerabilities from refactored code).
+   - Analyze edge cases (e.g., large data processing, report generation failures, race conditions in async operations).
+   - Think: What issues might the restructuring have introduced? How can I prevent future bugs? What are the security implications of the new modular structure?
 
-4. **Digestibility Refactors**:
-   - Validate my recent separation of concerns—suggest further splits for React components, Express routes, MongoDB queries into small, single-duty units (file, line, new structure, matching frontend-backend fixes).
-   - Provide pseudocode or snippets for key refactors (e.g., pagination in `services/github.js`, async PDF generation in `services/pdf.js`).
-   - Think: How can I make the codebase even more modular for AI analysis? Are there diminishing returns to my separation of concerns?
+2. **Digestibility Refactors**:
+   - Validate the recent separation of concerns—suggest further splits for React components, Express routes, MongoDB queries into small, single-duty units (file, line, new structure, matching frontend-backend fixes).
+   - Provide pseudocode or snippets for key refactors (e.g., pagination in backend services, async operations).
+   - Think: How can I make the codebase even more modular for AI analysis? Are there diminishing returns to separation of concerns?
 
-5. **Technical Debt**:
+3. **Technical Debt**:
    - Refactor for stability—focus on:
-     - **PDF Generation** (`services/pdf.js`): Design an asynchronous architecture with a job queue (e.g., Bull/Redis), including error handling, user feedback (e.g., status updates), and edge cases (e.g., queue failures, large PDFs).
-     - **MongoDB** (`server.js`, `models/Report.js`): Analyze query performance, suggest specific indexes (e.g., compound indexes), design a robust connection strategy with pooling, retries, and error handling.
-     - **State Management** (`frontend/src/contexts/ModalContext.js`): Compare Redux vs. Zustand vs. Context for modal complexity—list pros/cons, recommend one, and provide a migration plan.
-   - Think: How will these changes impact scalability? What edge cases should I consider (e.g., 100 concurrent report generations)? How can I future-proof the architecture?
+     - **PDF Generation**: If applicable, design an asynchronous architecture with a job queue (e.g., Bull/Redis), including error handling, user feedback (e.g., status updates), and edge cases (e.g., queue failures, large PDFs).
+     - **MongoDB** (`server.js`, `models/`): Analyze query performance, suggest specific indexes (e.g., compound indexes), design a robust connection strategy with pooling, retries, and error handling.
+     - **State Management** (`frontend/src/contexts/`): Compare Redux vs. Zustand vs. Context for state complexity—list pros/cons, recommend one, and provide a migration plan.
+   - Think: How will these changes impact scalability? What edge cases should I consider (e.g., 100 concurrent operations)? How can I future-proof the architecture?
 
-6. **Claude Bible & App Docs (Post-Fix)**:
-   - **Claude Bible**: Refine the existing Bible (`BIBLE.md`)—preserve good rules, but make them cleaner, more concise, and more actionable. Infer additional rules from fixes and codebase patterns (e.g., component size, route structure, query design)—no arbitrary rules. Include: "Claude must update APP_DOCS.md after every change."
-   - **App Docs**: Update the existing app docs (`APP_DOCS.md`) to reflect the app *after all fixes*:
+4. **Claude Bible (Post-Fix)**:
+   - Refine the existing Bible (`BIBLE.md`)—preserve good rules, but make them cleaner, more concise, and more actionable. Infer additional rules from fixes and codebase patterns (e.g., component size, route structure, query design)—no arbitrary rules. Include: "Claude must update APP_DOCS.md after every change."
+   - Think: How can the Bible ensure long-term consistency across iterations?
+
+5. **Ideal App Docs**:
+   - Create the ideal version of `APP_DOCS.md` to reflect the app *after all suggested fixes*:
      - Overview: App purpose, structure.
      - Frontend: Key React components (file, duty, props/hooks).
      - Backend: Express routes (path, method, purpose), MongoDB schemas/queries (model, use).
      - Connections: Frontend-backend data flow (e.g., API calls from React to Express).
-   - Think: How can the Bible ensure long-term consistency across iterations? How can app docs reflect my new modular structure while remaining concise?
+   - Think: How can the app docs reflect the new modular structure while remaining concise and actionable for future development?
 
 ### Output Format
 Markdown:
-- `## Documentation Gaps`
-- `## Roadmap Progress` (`### Phase 1 Remaining`, `### Future Phases Done`)
 - `## Code Issues` (subsections)
 - `## Digestibility Refactors`
 - `## Technical Debt`
 - `## Claude Bible`
-- `## Application Docs`
+- `## Ideal Application Docs`
 
 ### Rules
 - Be detailed—include thinking blocks for each section, breaking down your reasoning step-by-step with an 8,000-token thinking budget.
@@ -227,13 +218,12 @@ Markdown:
 - Assume Node.js v18+, React 18, Express 4.x, MongoDB 6+.
 - Digestibility: Small, clear units for AI.
 - Bible: Refine existing rules, preserve good ones, make them concise and actionable, include "keep APP_DOCS.md updated."
-- Docs: Update `APP_DOCS.md` to reflect fixes, note frontend-backend connections, reference other docs as needed but do not recreate them.
 """
 
-    # Final analysis prompt
-    print("Sending final analysis prompt...")
+    # Final analysis prompt with streaming
+    print("Sending final analysis prompt with streaming...")
     try:
-        response = anthropic.messages.create(
+        with anthropic.messages.stream(
             model="claude-3-7-sonnet-20250219",
             system=system_prompt,
             messages=[
@@ -252,15 +242,33 @@ Markdown:
                     ]
                 }
             ],
-            max_tokens=16000,  # 8k core response + 8k thinking
+            max_tokens=16000,
             thinking={"type": "enabled", "budget_tokens": 8000}
-        )
-        print("Analysis complete! Writing response to output.md...")
+        ) as stream:
+            output = []
+            for event in stream:
+                if event.type == "content_block_start":
+                    print(f"\nStarting {event.content_block.type} block...")
+                elif event.type == "content_block_delta":
+                    if event.delta.type == "thinking_delta":
+                        print(f"Thinking: {event.delta.thinking}", end="", flush=True)
+                        output.append(event.delta.thinking)
+                    elif event.delta.type == "text_delta":
+                        print(f"Response: {event.delta.text}", end="", flush=True)
+                        output.append(event.delta.text)
+                elif event.type == "content_block_stop":
+                    print("\nBlock complete.")
+                elif event.type == "message_stop":
+                    print("\nStream completed.")
+                    output_tokens = event.message.usage.output_tokens
+                    print(f"Output tokens: {output_tokens}")
+
+        # Write the complete response to output.md
+        print("Writing response to output.md...")
         with open('output.md', 'w', encoding='utf-8') as f:
-            f.write(response.content[0].text)
-        print(f"Output tokens: {response.usage.output_tokens}")
+            f.write("".join(output))
     except Exception as e:
-        print(f"Error during analysis: {e}")
+        print(f"Error during streaming analysis: {e}")
 
 if __name__ == "__main__":
     try:

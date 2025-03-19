@@ -1,4 +1,4 @@
-const UsageStatsService = require('../services/UsageStatsService');
+const { ReportUsageTrackerService, UsageAnalyticsService } = require('../services/UsageStats');
 const User = require('../models/User');
 
 /**
@@ -22,7 +22,7 @@ class UsageStatsController {
         });
       }
 
-      const stats = await UsageStatsService.getUserUsageStats(userId);
+      const stats = await UsageAnalyticsService.getUserUsageStats(userId);
       
       // Include plan information in response
       const response = {
@@ -66,7 +66,7 @@ class UsageStatsController {
         });
       }
       
-      const stats = await UsageStatsService.getAdminAnalytics();
+      const stats = await UsageAnalyticsService.getAdminAnalytics();
       
       res.status(200).json({
         success: true,
@@ -90,7 +90,7 @@ class UsageStatsController {
   static async checkReportLimit(req, res) {
     try {
       const userId = req.user.id;
-      const hasReachedLimit = await UsageStatsService.hasReachedReportLimit(userId);
+      const hasReachedLimit = await ReportUsageTrackerService.hasReachedReportLimit(userId);
       
       res.status(200).json({
         success: true,
