@@ -13,10 +13,23 @@ const reportsRoutes = require('./routes/reports');
 const commitSummaryRoutes = require('./routes/commitSummaryRoutes');
 const usageStatsRoutes = require('./routes/usageStats');
 const adminRoutes = require('./routes/admin');
+const planRoutes = require('./routes/plans');
+const PlanService = require('./services/planService');
 require('./config/passport');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize default plan
+(async () => {
+  try {
+    await PlanService.initializeDefaultPlan();
+    console.log('Plan initialization complete');
+  } catch (error) {
+    console.error('Error initializing plans:', error);
+    process.exit(1);
+  }
+})();
 
 // Security middlewares
 app.use(helmet());
@@ -75,6 +88,7 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/commit-summaries', commitSummaryRoutes);
 app.use('/api/usage-stats', usageStatsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/plans', planRoutes);
 
 // Base route
 app.get('/', (req, res) => {
