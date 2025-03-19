@@ -1,0 +1,135 @@
+.dashboard-container {
+  padding: 1rem 0;
+}
+
+.welcome-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.welcome-icon {
+  font-size: 48px;
+  margin-right: 1rem;
+}
+
+.welcome-title {
+  margin-bottom: 0.5rem;
+}
+
+.welcome-subtitle {
+  opacity: 0.75;
+}
+
+.stat-card {
+  height: 100%;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stat-card-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  margin-right: 1rem;
+}
+
+.stat-card-title {
+  font-weight: 600;
+}
+
+.stat-card-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.stat-card-value {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.usage-progress-container {
+  margin-bottom: 1rem;
+}
+
+.usage-progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.usage-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.usage-warning {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.usage-warning-icon {
+  margin-right: 0.5rem;
+}
+
+.plan-info-section {
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.plan-name {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.upgrade-button {
+  margin-top: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.section-title {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.chart-container {
+  height: 300px;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.sub-section {
+  margin-top: 1.5rem;
+}
