@@ -7,13 +7,12 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const authRoutes = require('./routes/auth');
-const commitsRoutes = require('./routes/commits');
-const reportsRoutes = require('./routes/reports');
-const commitSummaryRoutes = require('./routes/commitSummaryRoutes');
-const usageStatsRoutes = require('./routes/usageStats');
-const adminRoutes = require('./routes/admin');
-const planRoutes = require('./routes/plans');
+const authRoutes = require('./routes/authRoutes');
+const commitRoutes = require('./routes/commitRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const usageStatsRoutes = require('./routes/usageStatsRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const planRoutes = require('./routes/planRoutes');
 const PlanService = require('./services/planService');
 require('./config/passport');
 
@@ -83,9 +82,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gitstatus
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/commits', commitsRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/commit-summaries', commitSummaryRoutes);
+app.use('/api/commits', commitRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/api/usage-stats', usageStatsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/plans', planRoutes);
