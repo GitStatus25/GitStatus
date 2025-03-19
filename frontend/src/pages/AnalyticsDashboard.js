@@ -245,8 +245,8 @@ const AnalyticsDashboard = () => {
           />
         </Grid>
 
-        {/* Usage Limits and Monthly Breakdown */}
-        <Grid item xs={12}>
+        {/* Usage Limits */}
+        <Grid item xs={12} md={6}>
           <Paper
             sx={{
               p: 3,
@@ -255,61 +255,84 @@ const AnalyticsDashboard = () => {
               backdropFilter: 'blur(10px)'
             }}
           >
-            <Grid container spacing={3}>
-              {/* Monthly Usage Limits */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <StorageIcon sx={{ mr: 1, color: theme.palette.info.main }} />
-                  Monthly Usage Limits
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <UsageProgress
-                  current={stats?.currentMonthStats?.reports?.total || 0}
-                  limit={stats?.plan?.limits?.reportsPerMonth || 50}
-                  label="Reports per Month"
-                  color={theme.palette.primary.main}
-                />
-                <UsageProgress
-                  current={stats?.currentMonthStats?.commits?.summarized || 0}
-                  limit={stats?.plan?.limits?.commitsPerMonth || 500}
-                  label="Commits per Month"
-                  color={theme.palette.success.main}
-                />
-              </Grid>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+              <StorageIcon sx={{ mr: 1, color: theme.palette.info.main }} />
+              Monthly Usage Limits
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            
+            {/* Small Reports Progress */}
+            <UsageProgress
+              current={stats?.currentUsage?.reportsGenerated || 0}
+              limit={stats?.plan?.limits?.reportsPerMonth || 50}
+              label="Small Reports per Month"
+              color={theme.palette.primary.main}
+            />
 
-              {/* Monthly Breakdown */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <TrendingUpIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
-                  This Month's Usage
+            {/* Big Reports Progress */}
+            <UsageProgress
+              current={stats?.currentUsage?.bigReportsGenerated || 0}
+              limit={Math.floor((stats?.plan?.limits?.reportsPerMonth || 50) * 0.1)}
+              label="Big Reports per Month"
+              color={theme.palette.secondary.main}
+            />
+
+            {/* Commit Information */}
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Commits per Report
+              </Typography>
+              <Box sx={{ pl: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Small Reports: {stats?.plan?.limits?.commitsPerSmallReport || 5} commits
                 </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Reports Generated
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {stats?.currentMonthStats?.reports?.total || 0}
-                  </Typography>
-                </Box>
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Commits Analyzed
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {stats?.currentMonthStats?.commits?.summarized || 0}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Token Usage
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
+                <Typography variant="body2" color="text.secondary">
+                  Big Reports: {stats?.plan?.limits?.commitsPerBigReport || 20} commits
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Monthly Breakdown */}
+        <Grid item xs={12} md={6}>
+          <Paper
+            sx={{
+              p: 3,
+              background: theme.palette.background.cardGradient,
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)'
+            }}
+          >
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+              <TrendingUpIcon sx={{ mr: 1, color: theme.palette.secondary.main }} />
+              This Month's Usage
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Small Reports Generated
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats?.currentMonthStats?.reports?.small || 0}
+              </Typography>
+            </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Big Reports Generated
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats?.currentMonthStats?.reports?.big || 0}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Token Usage
+              </Typography>
+              <Typography variant="h4" component="div">
+                {stats?.currentMonthStats?.tokenUsage?.total?.toLocaleString() || 0}
+              </Typography>
+            </Box>
           </Paper>
         </Grid>
 

@@ -22,25 +22,23 @@ const UsageStatsSchema = new mongoose.Schema({
   
   // Report generation metrics
   reports: {
-    total: {
+    small: {
       type: Number,
       default: 0
     },
-    // Breakdown by report types if needed
-    byType: {
-      type: Map,
-      of: Number,
-      default: () => ({})
+    big: {
+      type: Number,
+      default: 0
     }
   },
   
   // Commit analysis metrics
   commits: {
-    total: {
+    small: {
       type: Number,
       default: 0
     },
-    summarized: {
+    big: {
       type: Number,
       default: 0
     }
