@@ -16,9 +16,7 @@ class PlanService {
           limits: {
             reportsPerMonth: 50,
             commitsPerStandardReport: 5,
-            commitsPerLargeReport: 20,
-            tokensPerMonth: 1000,
-            maxReportSize: 1000
+            commitsPerLargeReport: 20
           },
           isDefault: true
         });

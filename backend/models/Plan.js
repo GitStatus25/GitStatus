@@ -31,12 +31,10 @@ const planSchema = new mongoose.Schema({
       default: 20
     },
     tokensPerMonth: {
-      type: Number,
-      required: true
+      type: Number
     },
     maxReportSize: {
-      type: Number,
-      required: true
+      type: Number
     }
   },
   isDefault: {
