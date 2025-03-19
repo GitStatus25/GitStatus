@@ -124,6 +124,7 @@ The application follows a client-server architecture:
    - Stores generated reports
    - Contains commit information and metadata
    - Tracks PDF location and access statistics
+   - See `docs/DATABASE_INDEXES.md` for details on performance optimization
 
 3. **CommitSummary** (`models/CommitSummary.js`)
    - Caches AI-generated commit summaries

@@ -75,4 +75,7 @@ const ReportSchema = new mongoose.Schema({
   }
 });
 
+// Add index on user field with createdAt for optimizing queries that filter by user and sort by date
+ReportSchema.index({ user: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Report', ReportSchema);

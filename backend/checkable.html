@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Analysis Response</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h2 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        /* Checkbox styling */
+        .recommendation {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+        
+        .recommendation input[type="checkbox"] {
+            margin-top: 5px;
+            margin-right: 10px;
+            min-width: 18px;
+            height: 18px;
+        }
+        
+        .recommendation-content {
+            flex: 1;
+        }
+        
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.7;
+            background-color: #e6ffe6;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <p>I&#39;ll analyze the GitStatus codebase and provide the requested output. Let me work through this systematically.</p>
+<h2>Documentation Gaps</h2>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>README.md</strong>: </p>
+            <ul>
+                <li>Missing deployment instructions for cloud providers beyond Heroku/Netlify</li>
+                <li>No troubleshooting section for common issues</li>
+                <li>No contribution guidelines or PR process</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Roadmap.md</strong>:</p>
+            <ul>
+                <li>Missing implementation details for &quot;Progressive commit loading&quot; (line 30)</li>
+                <li>No timeline estimates for any phases</li>
+                <li>No prioritization within each phase</li>
+                <li>No metrics for determining when a phase is complete</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>SETUP_GUIDE.md</strong>:</p>
+            <ul>
+                <li>Missing Docker setup instructions</li>
+                <li>No guidance on development workflow (branching, testing)</li>
+                <li>No explanation of environment variables beyond initial setup</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>AWS_S3_CONFIG_GUIDE.md</strong>:</p>
+            <ul>
+                <li>Missing instructions for setting up CloudFront with S3 for better performance</li>
+                <li>No guidance on S3 lifecycle policies for old reports</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>frontend/utils/DesignGuide.md</strong>:</p>
+            <ul>
+                <li>Missing dark/light theme toggle implementation details</li>
+                <li>No guidance on form validation patterns</li>
+                <li>No component library structure explanation</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h2>Roadmap Progress</h2>
+<h3>Phase 1 Remaining</h3>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Enhanced Free Tier with Promotional Limits</strong></p>
+            <ul>
+                <li>Standard reports (5 commits per report) - Implemented in <code>models/Plan.js</code> (line 19)</li>
+                <li>Big reports (20 commits per report) - Implemented in <code>models/Plan.js</code> (line 24)</li>
+                <li>PDF watermarking - Not found</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Track Usage Metrics</strong></p>
+            <ul>
+                <li>Per-user report usage and limits tracking - Implemented in <code>services/usageStats.js</code></li>
+                <li>API call counting and rate limiting - Partially implemented in <code>server.js</code> (lines 48-64)</li>
+                <li>Token usage monitoring - Implemented in <code>services/usageStats.js</code> (lines 97-137)</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Admin Management System</strong></p>
+            <ul>
+                <li>Create admin role designation - Implemented in <code>models/User.js</code> (line 25)</li>
+                <li>Admin dashboard with system-wide analytics - Implemented in <code>components/AdminDashboard.js</code></li>
+                <li>Financial monitoring tools - Partially implemented in <code>services/usageStats.js</code> (lines 97-137)</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h3>Future Phases Done</h3>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Usage Analytics (Phase 2 Priority)</strong></p>
+            <ul>
+                <li>Track report generation by type - Implemented in <code>services/usageStats.js</code> (lines 38-61)</li>
+                <li>Monitor commit analysis - Implemented in <code>services/usageStats.js</code> (lines 63-77)</li>
+                <li>Implement token usage tracking - Implemented in <code>services/usageStats.js</code> (lines 79-137)</li>
+                <li>Create usage dashboard - Implemented in <code>pages/AnalyticsDashboard.js</code></li>
+                <li>Cost monitoring and analysis - Implemented in <code>services/usageStats.js</code> (lines 97-137)</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Commit Author Analytics (Phase 5)</strong></p>
+            <ul>
+                <li>Enhanced author dropdown - Implemented in <code>components/modals/CreateReportModal.js</code> (lines 243-321)</li>
+                <li>Branch-specific filtering - Implemented in <code>components/modals/CreateReportModal.js</code> (lines 183-242)</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h2>Code Issues</h2>
+<h3>Security Issues</h3>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Exposed API Keys</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>scripts/analyzeFrontend.js</code>, line 4-5</li>
+                <li><strong>Severity</strong>: Critical</li>
+                <li><strong>Issue</strong>: Hardcoded API keys in source code</li>
+                <li><strong>Fix</strong>: Move API keys to environment variables</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Weak Session Configuration</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>server.js</code>, lines 76-86</li>
+                <li><strong>Severity</strong>: High</li>
+                <li><strong>Issue</strong>: Session secret can be weak if environment variable not set</li>
+                <li><strong>Fix</strong>: Generate strong random secret if not provided, add session expiration</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Missing CSRF Protection</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>server.js</code>, line 86</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Only sameSite cookie protection, no CSRF tokens</li>
+                <li><strong>Fix</strong>: Implement CSRF token validation for state-changing operations</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Insufficient Input Validation</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>controllers/reportsController.js</code>, various endpoints</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Limited validation of user input</li>
+                <li><strong>Fix</strong>: Add comprehensive validation middleware for all endpoints</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h3>Performance Issues</h3>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Inefficient Commit Loading</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>services/github.js</code>, lines 507-581</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Fetches all commits at once, potential for large payloads</li>
+                <li><strong>Fix</strong>: Implement pagination with cursor-based navigation</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Missing Indexes</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>models/Report.js</code>, line 47</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Missing index on user field for frequent queries</li>
+                <li><strong>Fix</strong>: Add index for user field: <code>ReportSchema.index({ user: 1, createdAt: -1 });</code></li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Redundant API Calls</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>components/modals/CreateReportModal.js</code>, lines 183-242</li>
+                <li><strong>Severity</strong>: Low</li>
+                <li><strong>Issue</strong>: Multiple API calls when selecting branches</li>
+                <li><strong>Fix</strong>: Implement debouncing and caching for API calls</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>PDF Generation Performance</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>services/pdf.js</code>, lines 190-260</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Synchronous PDF generation blocks request thread</li>
+                <li><strong>Fix</strong>: Move to background job processing with status updates</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h3>Code Quality Issues</h3>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Inconsistent Error Handling</strong></p>
+            <ul>
+                <li><strong>File</strong>: Multiple controllers and services</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Mix of error handling patterns (throw vs return)</li>
+                <li><strong>Fix</strong>: Standardize error handling with custom error classes</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Duplicate Code in Controllers</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>controllers/reportsController.js</code>, lines 38-137</li>
+                <li><strong>Severity</strong>: Medium</li>
+                <li><strong>Issue</strong>: Repeated validation and processing logic</li>
+                <li><strong>Fix</strong>: Extract common functionality into middleware or service methods</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Unused Variables</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>pages/ViewReport.js</code>, lines 16-21</li>
+                <li><strong>Severity</strong>: Low</li>
+                <li><strong>Issue</strong>: Multiple unused imports and state variables</li>
+                <li><strong>Fix</strong>: Remove unused code or implement intended functionality</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Inconsistent Naming</strong></p>
+            <ul>
+                <li><strong>File</strong>: Various files</li>
+                <li><strong>Severity</strong>: Low</li>
+                <li><strong>Issue</strong>: Mix of camelCase and snake_case in some variables</li>
+                <li><strong>Fix</strong>: Standardize on camelCase for JavaScript variables</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Missing PropTypes</strong></p>
+            <ul>
+                <li><strong>File</strong>: All React components</li>
+                <li><strong>Severity</strong>: Low</li>
+                <li><strong>Issue</strong>: No PropTypes validation for component props</li>
+                <li><strong>Fix</strong>: Add PropTypes for all components</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h2>Digestibility Refactors</h2>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Split ReportsController</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>controllers/reportsController.js</code></li>
+                <li><strong>Issue</strong>: Monolithic controller with multiple responsibilities</li>
+                <li><strong>New Structure</strong>:<ul>
+                    <li><code>ReportGenerationController</code>: Handle report creation</li>
+                    <li><code>ReportViewController</code>: Handle report retrieval</li>
+                    <li><code>ReportManagementController</code>: Handle report deletion and updates</li>
+                    <li><code>ReportCacheController</code>: Handle cache operations</li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Extract GitHub API Service Methods</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>services/github.js</code></li>
+                <li><strong>Issue</strong>: Large service with many responsibilities</li>
+                <li><strong>New Structure</strong>:<ul>
+                    <li><code>GitHubRepositoryService</code>: Repository-related operations</li>
+                    <li><code>GitHubCommitService</code>: Commit-related operations</li>
+                    <li><code>GitHubBranchService</code>: Branch-related operations</li>
+                    <li><code>GitHubSearchService</code>: Search-related operations</li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Split ViewReport Component</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>frontend/src/pages/ViewReport.js</code></li>
+                <li><strong>Issue</strong>: Large component with multiple sections</li>
+                <li><strong>New Structure</strong>:<ul>
+                    <li><code>ReportHeader</code>: Navigation and actions</li>
+                    <li><code>ReportMetadata</code>: Repository and date information</li>
+                    <li><code>CommitList</code>: Table of commits</li>
+                    <li><code>PDFPreview</code>: PDF viewer component</li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Extract Modal Logic</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>frontend/src/components/modals/CreateReportModal.js</code></li>
+                <li><strong>Issue</strong>: Complex form logic mixed with UI</li>
+                <li><strong>New Structure</strong>:<ul>
+                    <li><code>useReportForm</code>: Custom hook for form state and validation</li>
+                    <li><code>RepositorySelector</code>: Repository selection component</li>
+                    <li><code>BranchSelector</code>: Branch selection component</li>
+                    <li><code>DateRangeSelector</code>: Date range selection component</li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Split UsageStats Service</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>services/usageStats.js</code></li>
+                <li><strong>Issue</strong>: Multiple tracking responsibilities</li>
+                <li><strong>New Structure</strong>:<ul>
+                    <li><code>ReportUsageTracker</code>: Track report generation</li>
+                    <li><code>CommitUsageTracker</code>: Track commit analysis</li>
+                    <li><code>TokenUsageTracker</code>: Track token usage</li>
+                    <li><code>UsageAnalytics</code>: Generate usage reports</li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h2>Technical Debt</h2>
+<ol>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Inconsistent Authentication Flow</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>frontend/src/contexts/AuthContext.js</code>, <code>services/auth.js</code></li>
+                <li><strong>Issue</strong>: Multiple authentication handling patterns</li>
+                <li><strong>Fix</strong>: Consolidate authentication logic into a single service with clear state management</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>MongoDB Connection Management</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>server.js</code>, lines 94-96</li>
+                <li><strong>Issue</strong>: No connection pooling configuration or error handling</li>
+                <li><strong>Fix</strong>: Add connection pool settings, retry logic, and proper error handling</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Error Handling in API Calls</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>frontend/src/services/api.js</code></li>
+                <li><strong>Issue</strong>: Inconsistent error handling across API calls</li>
+                <li><strong>Fix</strong>: Implement consistent error handling with retry logic and user feedback</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>PDF Generation Architecture</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>services/pdf.js</code></li>
+                <li><strong>Issue</strong>: Synchronous PDF generation with Puppeteer in request handler</li>
+                <li><strong>Fix</strong>: Move to asynchronous job queue with status updates</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>State Management Complexity</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>frontend/src/contexts/ModalContext.js</code></li>
+                <li><strong>Issue</strong>: Complex state management across multiple modals</li>
+                <li><strong>Fix</strong>: Consider using a state management library like Redux or Zustand</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Dependency Version Management</strong></p>
+            <ul>
+                <li><strong>File</strong>: <code>package.json</code>, <code>frontend/package.json</code></li>
+                <li><strong>Issue</strong>: No version pinning for critical dependencies</li>
+                <li><strong>Fix</strong>: Pin exact versions for critical dependencies, implement dependency scanning</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>Test Coverage</strong></p>
+            <ul>
+                <li><strong>File</strong>: Project-wide</li>
+                <li><strong>Issue</strong>: Minimal test coverage</li>
+                <li><strong>Fix</strong>: Implement unit and integration tests for critical paths</li>
+            </ul>
+        </div>
+    </div>
+</li>
+<li>
+    <div class="recommendation">
+        <input type="checkbox" onchange="toggleCompleted(this)">
+        <div class="recommendation-content">
+            <p><strong>API Documentation</strong></p>
+            <ul>
+                <li><strong>File</strong>: Project-wide</li>
+                <li><strong>Issue</strong>: No API documentation</li>
+                <li><strong>Fix</strong>: Add OpenAPI/Swagger documentation for all endpoints</li>
+            </ul>
+        </div>
+    </div>
+</li>
+</ol>
+<h2>Claude Bible</h2>
+<h3>GitStatus Code Standards Bible</h3>
+<ol>
+<li><p><strong>Architecture Principles</strong></p>
+<ul>
+<li>Follow clear separation of concerns between controllers, services, and models</li>
+<li>Controllers handle request/response, services contain business logic, models define data structure</li>
+<li>Keep components and functions small and focused on a single responsibility</li>
+<li>Limit component files to 300 lines maximum; extract larger components into smaller ones</li>
+</ul>
+</li>
+<li><p><strong>Naming Conventions</strong></p>
+<ul>
+<li>Use descriptive, consistent naming throughout the codebase</li>
+<li>React components: PascalCase (e.g., <code>CommitList.js</code>)</li>
+<li>JavaScript files: camelCase (e.g., <code>githubService.js</code>)</li>
+<li>Functions and variables: camelCase</li>
+<li>Constants: UPPER_SNAKE_CASE</li>
+<li>MongoDB models: PascalCase singular nouns (e.g., <code>User.js</code>)</li>
+</ul>
+</li>
+<li><p><strong>State Management</strong></p>
+<ul>
+<li>Use React Context for global state that changes infrequently</li>
+<li>Use local component state for UI-specific state</li>
+<li>Avoid prop drilling more than 2 levels deep</li>
+<li>Extract complex state logic into custom hooks</li>
+</ul>
+</li>
+<li><p><strong>API and Data Handling</strong></p>
+<ul>
+<li>Use service modules to encapsulate all API calls</li>
+<li>Implement consistent error handling for all API requests</li>
+<li>Cache API responses where appropriate</li>
+<li>Use loading and error states for all asynchronous operations</li>
+</ul>
+</li>
+<li><p><strong>Security Practices</strong></p>
+<ul>
+<li>Never store sensitive information in client-side code</li>
+<li>Validate all user input on both client and server</li>
+<li>Use environment variables for all configuration</li>
+<li>Implement proper authentication checks on all protected routes</li>
+</ul>
+</li>
+<li><p><strong>Performance Considerations</strong></p>
+<ul>
+<li>Implement pagination for all list views</li>
+<li>Use memoization for expensive calculations</li>
+<li>Optimize MongoDB queries with proper indexes</li>
+<li>Implement request throttling and rate limiting</li>
+</ul>
+</li>
+<li><p><strong>Error Handling</strong></p>
+<ul>
+<li>Use try/catch blocks for all async operations</li>
+<li>Provide meaningful error messages to users</li>
+<li>Log detailed errors on the server</li>
+<li>Implement global error boundaries in React</li>
+</ul>
+</li>
+<li><p><strong>Code Organization</strong></p>
+<ul>
+<li>Group related functionality in the same directory</li>
+<li>Use index files to simplify imports</li>
+<li>Keep configuration separate from business logic</li>
+<li>Use consistent file structure across similar components</li>
+</ul>
+</li>
+<li><p><strong>Documentation</strong></p>
+<ul>
+<li>Document all non-obvious code with comments</li>
+<li>Keep README and setup guides up to date</li>
+<li>Document API endpoints with examples</li>
+<li>Include JSDoc comments for functions with complex parameters</li>
+</ul>
+</li>
+<li><p><strong>Testing</strong></p>
+<ul>
+<li>Write tests for critical business logic</li>
+<li>Implement integration tests for API endpoints</li>
+<li>Use snapshot testing for UI components</li>
+<li>Maintain high test coverage for core functionality</li>
+</ul>
+</li>
+</ol>
+<p>Claude must update APP_DOCS.md after every change to the codebase to ensure documentation remains current and accurate.</p>
+<h2>Application Docs</h2>
+<h3>GitStatus Application Overview</h3>
+<p>GitStatus is a full-stack application that analyzes GitHub commit history to generate concise, AI-powered reports of actual work accomplished. It helps developers and project managers track and report on progress by analyzing commit diffs and providing professional summaries.</p>
+<h4>Core Features</h4>
+<ul>
+<li>GitHub OAuth integration for secure repository access</li>
+<li>Repository, branch, and commit selection</li>
+<li>AI-powered commit analysis and report generation</li>
+<li>PDF report generation and management</li>
+<li>Usage analytics and tracking</li>
+<li>Admin dashboard for system monitoring</li>
+</ul>
+<h3>System Architecture</h3>
+<p>The application follows a client-server architecture:</p>
+<ul>
+<li><strong>Frontend</strong>: React.js application with Material-UI</li>
+<li><strong>Backend</strong>: Node.js with Express.js</li>
+<li><strong>Database</strong>: MongoDB for data storage</li>
+<li><strong>External Services</strong>: GitHub API, OpenAI API, AWS S3</li>
+</ul>
+<h3>Frontend Components</h3>
+<h4>Core Components</h4>
+<ol>
+<li><p><strong>AuthContext</strong> (<code>src/contexts/AuthContext.js</code>)</p>
+<ul>
+<li>Manages user authentication state</li>
+<li>Provides login/logout functionality</li>
+<li>Handles session persistence</li>
+</ul>
+</li>
+<li><p><strong>ModalContext</strong> (<code>src/contexts/ModalContext.js</code>)</p>
+<ul>
+<li>Manages modal state across the application</li>
+<li>Coordinates data flow between modals</li>
+<li>Provides modal open/close functionality</li>
+</ul>
+</li>
+<li><p><strong>Layout</strong> (<code>src/components/Layout.js</code>)</p>
+<ul>
+<li>Main application layout with navigation</li>
+<li>Responsive design with mobile support</li>
+<li>Handles theme and styling</li>
+</ul>
+</li>
+</ol>
+<h4>Page Components</h4>
+<ol>
+<li><p><strong>Dashboard</strong> (<code>src/pages/Dashboard.js</code>)</p>
+<ul>
+<li>Displays user&#39;s generated reports</li>
+<li>Provides report management functionality</li>
+<li>Entry point for creating new reports</li>
+</ul>
+</li>
+<li><p><strong>CreateReport</strong> (via modals)</p>
+<ul>
+<li><strong>CreateReportModal</strong> (<code>src/components/modals/CreateReportModal.js</code>)<ul>
+<li>Repository and branch selection</li>
+<li>Date range and author filtering</li>
+<li>Report configuration</li>
+</ul>
+</li>
+<li><strong>ViewCommitsModal</strong> (<code>src/components/modals/ViewCommitsModal.js</code>)<ul>
+<li>Commit selection and preview</li>
+<li>Diff viewing functionality</li>
+<li>Report generation trigger</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>ViewReport</strong> (<code>src/pages/ViewReport.js</code>)</p>
+<ul>
+<li>Displays generated report details</li>
+<li>Shows commit list and summaries</li>
+<li>Provides PDF preview and download</li>
+</ul>
+</li>
+<li><p><strong>AnalyticsDashboard</strong> (<code>src/pages/AnalyticsDashboard.js</code>)</p>
+<ul>
+<li>Displays usage statistics</li>
+<li>Shows limits and quotas</li>
+<li>Visualizes report generation trends</li>
+</ul>
+</li>
+<li><p><strong>AdminDashboard</strong> (<code>src/components/AdminDashboard.js</code>)</p>
+<ul>
+<li>User management functionality</li>
+<li>System-wide analytics</li>
+<li>Plan management</li>
+</ul>
+</li>
+</ol>
+<h3>Backend Structure</h3>
+<h4>API Routes</h4>
+<ol>
+<li><p><strong>Authentication</strong> (<code>/api/auth</code>)</p>
+<ul>
+<li><code>GET /api/auth/github</code>: Initiate GitHub OAuth flow</li>
+<li><code>GET /api/auth/github/callback</code>: Handle OAuth callback</li>
+<li><code>GET /api/auth/me</code>: Get current user info</li>
+<li><code>GET /api/auth/logout</code>: Log out current user</li>
+</ul>
+</li>
+<li><p><strong>Commits</strong> (<code>/api/commits</code>)</p>
+<ul>
+<li><code>GET /api/commits</code>: Get commits with filtering</li>
+<li><code>GET /api/commits/repository</code>: Get repository info</li>
+<li><code>GET /api/commits/branches</code>: Get repository branches</li>
+<li><code>GET /api/commits/with-diffs</code>: Get commits with file diffs</li>
+<li><code>GET /api/commits/search-repositories</code>: Search repositories</li>
+<li><code>GET /api/commits/branch-authors</code>: Get authors for branches</li>
+<li><code>GET /api/commits/date-range</code>: Get commit date range</li>
+</ul>
+</li>
+<li><p><strong>Reports</strong> (<code>/api/reports</code>)</p>
+<ul>
+<li><code>GET /api/reports</code>: Get user&#39;s reports</li>
+<li><code>POST /api/reports</code>: Generate a new report</li>
+<li><code>GET /api/reports/:id</code>: Get a specific report</li>
+<li><code>DELETE /api/reports/:id</code>: Delete a report</li>
+<li><code>GET /api/reports/cache/stats</code>: Get cache statistics</li>
+<li><code>POST /api/reports/cache/cleanup</code>: Clean up old reports</li>
+</ul>
+</li>
+<li><p><strong>Usage Stats</strong> (<code>/api/usage-stats</code>)</p>
+<ul>
+<li><code>GET /api/usage-stats/user</code>: Get user usage statistics</li>
+<li><code>GET /api/usage-stats/check-limit</code>: Check usage limits</li>
+<li><code>GET /api/usage-stats/admin</code>: Get admin analytics</li>
+</ul>
+</li>
+<li><p><strong>Admin</strong> (<code>/api/admin</code>)</p>
+<ul>
+<li><code>GET /api/admin/users</code>: Get all users</li>
+<li><code>PUT /api/admin/users/:userId/role</code>: Update user role</li>
+<li><code>GET /api/admin/analytics</code>: Get system analytics</li>
+</ul>
+</li>
+<li><p><strong>Plans</strong> (<code>/api/plans</code>)</p>
+<ul>
+<li><code>GET /api/plans</code>: Get all plans</li>
+<li><code>PUT /api/plans/:planId/limits</code>: Update plan limits</li>
+</ul>
+</li>
+</ol>
+<h4>Database Models</h4>
+<ol>
+<li><p><strong>User</strong> (<code>models/User.js</code>)</p>
+<ul>
+<li>Stores user information and GitHub credentials</li>
+<li>Tracks user role and plan</li>
+</ul>
+</li>
+<li><p><strong>Report</strong> (<code>models/Report.js</code>)</p>
+<ul>
+<li>Stores generated reports</li>
+<li>Contains commit information and metadata</li>
+<li>Tracks PDF location and access statistics</li>
+</ul>
+</li>
+<li><p><strong>CommitSummary</strong> (<code>models/CommitSummary.js</code>)</p>
+<ul>
+<li>Caches AI-generated commit summaries</li>
+<li>Improves performance by avoiding redundant analysis</li>
+</ul>
+</li>
+<li><p><strong>Plan</strong> (<code>models/Plan.js</code>)</p>
+<ul>
+<li>Defines available plans and their limits</li>
+<li>Used for enforcing usage restrictions</li>
+</ul>
+</li>
+<li><p><strong>UsageStats</strong> (<code>models/UsageStats.js</code>)</p>
+<ul>
+<li>Tracks detailed usage statistics</li>
+<li>Stores monthly report and token usage</li>
+</ul>
+</li>
+</ol>
+<h3>Data Flow</h3>
+<ol>
+<li><p><strong>Report Generation Flow</strong></p>
+<ol>
+<li>User selects repository, branches, and filters in CreateReportModal</li>
+<li>Backend fetches commits from GitHub API</li>
+<li>User selects specific commits in ViewCommitsModal</li>
+<li>Backend analyzes commits with OpenAI</li>
+<li>Backend generates PDF report and stores in S3</li>
+<li>Frontend displays the report and provides download link</li>
+</ol>
+</li>
+<li><p><strong>Authentication Flow</strong></p>
+<ol>
+<li>User clicks &quot;Login with GitHub&quot; button</li>
+<li>Backend initiates OAuth flow with GitHub</li>
+<li>GitHub redirects back to application with authorization code</li>
+<li>Backend exchanges code for access token</li>
+<li>Backend creates or updates user in database</li>
+<li>Frontend receives authentication status and displays dashboard</li>
+</ol>
+</li>
+<li><p><strong>Usage Tracking Flow</strong></p>
+<ol>
+<li>User performs actions (generates reports, analyzes commits)</li>
+<li>Backend tracks usage in UsageStats collection</li>
+<li>Frontend displays usage statistics in AnalyticsDashboard</li>
+<li>Admin can view system-wide statistics in AdminDashboard</li>
+</ol>
+</li>
+</ol>
+<h3>Integration Points</h3>
+<ol>
+<li><strong>GitHub API</strong>: Repository and commit data retrieval</li>
+<li><strong>OpenAI API</strong>: Commit analysis and report generation</li>
+<li><strong>AWS S3</strong>: PDF storage and retrieval</li>
+<li><strong>MongoDB</strong>: Data persistence and retrieval</li>
+</ol>
+<p>This documentation provides a high-level overview of the GitStatus application architecture and functionality. For detailed implementation information, refer to the specific files and components mentioned above.</p>
+
+<script type="text/javascript">
+    function toggleCompleted(checkbox) {
+        const content = checkbox.nextElementSibling;
+        if (checkbox.checked) {
+            content.classList.add('completed');
+        } else {
+            content.classList.remove('completed');
+        }
+    }
+</script>
+</body>
+</html>

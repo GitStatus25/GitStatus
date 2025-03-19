@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "marked": "^15.0.7",
+    "open": "^10.1.0"
+  }
+}
