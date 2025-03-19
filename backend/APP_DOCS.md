@@ -175,12 +175,18 @@ The application follows a client-server architecture:
    - Selective application for POST, PUT, DELETE, and PATCH methods
    - Frontend utilities for working with CSRF tokens
 
-2. **Authentication Security**
+2. **Input Validation** (`docs/INPUT_VALIDATION.md`)
+   - Comprehensive validation for all API endpoints
+   - Centralized validation rules with express-validator
+   - Global request sanitization
+   - Detailed validation error reporting
+
+3. **Authentication Security**
    - OAuth 2.0 integration with GitHub
    - HTTP-only, secure session cookies
    - Role-based access control
 
-3. **API Security**
+4. **API Security**
    - Rate limiting to prevent abuse
    - Helmet.js for security headers
    - Input validation and sanitization

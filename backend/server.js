@@ -62,6 +62,11 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Apply input sanitization to all requests
+const { sanitizeRequest } = require('./middleware/sanitizationMiddleware');
+app.use(sanitizeRequest);
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gitstatus-secret',
   resave: false,
