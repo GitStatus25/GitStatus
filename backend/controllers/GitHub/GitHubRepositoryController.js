@@ -1,9 +1,9 @@
 const { GitHubRepositoryService, GitHubSearchService } = require('../../services/GitHub');
 
 /**
- * Controller for handling repository-related operations
+ * Controller for handling GitHub repository-related operations
  */
-class RepositoryController {
+class GitHubRepositoryController {
   /**
    * Get basic information about a repository
    */
@@ -77,4 +77,4 @@ class RepositoryController {
   }
 }
 
-module.exports = new RepositoryController(); 
+module.exports = new GitHubRepositoryController(); 

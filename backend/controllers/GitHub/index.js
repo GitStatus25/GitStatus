@@ -2,12 +2,12 @@
  * Exports all GitHub-related controllers
  */
 
-const RepositoryController = require('./RepositoryController');
-const BranchController = require('./BranchController');
-const CommitController = require('./CommitController');
+const GitHubRepositoryController = require('./GitHubRepositoryController');
+const GitHubBranchController = require('./GitHubBranchController');
+const GitHubCommitController = require('./GitHubCommitController');
 
 module.exports = {
-  RepositoryController,
-  BranchController,
-  CommitController
+  GitHubRepositoryController,
+  GitHubBranchController,
+  GitHubCommitController
 }; 

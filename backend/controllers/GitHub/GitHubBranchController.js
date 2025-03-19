@@ -1,9 +1,9 @@
 const { GitHubBranchService } = require('../../services/GitHub');
 
 /**
- * Controller for handling branch-related operations
+ * Controller for handling GitHub branch-related operations
  */
-class BranchController {
+class GitHubBranchController {
   /**
    * Get branches for a repository
    */
@@ -60,4 +60,4 @@ class BranchController {
   }
 }
 
-module.exports = new BranchController(); 
+module.exports = new GitHubBranchController(); 

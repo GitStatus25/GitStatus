@@ -259,7 +259,7 @@ The application follows a client-server architecture:
    GitHub-related functionality is organized into specialized controllers that mirror the service structure.
    These controllers are imported directly in route files, maintaining clean dependencies:
 
-   a. **RepositoryController**
+   a. **GitHubRepositoryController**
    - Handles repository information and search
    - Uses GitHubRepositoryService and GitHubSearchService
    - Key endpoints:
@@ -267,14 +267,14 @@ The application follows a client-server architecture:
      - `getContributors`: Lists repository contributors
      - `searchRepositories`: Searches for repositories
 
-   b. **BranchController**
+   b. **GitHubBranchController**
    - Handles branch-related operations
    - Uses GitHubBranchService
    - Key endpoints:
      - `getBranches`: Lists branches in a repository
      - `getAuthorsForBranches`: Gets authors who contributed to specific branches
 
-   c. **CommitController**
+   c. **GitHubCommitController**
    - Handles commit-related operations
    - Uses GitHubCommitService
    - Key endpoints:

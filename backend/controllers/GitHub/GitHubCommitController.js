@@ -2,9 +2,9 @@ const { GitHubCommitService } = require('../../services/GitHub');
 const UsageStatsService = require('../../services/UsageStatsService');
 
 /**
- * Controller for handling commit-related operations
+ * Controller for handling GitHub commit-related operations
  */
-class CommitController {
+class GitHubCommitController {
   /**
    * Get commits from GitHub
    */
@@ -114,4 +114,4 @@ class CommitController {
   }
 }
 
-module.exports = new CommitController(); 
+module.exports = new GitHubCommitController(); 

@@ -22,6 +22,7 @@
    - Constants: UPPER_SNAKE_CASE
    - MongoDB models: PascalCase singular nouns (e.g., `User.js`)
    - Folders for grouped services/components: PascalCase (e.g., `GitHub/`, `UserProfile/`)
+   - Always include provider/source prefix in file names (e.g., `GitHubRepositoryController.js`, `StripePaymentService.js`) even when inside a folder with the same prefix, to maintain clarity when the files are imported elsewhere
 
 3. **State Management**
    - Use React Context for global state that changes infrequently
