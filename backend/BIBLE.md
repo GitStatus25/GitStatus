@@ -11,7 +11,9 @@
 2. **Naming Conventions**
    - Use descriptive, consistent naming throughout the codebase
    - React components: PascalCase (e.g., `CommitList.js`)
-   - JavaScript files: camelCase (e.g., `githubService.js`)
+   - Service files: PascalCase (e.g., `GitHubService.js`)
+   - Route files: PascalCase (e.g., `AuthRoutes.js`)
+   - JavaScript files in utils/scripts/templates: camelCase (e.g., `errorHandler.js`)
    - Functions and variables: camelCase
    - Constants: UPPER_SNAKE_CASE
    - MongoDB models: PascalCase singular nouns (e.g., `User.js`)

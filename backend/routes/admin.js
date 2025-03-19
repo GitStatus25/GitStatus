@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { isAdmin } = require('../middleware/auth');
 const User = require('../models/User');
-const UsageStatsService = require('../services/usageStats');
+const Plan = require('../models/Plan');
+const UsageStatsService = require('../services/UsageStatsService');
 
 // Get all users (admin only)
 router.get('/users', isAdmin, async (req, res) => {

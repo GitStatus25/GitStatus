@@ -1,5 +1,5 @@
 const Plan = require('../models/Plan');
-const PlanService = require('../services/planService');
+const PlanService = require('../services/PlanService');
 
 const planController = {
   // Get all plans

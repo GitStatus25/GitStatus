@@ -1,4 +1,4 @@
-const UsageStatsService = require('../services/usageStats');
+const UsageStatsService = require('../services/UsageStatsService');
 const User = require('../models/User');
 
 /**

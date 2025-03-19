@@ -212,28 +212,40 @@ The application follows a client-server architecture:
 
 #### Services
 
-1. **GitHub Service** (`services/github.js`)
-   - Interacts with GitHub API
-   - Retrieves repository and commit information
-   - Handles authentication with GitHub
+1. **GitHub Service** (`services/GitHubService.js`)
+   The GitHub service is split into multiple specialized services for better organization:
+   
+   - **GitHubService** - Aggregates functionality from specialized services
+   - **GitHubRepositoryService** - Handles repository-related operations
+   - **GitHubCommitService** - Handles commit-related operations
+   - **GitHubBranchService** - Handles branch-related operations
+   - **GitHubSearchService** - Handles repository search operations
+   
+   Key functions across these services include:
+   - Repository information retrieval
+   - Commit analysis and filtering
+   - Branch listing and analysis
+   - Repository search functionality
+   - Author tracking
+   - Date range analysis for commits
 
-2. **OpenAI Service** (`services/openai.js`)
+2. **OpenAI Service** (`services/OpenAIService.js`)
    - Analyzes commit data using OpenAI models
    - Generates summaries and reports
    - Provides caching mechanisms for AI responses
 
-3. **PDF Service** (`services/pdf.js`)
+3. **PDF Service** (`services/PDFService.js`)
    - Handles PDF generation using Puppeteer
    - Converts Markdown to properly formatted PDFs
    - Interfaces with the job queue for background processing
 
-4. **Queue Service** (`services/queue.js`)
+4. **Queue Service** (`services/QueueService.js`)
    - Manages background job processing with Bull
    - Handles PDF generation jobs
    - Provides job status tracking and error handling
    - Implements automatic job cleanup
 
-5. **S3 Service** (`services/s3.js`)
+5. **S3 Service** (`services/S3Service.js`)
    - Manages file storage in AWS S3
    - Handles PDF upload and retrieval
    - Generates pre-signed URLs for secure access

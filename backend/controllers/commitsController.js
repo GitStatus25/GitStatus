@@ -1,5 +1,5 @@
-const githubService = require('../services/github');
-const UsageStatsService = require('../services/usageStats');
+const GitHubService = require('../services/GitHubService');
+const UsageStatsService = require('../services/UsageStatsService');
 
 // Get repositories info
 exports.getRepositoryInfo = async (req, res) => {
@@ -11,7 +11,7 @@ exports.getRepositoryInfo = async (req, res) => {
     }
 
     const accessToken = req.user.accessToken;
-    const repoInfo = await githubService.getRepositoryInfo({
+    const repoInfo = await GitHubService.getRepositoryInfo({
       accessToken,
       repository
     });
@@ -33,7 +33,7 @@ exports.getBranches = async (req, res) => {
     }
 
     const accessToken = req.user.accessToken;
-    const branches = await githubService.getBranches({
+    const branches = await GitHubService.getBranches({
       accessToken,
       repository
     });
@@ -57,7 +57,7 @@ exports.getCommits = async (req, res) => {
     const accessToken = req.user.accessToken;
     const userId = req.user.id;
     
-    const commits = await githubService.getCommits({
+    const commits = await GitHubService.getCommits({
       accessToken,
       repository,
       branch: branch || 'main',
@@ -86,7 +86,7 @@ exports.getContributors = async (req, res) => {
     }
 
     const accessToken = req.user.accessToken;
-    const contributors = await githubService.getContributors({ accessToken, repository });
+    const contributors = await GitHubService.getContributors({ accessToken, repository });
 
     res.json(contributors);
   } catch (error) {
@@ -110,10 +110,11 @@ exports.getAuthorsForBranches = async (req, res) => {
 
     const branchesArray = Array.isArray(branches) ? branches : [branches];
     const accessToken = req.user.accessToken;
-    const authors = await githubService.getAuthorsForBranches({ 
+    
+    const authors = await GitHubService.getAuthorsForBranches({ 
       accessToken, 
-      repository, 
-      branches: branchesArray 
+      repository,
+      branches: branchesArray
     });
 
     res.json(authors);
@@ -140,7 +141,7 @@ exports.getDateRange = async (req, res) => {
     const authorsArray = authors ? (Array.isArray(authors) ? authors : [authors]) : [];
     
     const accessToken = req.user.accessToken;
-    const dateRange = await githubService.getDateRangeForBranchesAndAuthors({ 
+    const dateRange = await GitHubService.getDateRangeForBranchesAndAuthors({ 
       accessToken, 
       repository, 
       branches: branchesArray,
@@ -164,7 +165,7 @@ exports.searchRepositories = async (req, res) => {
     }
 
     const accessToken = req.user.accessToken;
-    const repositories = await githubService.searchRepositoriesByName({ accessToken, query });
+    const repositories = await GitHubService.searchRepositoriesByName({ accessToken, query });
 
     res.json(repositories);
   } catch (error) {
@@ -193,7 +194,7 @@ exports.getCommitsWithDiffs = async (req, res) => {
     const authorNames = authors ? authors.split(',') : [];
     
     // Call GitHub service to get commits with file diffs
-    const commits = await githubService.getCommitsWithDiffs({
+    const commits = await GitHubService.getCommitsWithDiffs({
       accessToken,
       repository,
       branches: branchNames,
