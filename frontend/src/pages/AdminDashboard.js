@@ -22,7 +22,9 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  Tooltip
+  Tooltip,
+  Autocomplete,
+  Divider
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -47,38 +49,44 @@ const PlanRow = ({ plan, onUpdate, onSave, onCancel, isEditing }) => {
     });
   };
 
-  return (
-    <TableRow>
-      <TableCell>{plan.name}</TableCell>
-      <TableCell>{plan.displayName}</TableCell>
-      <TableCell>
-        {isEditing ? (
+  if (isEditing) {
+    return (
+      <TableRow>
+        <TableCell>
           <TextField
+            fullWidth
+            value={editedPlan.name}
+            onChange={(e) => setEditedPlan({ ...editedPlan, name: e.target.value })}
+            size="small"
+          />
+        </TableCell>
+        <TableCell>
+          <TextField
+            fullWidth
+            value={editedPlan.displayName}
+            onChange={(e) => setEditedPlan({ ...editedPlan, displayName: e.target.value })}
+            size="small"
+          />
+        </TableCell>
+        <TableCell>
+          <TextField
+            fullWidth
             type="number"
             value={editedPlan.limits.reportsPerMonth}
             onChange={handleChange('reportsPerMonth')}
             size="small"
-            fullWidth
           />
-        ) : (
-          plan.limits.reportsPerMonth
-        )}
-      </TableCell>
-      <TableCell>
-        {isEditing ? (
+        </TableCell>
+        <TableCell>
           <TextField
+            fullWidth
             type="number"
             value={editedPlan.limits.commitsPerMonth}
             onChange={handleChange('commitsPerMonth')}
             size="small"
-            fullWidth
           />
-        ) : (
-          plan.limits.commitsPerMonth
-        )}
-      </TableCell>
-      <TableCell>
-        {isEditing ? (
+        </TableCell>
+        <TableCell>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Save">
               <IconButton onClick={() => onSave(editedPlan)} color="primary">
@@ -91,13 +99,23 @@ const PlanRow = ({ plan, onUpdate, onSave, onCancel, isEditing }) => {
               </IconButton>
             </Tooltip>
           </Box>
-        ) : (
-          <Tooltip title="Edit">
-            <IconButton onClick={() => onUpdate(plan)} color="primary">
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-        )}
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return (
+    <TableRow>
+      <TableCell>{plan.name}</TableCell>
+      <TableCell>{plan.displayName}</TableCell>
+      <TableCell>{plan.limits.reportsPerMonth}</TableCell>
+      <TableCell>{plan.limits.commitsPerMonth}</TableCell>
+      <TableCell>
+        <Tooltip title="Edit">
+          <IconButton onClick={() => onUpdate(plan)}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
       </TableCell>
     </TableRow>
   );
@@ -119,6 +137,11 @@ const AdminDashboard = () => {
       commitsPerMonth: 500
     }
   });
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newRole, setNewRole] = useState('user');
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [analytics, setAnalytics] = useState(null);
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -127,24 +150,30 @@ const AdminDashboard = () => {
     }
   }, [isAuthenticated, authLoading, user, navigate]);
 
-  // Fetch plans
+  // Fetch data
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await api.getPlans();
-        setPlans(response.data);
+        const [plansResponse, usersResponse, analyticsResponse] = await Promise.all([
+          api.getPlans(),
+          api.getUsers(),
+          api.getAdminAnalytics()
+        ]);
+        setPlans(plansResponse.data);
+        setUsers(usersResponse.users);
+        setAnalytics(analyticsResponse.analytics);
         setError(null);
       } catch (err) {
-        console.error('Error fetching plans:', err);
-        setError('Failed to load plans. Please try again.');
+        console.error('Error fetching data:', err);
+        setError('Failed to load data. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     if (isAuthenticated && user?.role === 'admin') {
-      fetchPlans();
+      fetchData();
     }
   }, [isAuthenticated, user]);
 
@@ -180,20 +209,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRoleChange = async () => {
+    if (!selectedUser) return;
+    
+    setLoading(true);
+    try {
+      await api.updateUserRole(selectedUser.id, newRole);
+      setMessage({ type: 'success', text: 'User role updated successfully' });
+      const response = await api.getUsers();
+      setUsers(response.users);
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to update user role' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Admin Dashboard">
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
           <CircularProgress />
         </Box>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout title="Admin Dashboard">
-        <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
       </Layout>
     );
   }
@@ -201,45 +238,161 @@ const AdminDashboard = () => {
   return (
     <Layout title="Admin Dashboard">
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" component="h1">
-              Plan Management
+        {/* User Management Section */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              User Management
             </Typography>
+            
+            <Autocomplete
+              options={users}
+              getOptionLabel={(option) => `${option.username} (${option.role})`}
+              value={selectedUser}
+              onChange={(event, newValue) => {
+                setSelectedUser(newValue);
+                if (newValue) {
+                  setNewRole(newValue.role);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Select User"
+                  variant="outlined"
+                />
+              )}
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              select
+              fullWidth
+              label="New Role"
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+              SelectProps={{
+                native: true,
+              }}
+              sx={{ mb: 2 }}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </TextField>
+
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setNewPlanDialog(true)}
+              onClick={handleRoleChange}
+              disabled={!selectedUser || loading}
             >
-              Create New Plan
+              {loading ? <CircularProgress size={24} /> : 'Update Role'}
             </Button>
-          </Box>
+          </Paper>
+        </Grid>
 
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Plan Name</TableCell>
-                  <TableCell>Display Name</TableCell>
-                  <TableCell>Reports/Month</TableCell>
-                  <TableCell>Commits/Month</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {plans.map(plan => (
-                  <PlanRow
-                    key={plan._id}
-                    plan={plan}
-                    isEditing={editingPlan?._id === plan._id}
-                    onUpdate={setEditingPlan}
-                    onSave={handleUpdatePlan}
-                    onCancel={() => setEditingPlan(null)}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+        {/* Analytics Section */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Analytics Overview
+            </Typography>
+            {analytics && (
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Total Users
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.totalUsers}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Total Reports
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.totalReports}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Total Commits
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.totalCommits}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={6}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Active Users
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.activeUsers}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            )}
+          </Paper>
+        </Grid>
+
+        {/* Plan Management Section */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h6">
+                Plan Management
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setNewPlanDialog(true)}
+              >
+                Create New Plan
+              </Button>
+            </Box>
+
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Plan Name</TableCell>
+                    <TableCell>Display Name</TableCell>
+                    <TableCell>Reports/Month</TableCell>
+                    <TableCell>Commits/Month</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {plans.map(plan => (
+                    <PlanRow
+                      key={plan._id}
+                      plan={plan}
+                      isEditing={editingPlan?._id === plan._id}
+                      onUpdate={setEditingPlan}
+                      onSave={handleUpdatePlan}
+                      onCancel={() => setEditingPlan(null)}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
         </Grid>
       </Grid>
 
@@ -247,40 +400,43 @@ const AdminDashboard = () => {
       <Dialog open={newPlanDialog} onClose={() => setNewPlanDialog(false)}>
         <DialogTitle>Create New Plan</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            <TextField
-              label="Plan Name"
-              value={newPlan.name}
-              onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Display Name"
-              value={newPlan.displayName}
-              onChange={(e) => setNewPlan({ ...newPlan, displayName: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Reports per Month"
-              type="number"
-              value={newPlan.limits.reportsPerMonth}
-              onChange={(e) => setNewPlan({
-                ...newPlan,
-                limits: { ...newPlan.limits, reportsPerMonth: parseInt(e.target.value) || 0 }
-              })}
-              fullWidth
-            />
-            <TextField
-              label="Commits per Month"
-              type="number"
-              value={newPlan.limits.commitsPerMonth}
-              onChange={(e) => setNewPlan({
-                ...newPlan,
-                limits: { ...newPlan.limits, commitsPerMonth: parseInt(e.target.value) || 0 }
-              })}
-              fullWidth
-            />
-          </Box>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Plan Name"
+            fullWidth
+            value={newPlan.name}
+            onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Display Name"
+            fullWidth
+            value={newPlan.displayName}
+            onChange={(e) => setNewPlan({ ...newPlan, displayName: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Reports per Month"
+            type="number"
+            fullWidth
+            value={newPlan.limits.reportsPerMonth}
+            onChange={(e) => setNewPlan({
+              ...newPlan,
+              limits: { ...newPlan.limits, reportsPerMonth: parseInt(e.target.value) || 0 }
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Commits per Month"
+            type="number"
+            fullWidth
+            value={newPlan.limits.commitsPerMonth}
+            onChange={(e) => setNewPlan({
+              ...newPlan,
+              limits: { ...newPlan.limits, commitsPerMonth: parseInt(e.target.value) || 0 }
+            })}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setNewPlanDialog(false)}>Cancel</Button>
