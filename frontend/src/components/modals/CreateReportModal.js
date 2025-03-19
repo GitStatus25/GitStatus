@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -80,6 +80,16 @@ const CreateReportModal = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loadingViewCommits, setLoadingViewCommits] = useState(false);
 
+  // Caching mechanism for API calls
+  const apiCache = useRef({
+    authors: {},
+    dateRanges: {}
+  });
+  
+  // Debounce timers
+  const authorsDebounceTimer = useRef(null);
+  const dateRangeDebounceTimer = useRef(null);
+
   // Handle repository search
   useEffect(() => {
     const searchRepositories = async () => {
@@ -121,13 +131,28 @@ const CreateReportModal = () => {
       try {
         setIsLoadingAuthors(true);
         const branchNames = branches.map(branch => typeof branch === 'object' ? branch.name : branch);
-        const authors = await api.getAuthorsForBranches(repository, branchNames);
-        setAvailableAuthors(authors);
+        
+        // Create a cache key based on repository and branches
+        const cacheKey = `${repository}:${branchNames.sort().join(',')}`;
+        
+        // Check if we have cached results
+        if (apiCache.current.authors[cacheKey]) {
+          setAvailableAuthors(apiCache.current.authors[cacheKey]);
+        } else {
+          // Fetch from API if not cached
+          const authors = await api.getAuthorsForBranches(repository, branchNames);
+          
+          // Cache the results
+          apiCache.current.authors[cacheKey] = authors;
+          setAvailableAuthors(authors);
+        }
         
         // Filter out selected authors that are no longer available
         setFormData(prev => ({
           ...prev,
-          authors: prev.authors.filter(author => authors.includes(author))
+          authors: prev.authors.filter(author => 
+            apiCache.current.authors[cacheKey].includes(author)
+          )
         }));
       } catch (err) {
         console.error('Error fetching authors:', err);
@@ -137,7 +162,20 @@ const CreateReportModal = () => {
       }
     };
     
-    updateAvailableAuthors();
+    // Clear any existing debounce timer
+    if (authorsDebounceTimer.current) {
+      clearTimeout(authorsDebounceTimer.current);
+    }
+    
+    // Set a new debounce timer
+    authorsDebounceTimer.current = setTimeout(updateAvailableAuthors, 300);
+    
+    // Clean up the timer on component unmount
+    return () => {
+      if (authorsDebounceTimer.current) {
+        clearTimeout(authorsDebounceTimer.current);
+      }
+    };
   }, [formData.repository, formData.branches, repositoryValid]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Update date range when branches or authors change
@@ -153,7 +191,23 @@ const CreateReportModal = () => {
       try {
         setIsLoadingDateRange(true);
         const branchNames = branches.map(branch => typeof branch === 'object' ? branch.name : branch);
-        const newDateRange = await api.getDateRange(repository, branchNames, authors);
+        
+        // Create a cache key based on repository, branches and authors
+        const cacheKey = `${repository}:${branchNames.sort().join(',')}:${authors.sort().join(',')}`;
+        
+        let newDateRange;
+        
+        // Check if we have cached results
+        if (apiCache.current.dateRanges[cacheKey]) {
+          newDateRange = apiCache.current.dateRanges[cacheKey];
+        } else {
+          // Fetch from API if not cached
+          newDateRange = await api.getDateRange(repository, branchNames, authors);
+          
+          // Cache the results
+          apiCache.current.dateRanges[cacheKey] = newDateRange;
+        }
+        
         setDateRange(newDateRange);
         
         // Update date fields if they're outside the new range
@@ -179,7 +233,20 @@ const CreateReportModal = () => {
       }
     };
     
-    updateDateRange();
+    // Clear any existing debounce timer
+    if (dateRangeDebounceTimer.current) {
+      clearTimeout(dateRangeDebounceTimer.current);
+    }
+    
+    // Set a new debounce timer
+    dateRangeDebounceTimer.current = setTimeout(updateDateRange, 300);
+    
+    // Clean up the timer on component unmount
+    return () => {
+      if (dateRangeDebounceTimer.current) {
+        clearTimeout(dateRangeDebounceTimer.current);
+      }
+    };
   }, [formData.repository, formData.branches, formData.authors, repositoryValid]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Repository validation and loading associated data
@@ -267,8 +334,10 @@ const CreateReportModal = () => {
     }
   };
   
-  // Handle branches selection
+  // Handle branches selection with cache invalidation
   const handleBranchesChange = (event, newValue) => {
+    // When branches change, we need to invalidate the authors cache
+    // This is because the authors depend on the selected branches
     setFormData(prev => ({
       ...prev,
       branches: newValue,
