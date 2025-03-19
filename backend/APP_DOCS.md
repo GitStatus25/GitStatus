@@ -168,4 +168,21 @@ The application follows a client-server architecture:
 3. **AWS S3**: PDF storage and retrieval
 4. **MongoDB**: Data persistence and retrieval
 
+### Security Features
+
+1. **CSRF Protection** (`docs/CSRF_PROTECTION.md`)
+   - Token-based protection for state-changing operations
+   - Selective application for POST, PUT, DELETE, and PATCH methods
+   - Frontend utilities for working with CSRF tokens
+
+2. **Authentication Security**
+   - OAuth 2.0 integration with GitHub
+   - HTTP-only, secure session cookies
+   - Role-based access control
+
+3. **API Security**
+   - Rate limiting to prevent abuse
+   - Helmet.js for security headers
+   - Input validation and sanitization
+
 This documentation provides a high-level overview of the GitStatus application architecture and functionality. For detailed implementation information, refer to the specific files and components mentioned above.
