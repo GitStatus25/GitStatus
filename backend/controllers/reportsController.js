@@ -5,6 +5,7 @@ const pdfService = require('../services/pdf');
 const s3Service = require('../services/s3');
 const crypto = require('crypto');
 const UsageStatsService = require('../services/usageStats');
+const User = require('../models/User');
 
 /**
  * Generate a hash from an array of commit IDs
@@ -141,8 +142,22 @@ exports.generateReport = async (req, res) => {
       return res.status(404).json({ error: 'No commits found for the specified IDs' });
     }
     
-    // Determine report type based on commit count
-    const reportType = commits.length <= 5 ? 'standard' : 'big';
+    // Get user's plan limits
+    const user = await User.findById(userId).populate('plan');
+    if (!user || !user.plan) {
+      return res.status(500).json({ error: 'User plan not found' });
+    }
+    
+    // Determine report type based on commit count and plan limits
+    const reportType = commits.length <= user.plan.commitsPerSmallReport ? 'small' : 'big';
+    
+    // Check if this would exceed the user's plan limits
+    if (reportType === 'big' && commits.length > user.plan.commitsPerBigReport) {
+      return res.status(403).json({
+        error: `Report exceeds maximum commits allowed for big reports (${user.plan.commitsPerBigReport} commits)`,
+        limitReached: true
+      });
+    }
     
     // Generate a hash to uniquely identify this set of commits
     const commitsHash = generateCommitsHash(commits);

@@ -16,37 +16,45 @@ class UsageStatsService {
   }
 
   /**
-   * Track a report generation event
-   * @param {string} userId - The user ID
-   * @param {string} reportType - Type of report generated (optional)
-   * @returns {Promise<void>}
+   * Track report generation
+   * @param {string} userId - User ID
+   * @param {string} reportType - Type of report ('small' or 'big')
    */
-  static async trackReportGeneration(userId, reportType = 'default') {
+  async trackReportGeneration(userId, reportType) {
     try {
-      const currentMonth = this.getCurrentMonth();
-
-      // Update user's current usage count
-      await User.findByIdAndUpdate(userId, {
-        $inc: { 'currentUsage.reportsGenerated': 1 }
-      });
-
-      // Update or create monthly stats
-      const updateQuery = {
-        $inc: {
-          'reports.total': 1
-        }
-      };
+      const now = new Date();
+      const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       
-      // Add report type to the breakdown if provided
-      updateQuery.$inc[`reports.byType.${reportType}`] = 1;
-
-      await UsageStats.findOneAndUpdate(
-        { user: userId, month: currentMonth },
-        updateQuery,
+      // Get user's plan
+      const user = await User.findById(userId).populate('plan');
+      if (!user || !user.plan) {
+        throw new Error('User plan not found');
+      }
+      
+      // Update or create monthly stats
+      const stats = await UsageStats.findOneAndUpdate(
+        { user: userId, month: monthKey },
+        {
+          $inc: {
+            [`reports.${reportType}`]: 1,
+            'reports.total': 1
+          }
+        },
         { upsert: true, new: true }
       );
+      
+      // Update user's current usage
+      await User.findByIdAndUpdate(userId, {
+        $inc: {
+          [`currentUsage.reportsGenerated.${reportType}`]: 1,
+          'currentUsage.reportsGenerated.total': 1
+        }
+      });
+      
+      return stats;
     } catch (error) {
       console.error('Error tracking report generation:', error);
+      throw error;
     }
   }
 
@@ -156,7 +164,7 @@ class UsageStatsService {
    */
   static async hasReachedReportLimit(userId) {
     try {
-      const user = await User.findById(userId).populate('plan');
+      const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
       // Check if we need to reset the counter (new month)
