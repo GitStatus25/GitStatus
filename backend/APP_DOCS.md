@@ -25,6 +25,17 @@ The application follows a client-server architecture:
 
 ### Frontend Components
 
+#### File Naming Conventions
+
+To maintain consistency and clarity across the codebase, we follow these naming conventions:
+
+1. **Page Components**: Suffix with "Page" (e.g., `DashboardPage.js`, `LoginPage.js`)
+2. **Regular Components**: Suffix with "Component" (e.g., `HeaderComponent.js`, `FooterComponent.js`)
+3. **Context Providers**: Suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
+4. **Services**: Suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
+
+These conventions make it immediately clear what type of file you're working with, especially when imported from other locations in the codebase.
+
 #### Core Components
 
 1. **AuthContext** (`src/contexts/AuthContext.js`)
@@ -37,39 +48,39 @@ The application follows a client-server architecture:
    - Coordinates data flow between modals
    - Provides modal open/close functionality
 
-3. **Layout** (`src/components/Layout.js`)
+3. **LayoutComponent** (`src/components/LayoutComponent.js`)
    - Main application layout with navigation
    - Responsive design with mobile support
    - Handles theme and styling
 
 #### Page Components
 
-1. **Dashboard** (`src/pages/Dashboard.js`)
+1. **DashboardPage** (`src/pages/DashboardPage.js`)
    - Displays user's generated reports
    - Provides report management functionality
    - Entry point for creating new reports
 
-2. **CreateReport** (via modals)
-   - **CreateReportModal** (`src/components/modals/CreateReportModal.js`)
+2. **CreateReportPage** (via modals)
+   - **CreateReportModalComponent** (`src/components/modals/CreateReportModalComponent.js`)
      - Repository and branch selection
      - Date range and author filtering
      - Report configuration
-   - **ViewCommitsModal** (`src/components/modals/ViewCommitsModal.js`)
+   - **ViewCommitsModalComponent** (`src/components/modals/ViewCommitsModalComponent.js`)
      - Commit selection and preview
      - Diff viewing functionality
      - Report generation trigger
 
-3. **ViewReport** (`src/pages/ViewReport.js`)
+3. **ViewReportPage** (`src/pages/ViewReportPage.js`)
    - Displays generated report details
    - Shows commit list and summaries
    - Provides PDF preview and download
 
-4. **AnalyticsDashboard** (`src/pages/AnalyticsDashboard.js`)
+4. **AnalyticsDashboardPage** (`src/pages/AnalyticsDashboardPage.js`)
    - Displays usage statistics
    - Shows limits and quotas
    - Visualizes report generation trends
 
-5. **AdminDashboard** (`src/components/AdminDashboard.js`)
+5. **AdminDashboardComponent** (`src/components/AdminDashboardComponent.js`)
    - User management functionality
    - System-wide analytics
    - Plan management
@@ -155,9 +166,9 @@ The application follows a client-server architecture:
 ### Data Flow
 
 1. **Report Generation Flow**
-   1. User selects repository, branches, and filters in CreateReportModal
+   1. User selects repository, branches, and filters in CreateReportModalComponent
    2. Backend fetches commits from GitHub API
-   3. User selects specific commits in ViewCommitsModal
+   3. User selects specific commits in ViewCommitsModalComponent
    4. Backend analyzes commits with OpenAI
    5. Backend submits PDF generation to the job queue and returns immediately with a pending status
    6. Bull worker processes the PDF generation job in the background
@@ -175,8 +186,8 @@ The application follows a client-server architecture:
 3. **Usage Tracking Flow**
    1. User performs actions (generates reports, analyzes commits)
    2. Backend tracks usage in UsageStats collection
-   3. Frontend displays usage statistics in AnalyticsDashboard
-   4. Admin can view system-wide statistics in AdminDashboard
+   3. Frontend displays usage statistics in AnalyticsDashboardPage
+   4. Admin can view system-wide statistics in AdminDashboardComponent
 
 ### Integration Points
 

@@ -25,6 +25,15 @@
    - MongoDB models: PascalCase singular nouns (e.g., `User.js`)
    - Folders for grouped services/components: PascalCase (e.g., `GitHub/`, `UserProfile/`)
    - Always include provider/source prefix in file names (e.g., `GitHubRepositoryController.js`, `StripePaymentService.js`) even when inside a folder with the same prefix, to maintain clarity when the files are imported elsewhere
+   - File names should indicate their type based on their purpose:
+     - Page components: suffix with "Page" (e.g., `DashboardPage.js`, `LoginPage.js`)
+     - Regular components: suffix with "Component" (e.g., `HeaderComponent.js`, `FooterComponent.js`)
+     - Context providers: suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
+     - Services: suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
+     - Controllers: suffix with "Controller" (e.g., `UserController.js`, `ReportController.js`)
+     - Routes: suffix with "Routes" (e.g., `AuthRoutes.js`, `AdminRoutes.js`)
+     - Models: no suffix, use singular nouns in PascalCase (e.g., `User.js`, `Report.js`)
+     - Utilities: no suffix, use camelCase (e.g., `errorHandler.js`, `dateFormatter.js`)
 
 3. **State Management**
    - Use React Context for global state that changes infrequently

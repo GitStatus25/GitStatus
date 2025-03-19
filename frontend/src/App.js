@@ -2,137 +2,88 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import AuthProvider from './contexts/AuthContext';
+import AuthContext from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
-import PrivateRoute from './components/PrivateRoute';
-import AdminRoute from './components/AdminRoute';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import CreateReport from './pages/CreateReport';
-import ViewReport from './pages/ViewReport';
-import NotFound from './pages/NotFound';
-import AdminDashboard from './components/AdminDashboard';
-import AnalyticsDashboard from './pages/AnalyticsDashboard';
-import CreateReportModal from './components/modals/CreateReportModal';
-import ViewCommitsModal from './components/modals/ViewCommitsModal';
-import AuthCallback from './pages/AuthCallback';
+import PrivateRouteComponent from './components/PrivateRouteComponent';
+import AdminRouteComponent from './components/AdminRouteComponent';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import CreateReportPage from './pages/CreateReportPage';
+import ViewReportPage from './pages/ViewReportPage';
+import NotFoundPage from './pages/NotFoundPage';
+import AdminDashboardComponent from './components/AdminDashboardComponent';
+import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
+import CreateReportModalComponent from './components/modals/CreateReportModalComponent';
+import ViewCommitsModalComponent from './components/modals/ViewCommitsModalComponent';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
-// Create a dark theme
-const darkTheme = createTheme({
+// Create theme
+const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#4dabf5',  // Electric blue as primary color
-      light: '#81d4fa',
-      dark: '#2196f3',
+      main: '#4dabf5',
     },
     secondary: {
-      main: '#b388ff',  // Deep purple as secondary color
-      light: '#e1bee7',
-      dark: '#7e57c2',
-    },
-    accent: {
-      main: '#00bcd4',  // Teal accent
-      light: '#4dd0e1',
-      dark: '#0097a7',
+      main: '#1de9b6',
     },
     background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-      gradient: 'linear-gradient(145deg, #121212 0%, #1a1a1a 100%)',
-      cardGradient: 'linear-gradient(145deg, #1e1e1e 0%, #252525 100%)',
-    },
-    action: {
-      hover: 'rgba(77, 171, 245, 0.08)',
-      selected: 'rgba(77, 171, 245, 0.16)',
+      default: '#121824',
+      paper: '#1E293B',
+      cardGradient: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(20, 30, 48, 0.7) 100%)',
+      gradient: 'linear-gradient(180deg, #121824 0%, #0F141B 100%)',
     },
   },
   typography: {
-    fontFamily: '"JetBrains Mono", "Roboto Mono", monospace',
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
       fontWeight: 500,
-      letterSpacing: '-0.01562em',
     },
     h2: {
       fontWeight: 500,
-      letterSpacing: '-0.00833em',
     },
     h3: {
       fontWeight: 500,
-      letterSpacing: '0em',
     },
     h4: {
-      fontWeight: 600,
-      letterSpacing: '0.00735em',
-    },
-    h5: {
-      fontWeight: 600,
-      letterSpacing: '0em',
-    },
-    h6: {
-      fontWeight: 600,
-      letterSpacing: '0.0075em',
-    },
-    button: {
-      textTransform: 'none',
       fontWeight: 500,
     },
+    h5: {
+      fontWeight: 500,
+    },
+    h6: {
+      fontWeight: 500,
+    },
+  },
+  shape: {
+    borderRadius: 8,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          padding: '8px 16px',
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-          },
+          textTransform: 'none',
+          fontWeight: 500,
         },
-        contained: {
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(20, 30, 48, 0.7) 100%)',
+          backdropFilter: 'blur(10px)',
         },
+      },
+    },
+    MuiTextField: {
+      defaultProps: {
+        variant: 'outlined',
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          backgroundImage: 'linear-gradient(145deg, #1e1e1e 0%, #252525 100%)',
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
-          },
-        },
-      },
-    },
-    MuiTableRow: {
-      styleOverrides: {
-        root: {
-          transition: 'background-color 0.2s ease-in-out',
-          '&:hover': {
-            backgroundColor: 'rgba(77, 171, 245, 0.04)',
-          },
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          borderColor: 'rgba(255, 255, 255, 0.05)',
-          padding: '16px',
-        },
-        head: {
-          fontWeight: 600,
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'linear-gradient(90deg, #121212 0%, #1e1e1e 100%)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          backgroundImage: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(20, 30, 48, 0.7) 100%)',
         },
       },
     },
@@ -141,66 +92,73 @@ const darkTheme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
+      <AuthContext>
         <ModalProvider>
           <Router>
             <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminDashboard />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/create-report"
-                element={
-                  <PrivateRoute>
-                    <CreateReport />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/reports/:id"
-                element={
-                  <PrivateRoute>
-                    <ViewReport />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <PrivateRoute>
-                    <AnalyticsDashboard />
-                  </PrivateRoute>
-                }
-              />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<NotFound />} />
+              
+              <Route 
+                path="/dashboard" 
+                element={
+                  <PrivateRouteComponent>
+                    <DashboardPage />
+                  </PrivateRouteComponent>
+                }
+              />
+              
+              <Route 
+                path="/reports/:id" 
+                element={
+                  <PrivateRouteComponent>
+                    <ViewReportPage />
+                  </PrivateRouteComponent>
+                }
+              />
+              
+              <Route 
+                path="/create-report" 
+                element={
+                  <PrivateRouteComponent>
+                    <CreateReportPage />
+                  </PrivateRouteComponent>
+                }
+              />
+              
+              <Route 
+                path="/analytics" 
+                element={
+                  <PrivateRouteComponent>
+                    <AnalyticsDashboardPage />
+                  </PrivateRouteComponent>
+                }
+              />
+              
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRouteComponent>
+                    <AdminDashboardComponent />
+                  </AdminRouteComponent>
+                }
+              />
+              
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
             
             {/* Global Modals */}
-            <CreateReportModal />
-            <ViewCommitsModal />
+            <CreateReportModalComponent />
+            <ViewCommitsModalComponent />
           </Router>
         </ModalProvider>
-      </AuthProvider>
+      </AuthContext>
     </ThemeProvider>
   );
 }
 
 export default App;
+
