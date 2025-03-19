@@ -1,5 +1,6 @@
 const { ReportUsageTrackerService, UsageAnalyticsService } = require('../services/UsageStats');
 const User = require('../models/User');
+const { NotFoundError, AuthorizationError } = require('../utils/errors');
 
 /**
  * Controller for usage statistics
@@ -9,17 +10,15 @@ class UsageStatsController {
    * Get the current user's usage statistics
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
+   * @param {Function} next - Express next function
    */
-  static async getUserStats(req, res) {
+  static async getUserStats(req, res, next) {
     try {
       const userId = req.user.id;
       const user = await User.findById(userId).populate('plan');
       
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
+        throw new NotFoundError('User not found');
       }
 
       const stats = await UsageAnalyticsService.getUserUsageStats(userId);
@@ -39,12 +38,7 @@ class UsageStatsController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('Error fetching user stats:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch usage statistics',
-        error: error.message
-      });
+      next(error);
     }
   }
 
@@ -52,18 +46,16 @@ class UsageStatsController {
    * Get admin analytics dashboard data
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
+   * @param {Function} next - Express next function
    */
-  static async getAdminStats(req, res) {
+  static async getAdminStats(req, res, next) {
     try {
       // Check if user is admin
       const userId = req.user.id;
       const user = await User.findById(userId);
       
       if (!user || user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied. Admin privileges required.'
-        });
+        throw new AuthorizationError('Access denied. Admin privileges required.');
       }
       
       const stats = await UsageAnalyticsService.getAdminAnalytics();
@@ -73,12 +65,7 @@ class UsageStatsController {
         data: stats
       });
     } catch (error) {
-      console.error('Error fetching admin stats:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch admin statistics',
-        error: error.message
-      });
+      next(error);
     }
   }
 
@@ -86,8 +73,9 @@ class UsageStatsController {
    * Check if user has reached their report limit
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
+   * @param {Function} next - Express next function
    */
-  static async checkReportLimit(req, res) {
+  static async checkReportLimit(req, res, next) {
     try {
       const userId = req.user.id;
       const hasReachedLimit = await ReportUsageTrackerService.hasReachedReportLimit(userId);
@@ -100,12 +88,7 @@ class UsageStatsController {
         }
       });
     } catch (error) {
-      console.error('Error checking report limit:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to check usage limits',
-        error: error.message
-      });
+      next(error);
     }
   }
 }

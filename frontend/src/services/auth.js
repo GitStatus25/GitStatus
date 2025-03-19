@@ -15,10 +15,13 @@ const authService = {
     localStorage.removeItem('user');
     sessionStorage.removeItem('user');
     
-    // Clear cookies (this is a simple approach, may need to be adjusted based on how cookies are set)
+    // Clear cookies with consideration for different paths/domains
+    const cookieOptions = ['path=/', 'path=/api', 'domain=localhost', ''];
     document.cookie.split(';').forEach(cookie => {
       const [name] = cookie.trim().split('=');
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      cookieOptions.forEach(option => {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; ${option}`;
+      });
     });
     
     // Check if we're already on the login page to avoid redirect loops

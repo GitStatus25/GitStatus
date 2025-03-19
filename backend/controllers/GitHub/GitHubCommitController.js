@@ -1,5 +1,6 @@
 const { GitHubCommitService } = require('../../services/GitHub');
 const { CommitUsageTrackerService } = require('../../services/UsageStats');
+const { ValidationError, ExternalServiceError } = require('../../utils/errors');
 
 /**
  * Controller for handling GitHub commit-related operations
@@ -7,13 +8,16 @@ const { CommitUsageTrackerService } = require('../../services/UsageStats');
 class GitHubCommitController {
   /**
    * Get commits from GitHub
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next function
    */
-  async getCommits(req, res) {
+  async getCommits(req, res, next) {
     try {
       const { repository, branch, author, startDate, endDate } = req.query;
 
       if (!repository) {
-        return res.status(400).json({ message: 'Repository is required' });
+        throw new ValidationError('Repository is required');
       }
 
       const accessToken = req.user.accessToken;
@@ -33,24 +37,26 @@ class GitHubCommitController {
 
       res.json(commits);
     } catch (error) {
-      console.error('Error getting commits:', error);
-      res.status(500).json({ message: 'Failed to get commits', error: error.message });
+      next(error);
     }
   }
 
   /**
    * Get date range for branches and authors
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next function
    */
-  async getDateRange(req, res) {
+  async getDateRange(req, res, next) {
     try {
       const { repository, branches, authors } = req.query;
 
       if (!repository) {
-        return res.status(400).json({ message: 'Repository is required' });
+        throw new ValidationError('Repository is required');
       }
 
       if (!branches) {
-        return res.status(400).json({ message: 'At least one branch is required' });
+        throw new ValidationError('At least one branch is required');
       }
 
       const branchesArray = Array.isArray(branches) ? branches : [branches];
@@ -66,20 +72,22 @@ class GitHubCommitController {
 
       res.json(dateRange);
     } catch (error) {
-      console.error('Error getting date range:', error);
-      res.status(500).json({ message: 'Failed to get date range', error: error.message });
+      next(error);
     }
   }
 
   /**
    * Get commits with files/diffs based on filters
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next function
    */
-  async getCommitsWithDiffs(req, res) {
+  async getCommitsWithDiffs(req, res, next) {
     try {
       const { repository, branches, authors, startDate, endDate, includeFiles } = req.query;
       
       if (!repository || !branches) {
-        return res.status(400).json({ error: 'Repository and branches are required' });
+        throw new ValidationError('Repository and branches are required');
       }
       
       // Get user access token
@@ -108,8 +116,7 @@ class GitHubCommitController {
 
       res.json(commits);
     } catch (error) {
-      console.error('Error getting commits with diffs:', error);
-      res.status(500).json({ error: 'Failed to get commits' });
+      next(error);
     }
   }
 }

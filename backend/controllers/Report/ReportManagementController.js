@@ -1,12 +1,12 @@
 const Report = require('../../models/Report');
 const s3Service = require('../../services/s3');
 const reportService = require('../../services/reportService');
-const { NotFoundError } = require('../../utils/errors');
+const { NotFoundError, ValidationError } = require('../../utils/errors');
 
 /**
  * Delete a report
  */
-exports.deleteReport = async (req, res) => {
+exports.deleteReport = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { confirmationName } = req.body;
@@ -16,10 +16,7 @@ exports.deleteReport = async (req, res) => {
     
     // Verify confirmation name matches
     if (!confirmationName || confirmationName !== report.name) {
-      return res.status(400).json({ 
-        error: 'Confirmation name does not match report name',
-        reportName: report.name 
-      });
+      throw new ValidationError('Confirmation name does not match report name');
     }
     
     // Delete PDF from S3 if it exists
@@ -42,18 +39,14 @@ exports.deleteReport = async (req, res) => {
       reportName: report.name
     });
   } catch (error) {
-    console.error('Error deleting report:', error);
-    if (error instanceof NotFoundError) {
-      return res.status(404).json({ error: 'Report not found' });
-    }
-    res.status(500).json({ error: 'Failed to delete report' });
+    next(error);
   }
 };
 
 /**
  * Clean up invalid reports that reference missing S3 files
  */
-exports.cleanupInvalidReports = async (req, res) => {
+exports.cleanupInvalidReports = async (req, res, next) => {
   try {
     // Get all reports for the current user
     const reports = await Report.find({ user: req.user.id });
@@ -107,7 +100,6 @@ exports.cleanupInvalidReports = async (req, res) => {
       stats
     });
   } catch (error) {
-    console.error('Error cleaning up reports:', error);
-    res.status(500).json({ error: `Failed to clean up reports: ${error.message}` });
+    next(error);
   }
 }; 

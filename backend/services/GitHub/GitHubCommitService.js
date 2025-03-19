@@ -212,48 +212,65 @@ class GitHubCommitService {
       Accept: 'application/vnd.github.v3+json'
     };
     
-    const commits = [];
-    
-    for (const commitId of commitIds) {
-      try {
-        // Fetch the commit
-        const url = `https://api.github.com/repos/${repository}/commits/${commitId}`;
-        const response = await axios.get(url, { headers });
-        const commit = response.data;
+    // Parallelize commit fetching with concurrency control
+    const fetchCommitsInBatches = async (ids) => {
+      const results = [];
+      const batchSize = 5; // Adjust based on GitHub API rate limits
+      
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        const promises = batch.map(async (commitId) => {
+          try {
+            const url = `https://api.github.com/repos/${repository}/commits/${commitId}`;
+            const response = await axios.get(url, { headers });
+            
+            // Format the commit
+            return {
+              sha: response.data.sha,
+              message: response.data.commit.message,
+              author: {
+                login: response.data.author?.login,
+                name: response.data.commit.author.name,
+                email: response.data.commit.author.email,
+                avatarUrl: response.data.author?.avatarUrl
+              },
+              date: response.data.commit.author.date,
+              htmlUrl: response.data.htmlUrl,
+              files: response.data.files ? response.data.files.map(file => ({
+                filename: file.filename,
+                status: file.status,
+                additions: file.additions,
+                deletions: file.deletions,
+                changes: file.changes,
+                patch: file.patch
+              })) : []
+            };
+          } catch (error) {
+            // Log error but continue with other commits
+            console.error(`Failed to fetch commit ${commitId}: ${error.message}`);
+            // Don't throw here as we want to continue with other commits
+            return null;
+          }
+        });
         
-        // Format the commit
-        const formattedCommit = {
-          sha: commit.sha,
-          message: commit.commit.message,
-          author: {
-            login: commit.author?.login,
-            name: commit.commit.author.name,
-            email: commit.commit.author.email,
-            avatarUrl: commit.author?.avatarUrl
-          },
-          date: commit.commit.author.date,
-          htmlUrl: commit.htmlUrl,
-          files: commit.files ? commit.files.map(file => ({
-            filename: file.filename,
-            status: file.status,
-            additions: file.additions,
-            deletions: file.deletions,
-            changes: file.changes,
-            patch: file.patch
-          })) : []
-        };
-        
-        commits.push(formattedCommit);
-      } catch (error) {
-        console.error(`Error fetching commit ${commitId}:`, error);
-        // Continue with other commits even if one fails
+        const batchResults = await Promise.all(promises);
+        results.push(...batchResults.filter(Boolean));
       }
+      
+      return results;
+    };
+    
+    try {
+      // Fetch all commits in parallel with batching
+      const commits = await fetchCommitsInBatches(commitIds);
+      
+      // Sort commits by date (newest first)
+      commits.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      return commits;
+    } catch (error) {
+      throw new ExternalServiceError(`GitHub API error fetching commits: ${error.message}`, 'GitHub');
     }
-    
-    // Sort commits by date (newest first)
-    commits.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    return commits;
   }
 
   // Get date range (first and last commit dates) based on branches and authors
