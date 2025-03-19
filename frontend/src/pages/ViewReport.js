@@ -8,40 +8,23 @@ import {
   CardContent,
   Chip,
   CircularProgress,
-  // eslint-disable-next-line no-unused-vars
-  Dialog,
-  // eslint-disable-next-line no-unused-vars
-  DialogActions,
-  // eslint-disable-next-line no-unused-vars
-  DialogContent,
-  // eslint-disable-next-line no-unused-vars
-  DialogContentText,
-  // eslint-disable-next-line no-unused-vars
-  DialogTitle,
   Divider,
   Fade,
   Grid,
   Paper,
-  // eslint-disable-next-line no-unused-vars
-  Snackbar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  // eslint-disable-next-line no-unused-vars
-  TextField,
   Typography,
   useTheme,
   Tooltip,
-  // eslint-disable-next-line no-unused-vars
-  IconButton,
   Zoom
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
-import DeleteIcon from '@mui/icons-material/Delete';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PersonIcon from '@mui/icons-material/Person';
@@ -58,13 +41,6 @@ const ViewReport = () => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // eslint-disable-next-line no-unused-vars
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [confirmationName, setConfirmationName] = useState('');
-  // eslint-disable-next-line no-unused-vars
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const [pdfPreviewFailed, setPdfPreviewFailed] = useState(false);
   const iframeRef = useRef(null);
   // Add these state variables to track PDF generation status
@@ -276,51 +252,6 @@ const ViewReport = () => {
     });
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const handleOpenDeleteDialog = () => {
-    setDeleteDialogOpen(true);
-    setConfirmationName('');
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const handleCloseDeleteDialog = () => {
-    setDeleteDialogOpen(false);
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const handleDeleteReport = async () => {
-    if (!report || !confirmationName) return;
-    
-    try {
-      setIsDeleting(true);
-      await api.deleteReport(id, confirmationName);
-      setSnackbar({
-        open: true,
-        message: `Report "${report.name}" successfully deleted`,
-        severity: 'success'
-      });
-      setDeleteDialogOpen(false);
-      
-      // Navigate back to dashboard after a brief delay
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
-    } catch (err) {
-      console.error('Error deleting report:', err);
-      setSnackbar({
-        open: true,
-        message: err.response?.data?.error || 'Failed to delete report',
-        severity: 'error'
-      });
-      setIsDeleting(false);
-    }
-  };
-
   if (loading) {
     return (
       <Layout title="Loading Report...">
@@ -453,25 +384,6 @@ const ViewReport = () => {
                   Download Report
                 </Button>
               </Zoom>
-              
-              <Tooltip title="Delete this report">
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<DeleteIcon />}
-                  onClick={handleOpenDeleteDialog}
-                  sx={{
-                    borderRadius: 2,
-                    borderColor: 'rgba(244, 67, 54, 0.5)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(244, 67, 54, 0.08)',
-                      borderColor: 'error.main'
-                    }
-                  }}
-                >
-                  Delete
-                </Button>
-              </Tooltip>
             </Box>
           </Box>
 
