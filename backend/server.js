@@ -13,6 +13,7 @@ const reportRoutes = require('./routes/reports');
 const usageStatsRoutes = require('./routes/usageStats');
 const adminRoutes = require('./routes/admin');
 const planRoutes = require('./routes/planRoutes');
+const commitSummaryRoutes = require('./routes/commitSummaryRoutes');
 const PlanService = require('./services/planService');
 require('./config/passport');
 
@@ -87,6 +88,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/usage-stats', usageStatsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/plans', planRoutes);
+app.use('/api/commit-summary', commitSummaryRoutes);
 
 // Base route
 app.get('/', (req, res) => {

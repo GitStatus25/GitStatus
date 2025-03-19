@@ -33,10 +33,6 @@ class UsageStatsController {
             name: user.plan.name,
             displayName: user.plan.displayName,
             limits: user.plan.limits
-          },
-          currentUsage: {
-            ...stats.currentUsage,
-            tokensUsed: user.currentUsage.tokensUsed || 0
           }
         }
       };

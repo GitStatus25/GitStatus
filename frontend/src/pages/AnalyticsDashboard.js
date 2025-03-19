@@ -274,11 +274,11 @@ const AnalyticsDashboard = () => {
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={Math.min(100, ((stats?.currentUsage?.reportsGenerated?.standard || 0) / (stats?.plan?.limits?.reportsPerMonth || 1)) * 100)}
+                    value={Math.min(100, ((stats?.currentMonthStats?.reports?.standard || 0) / (stats?.plan?.limits?.reportsPerMonth || 1)) * 100)}
                     sx={{ mb: 1 }}
                   />
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {`${stats?.currentUsage?.reportsGenerated?.standard || 0} / ${stats?.plan?.limits?.reportsPerMonth || 0} standard reports`}
+                    {`${stats?.currentMonthStats?.reports?.standard || 0} / ${stats?.plan?.limits?.reportsPerMonth || 0} standard reports`}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Up to {stats?.plan?.limits?.commitsPerStandardReport || 0} commits per report
@@ -290,11 +290,11 @@ const AnalyticsDashboard = () => {
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={Math.min(100, ((stats?.currentUsage?.reportsGenerated?.large || 0) / (Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1))) * 100)}
+                    value={Math.min(100, ((stats?.currentMonthStats?.reports?.large || 0) / (Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1))) * 100)}
                     sx={{ mb: 1 }}
                   />
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {`${stats?.currentUsage?.reportsGenerated?.large || 0} / ${Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)} large reports`}
+                    {`${stats?.currentMonthStats?.reports?.large || 0} / ${Math.ceil((stats?.plan?.limits?.reportsPerMonth || 0) * 0.1)} large reports`}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Up to {stats?.plan?.limits?.commitsPerLargeReport || 0} commits per report
@@ -318,7 +318,7 @@ const AnalyticsDashboard = () => {
                     Reports Generated
                   </Typography>
                   <Typography variant="h4">
-                    {stats?.currentMonthStats?.reports?.total || 0}
+                    {stats?.currentMonthStats?.reports?.standard + stats?.currentMonthStats?.reports?.large || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {stats?.currentMonthStats?.reports?.standard || 0} standard, {stats?.currentMonthStats?.reports?.large || 0} large

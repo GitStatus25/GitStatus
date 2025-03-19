@@ -34,11 +34,7 @@ const UsageStatsSchema = new mongoose.Schema({
   
   // Commit analysis metrics
   commits: {
-    standard: {
-      type: Number,
-      default: 0
-    },
-    large: {
+    total: {
       type: Number,
       default: 0
     }

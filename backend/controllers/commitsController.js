@@ -66,14 +66,8 @@ exports.getCommits = async (req, res) => {
       endDate: endDate ? new Date(endDate) : null
     });
 
-    // Track commit analysis
-    if (commits && commits.length > 0) {
-      await UsageStatsService.trackCommitAnalysis(
-        userId,
-        commits.length, // Total commits analyzed
-        0              // None summarized
-      );
-    }
+    // No need to track commits here since we're just fetching them
+    // They will be tracked when actually analyzed in report generation
 
     res.json(commits);
   } catch (error) {
@@ -209,14 +203,8 @@ exports.getCommitsWithDiffs = async (req, res) => {
       includeFiles: includeFiles === 'true'
     });
     
-    // Track commit analysis
-    if (commits && commits.length > 0) {
-      await UsageStatsService.trackCommitAnalysis(
-        userId,
-        commits.length, // Total commits analyzed
-        0              // None summarized
-      );
-    }
+    // No need to track commits here since we're just fetching them
+    // They will be tracked when actually analyzed in report generation
 
     res.json(commits);
   } catch (error) {

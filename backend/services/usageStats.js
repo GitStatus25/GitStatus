@@ -22,39 +22,33 @@ class UsageStatsService {
    */
   static async trackReportGeneration(userId, reportType) {
     try {
-      const now = new Date();
-      const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      
-      // Get user's plan
-      const user = await User.findById(userId).populate('plan');
-      if (!user || !user.plan) {
-        throw new Error('User plan not found');
-      }
-      
-      // Update or create monthly stats
-      const stats = await UsageStats.findOneAndUpdate(
-        { user: userId, month: monthKey },
+      console.log('Tracking report generation:', {
+        userId,
+        reportType,
+        timestamp: new Date().toISOString()
+      });
+
+      const currentMonth = this.getCurrentMonth();
+
+      // Update monthly stats
+      const updateResult = await UsageStats.findOneAndUpdate(
+        { user: userId, month: currentMonth },
         {
           $inc: {
-            [`reports.${reportType}`]: 1,
-            'reports.total': 1
+            [`reports.${reportType}`]: 1
           }
         },
         { upsert: true, new: true }
       );
-      
-      // Update user's current usage
-      await User.findByIdAndUpdate(userId, {
-        $inc: {
-          [`currentUsage.reportsGenerated.${reportType}`]: 1,
-          'currentUsage.reportsGenerated.total': 1
-        }
+
+      console.log('Usage stats update result:', {
+        userId,
+        reportType,
+        currentMonth,
+        updateResult
       });
-      
-      return stats;
     } catch (error) {
       console.error('Error tracking report generation:', error);
-      throw error;
     }
   }
 
@@ -69,12 +63,7 @@ class UsageStatsService {
     try {
       const currentMonth = this.getCurrentMonth();
 
-      // Update user's current usage count
-      await User.findByIdAndUpdate(userId, {
-        $inc: { 'currentUsage.commitsAnalyzed': commitCount }
-      });
-
-      // Update monthly stats
+      // Update monthly stats only
       await UsageStats.findOneAndUpdate(
         { user: userId, month: currentMonth },
         {
@@ -92,59 +81,35 @@ class UsageStatsService {
   /**
    * Track token usage for AI services
    * @param {string} userId - The user ID
-   * @param {number} inputTokenCount - Number of input tokens used
-   * @param {number} outputTokenCount - Number of output tokens used
-   * @param {string} modelName - Name of the AI model used
-   * @param {number} totalCost - Total estimated cost in USD
-   * @param {number} inputCost - Estimated cost for input tokens in USD
-   * @param {number} outputCost - Estimated cost for output tokens in USD
+   * @param {number} inputTokens - Number of input tokens used
+   * @param {number} outputTokens - Number of output tokens used
+   * @param {string} model - Model name used
+   * @param {number} totalCost - Total cost of the operation
+   * @param {number} inputCost - Cost of input tokens
+   * @param {number} outputCost - Cost of output tokens
    * @returns {Promise<void>}
    */
-  static async trackTokenUsage(
-    userId, 
-    inputTokenCount, 
-    outputTokenCount, 
-    modelName = 'default', 
-    totalCost = 0,
-    inputCost = 0,
-    outputCost = 0
-  ) {
+  static async trackTokenUsage(userId, inputTokens, outputTokens, model, totalCost, inputCost, outputCost) {
     try {
       const currentMonth = this.getCurrentMonth();
-      const totalTokenCount = inputTokenCount + outputTokenCount;
+      const totalTokens = inputTokens + outputTokens;
 
-      // Update monthly stats
+      // Update monthly stats only
       const updateQuery = {
         $inc: {
-          // Update total token counts
-          'tokenUsage.total': totalTokenCount,
-          'tokenUsage.input': inputTokenCount,
-          'tokenUsage.output': outputTokenCount,
-          
-          // Update cost estimates
+          'tokenUsage.total': totalTokens,
+          'tokenUsage.input': inputTokens,
+          'tokenUsage.output': outputTokens,
           'costEstimate.total': totalCost,
           'costEstimate.input': inputCost,
           'costEstimate.output': outputCost
         }
       };
 
-      // Add model breakdowns
-      updateQuery.$inc[`tokenUsage.byModel.${modelName}`] = totalTokenCount;
-      updateQuery.$inc[`tokenUsage.inputByModel.${modelName}`] = inputTokenCount;
-      updateQuery.$inc[`tokenUsage.outputByModel.${modelName}`] = outputTokenCount;
-      
-      // Add cost breakdowns
-      if (totalCost > 0) {
-        updateQuery.$inc[`costEstimate.byService.${modelName}`] = totalCost;
-      }
-      
-      if (inputCost > 0) {
-        updateQuery.$inc[`costEstimate.inputByService.${modelName}`] = inputCost;
-      }
-      
-      if (outputCost > 0) {
-        updateQuery.$inc[`costEstimate.outputByService.${modelName}`] = outputCost;
-      }
+      // Add model-specific token usage
+      updateQuery.$inc[`tokenUsage.byModel.${model}`] = totalTokens;
+      updateQuery.$inc[`tokenUsage.inputByModel.${model}`] = inputTokens;
+      updateQuery.$inc[`tokenUsage.outputByModel.${model}`] = outputTokens;
 
       await UsageStats.findOneAndUpdate(
         { user: userId, month: currentMonth },
@@ -167,29 +132,25 @@ class UsageStatsService {
       if (!user) throw new Error('User not found');
       if (!user.plan) throw new Error('User plan not found');
 
-      // Check if we need to reset the counter (new month)
-      const lastReset = new Date(user.currentUsage.lastResetDate);
-      const now = new Date();
-      
-      if (lastReset.getMonth() !== now.getMonth() || 
-          lastReset.getFullYear() !== now.getFullYear()) {
-        // Reset counters for new month
-        await User.findByIdAndUpdate(userId, {
-          'currentUsage.reportsGenerated': {
-            small: 0,
-            big: 0,
-            total: 0
-          },
-          'currentUsage.commitsAnalyzed': 0,
-          'currentUsage.lastResetDate': now
-        });
-        return false;
-      }
+      // Get current month's stats
+      const currentMonth = this.getCurrentMonth();
+      const currentMonthStats = await UsageStats.findOne({
+        user: userId,
+        month: currentMonth
+      });
 
-      // Check if total reports have reached the monthly limit
-      const totalReportsGenerated = (user.currentUsage?.reportsGenerated?.small || 0) + 
-                                  (user.currentUsage?.reportsGenerated?.big || 0);
-      return totalReportsGenerated >= user.plan.limits.reportsPerMonth;
+      // If no stats for this month, user hasn't reached limit
+      if (!currentMonthStats) return false;
+
+      // Check standard and large report limits separately
+      const standardReports = currentMonthStats.reports.standard || 0;
+      const largeReports = currentMonthStats.reports.large || 0;
+      
+      // Large reports are limited to 10% of standard report limit
+      const largeReportLimit = Math.floor(user.plan.limits.reportsPerMonth * 0.1);
+      
+      return standardReports >= user.plan.limits.reportsPerMonth ||
+             largeReports >= largeReportLimit;
     } catch (error) {
       console.error('Error checking report limit:', error);
       // Default to false to prevent blocking users due to errors
@@ -210,9 +171,8 @@ class UsageStatsService {
         throw new Error('User not found');
       }
 
-      // Get current month's stats using the same format as tracking methods
+      // Get current month's stats
       const currentMonth = this.getCurrentMonth();
-
       const currentMonthStats = await UsageStats.findOne({
         user: userId,
         month: currentMonth
@@ -227,47 +187,27 @@ class UsageStatsService {
             reports: { 
               $sum: {
                 $add: [
-                  { $ifNull: ['$reports.small', 0] },
-                  { $ifNull: ['$reports.big', 0] }
+                  { $ifNull: ['$reports.standard', 0] },
+                  { $ifNull: ['$reports.large', 0] }
                 ]
               }
             },
             commits: { 
-              $sum: {
-                $add: [
-                  { $ifNull: ['$commits.small', 0] },
-                  { $ifNull: ['$commits.big', 0] }
-                ]
-              }
+              $sum: { $ifNull: ['$commits.total', 0] }
             },
             tokenUsage: { $sum: '$tokenUsage.total' }
           }
         }
       ]);
 
-      // Get current usage from user model
-      const currentUsage = {
-        reportsGenerated: {
-          small: user.currentUsage?.reportsGenerated?.small || 0,
-          big: user.currentUsage?.reportsGenerated?.big || 0,
-          total: (user.currentUsage?.reportsGenerated?.small || 0) + 
-                 (user.currentUsage?.reportsGenerated?.big || 0)
-        },
-        commitsAnalyzed: user.currentUsage?.commitsAnalyzed || 0
-      };
-
       return {
         plan: user.plan,
-        currentUsage,
         currentMonthStats: currentMonthStats || {
           reports: { 
-            small: 0,
-            big: 0,
-            total: 0
+            standard: 0,
+            large: 0
           },
           commits: { 
-            small: 0,
-            big: 0,
             total: 0
           },
           tokenUsage: { 
@@ -297,41 +237,58 @@ class UsageStatsService {
       const currentMonth = this.getCurrentMonth();
       
       // Get aggregated stats for current month
-      const monthlyStats = await UsageStats.aggregate([
+      let monthlyStats = await UsageStats.aggregate([
         { $match: { month: currentMonth } },
         { 
           $group: {
             _id: null,
-            totalReports: { $sum: '$reports.total' },
-            totalCommits: { $sum: '$commits.summarized' },
-            totalTokens: { $sum: '$tokenUsage.total' },
-            inputTokens: { $sum: '$tokenUsage.input' },
-            outputTokens: { $sum: '$tokenUsage.output' },
-            totalCost: { $sum: '$costEstimate.total' },
-            inputCost: { $sum: '$costEstimate.input' },
-            outputCost: { $sum: '$costEstimate.output' },
+            reportsStandard: { $sum: { $ifNull: ['$reports.standard', 0] } },
+            reportsLarge: { $sum: { $ifNull: ['$reports.large', 0] } },
+            commitsTotal: { $sum: { $ifNull: ['$commits.total', 0] } },
+            totalTokens: { $sum: { $ifNull: ['$tokenUsage.total', 0] } },
+            inputTokens: { $sum: { $ifNull: ['$tokenUsage.input', 0] } },
+            outputTokens: { $sum: { $ifNull: ['$tokenUsage.output', 0] } },
+            totalCost: { $sum: { $ifNull: ['$costEstimate.total', 0] } },
+            inputCost: { $sum: { $ifNull: ['$costEstimate.input', 0] } },
+            outputCost: { $sum: { $ifNull: ['$costEstimate.output', 0] } },
             uniqueUsers: { $addToSet: '$user' }
           }
         }
       ]);
 
+      monthlyStats = monthlyStats[0] || {
+        reportsStandard: 0,
+        reportsLarge: 0,
+        commitsTotal: 0,
+        totalTokens: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalCost: 0,
+        inputCost: 0,
+        outputCost: 0,
+        uniqueUsers: []
+      };
+
+      monthlyStats.totalReports = monthlyStats.reportsStandard + monthlyStats.reportsLarge;
+
       // Get user breakdown
-      const userBreakdown = await UsageStats.aggregate([
+      let userBreakdown = await UsageStats.aggregate([
         { $match: { month: currentMonth } },
         {
           $project: {
             user: 1,
-            reportsTotal: '$reports.total',
-            commitsTotal: '$commits.summarized',
-            tokensTotal: '$tokenUsage.total',
-            inputTokens: '$tokenUsage.input',
-            outputTokens: '$tokenUsage.output',
-            costTotal: '$costEstimate.total',
-            inputCost: '$costEstimate.input',
-            outputCost: '$costEstimate.output'
+            reportsStandard: { $ifNull: ['$reports.standard', 0] },
+            reportsLarge: { $ifNull: ['$reports.large', 0] },
+            commitsTotal: { $ifNull: ['$commits.total', 0] },
+            tokensTotal: { $ifNull: ['$tokenUsage.total', 0] },
+            inputTokens: { $ifNull: ['$tokenUsage.input', 0] },
+            outputTokens: { $ifNull: ['$tokenUsage.output', 0] },
+            costTotal: { $ifNull: ['$costEstimate.total', 0] },
+            inputCost: { $ifNull: ['$costEstimate.input', 0] },
+            outputCost: { $ifNull: ['$costEstimate.output', 0] }
           }
         },
-        { $sort: { reportsTotal: -1 } },
+        { $sort: { reportsStandard: -1 } },
         { $limit: 10 }
       ]);
 
@@ -345,7 +302,7 @@ class UsageStatsService {
 
       const userStats = userBreakdown.map(item => ({
         username: userMap[item.user.toString()] || 'Unknown',
-        reports: item.reportsTotal,
+        reports: item.reportsStandard + item.reportsLarge,
         commits: item.commitsTotal,
         tokens: {
           total: item.tokensTotal,
@@ -361,17 +318,7 @@ class UsageStatsService {
 
       return {
         currentMonth,
-        summary: monthlyStats[0] || {
-          totalReports: 0,
-          totalCommits: 0,
-          totalTokens: 0,
-          inputTokens: 0,
-          outputTokens: 0,
-          totalCost: 0,
-          inputCost: 0,
-          outputCost: 0,
-          uniqueUsers: []
-        },
+        summary: monthlyStats,
         topUsers: userStats
       };
     } catch (error) {

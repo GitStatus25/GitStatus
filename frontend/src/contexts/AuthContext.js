@@ -25,26 +25,21 @@ const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated
   const checkAuth = async () => {
-    console.log("AuthContext: Checking authentication");
     try {
       setLoading(true);
       const res = await axios.get('/api/auth/me');
-      console.log("AuthContext: Auth check response:", res.data);
       
       if (res.data.isAuthenticated) {
         setUser(res.data.user);
         setIsAuthenticated(true);
-        console.log("AuthContext: User is authenticated");
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        console.log("AuthContext: User is not authenticated");
       }
       
       setError(null);
       return res.data;
     } catch (err) {
-      console.error('Authentication check failed:', err);
       setUser(null);
       setIsAuthenticated(false);
       setError('Failed to authenticate. Please try again.');

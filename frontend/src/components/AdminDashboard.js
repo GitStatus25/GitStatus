@@ -48,6 +48,7 @@ const AdminDashboard = () => {
   const fetchAnalytics = async () => {
     try {
       const response = await api.getAdminAnalytics();
+      console.log(response.analytics)
       setAnalytics(response.analytics);
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to fetch analytics' });
@@ -100,6 +101,12 @@ const AdminDashboard = () => {
       await api.updatePlanLimits(selectedPlan._id, planLimits);
       setMessage({ type: 'success', text: 'Plan limits updated successfully' });
       fetchPlans();
+      setSelectedPlan(null);
+      setPlanLimits({
+        reportsPerMonth: 0,
+        commitsPerStandardReport: 0,
+        commitsPerLargeReport: 0
+      });
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to update plan limits' });
     } finally {
@@ -271,7 +278,7 @@ const AdminDashboard = () => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body2">Total Commits</Typography>
-                    <Typography variant="h6">{analytics?.summary?.totalCommits || 0}</Typography>
+                    <Typography variant="h6">{analytics?.summary?.commitsTotal || 0}</Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body2" gutterBottom>Token Usage</Typography>

@@ -74,10 +74,16 @@ const ViewReport = () => {
         setLoading(true);
         const fetchedReport = await api.getReportById(id);
         
+        // Initialize authors set with any existing report authors
+        const authors = new Set();
+        if (fetchedReport.author) {
+          fetchedReport.author.split(', ').forEach(author => authors.add(author));
+        }
+        
         // Fetch commit details if we have commits
         if (fetchedReport.commits?.length > 0) {
           const commitIds = fetchedReport.commits.map(commit => 
-            commit.id || commit.sha || commit.hash || commit.commitId
+            commit.sha || commit.commitId || commit.id
           ).filter(Boolean);
           
           if (commitIds.length > 0) {
@@ -93,29 +99,29 @@ const ViewReport = () => {
               
               // Merge the commit details with the existing commits
               fetchedReport.commits = fetchedReport.commits.map(commit => {
-                const commitId = commit.id || commit.sha || commit.hash || commit.commitId;
-                const details = commitDetails.find(c => c.id === commitId);
+                const commitId = commit.sha || commit.commitId || commit.id;
+                const details = commitDetails.find(c => c.commitId === commitId || c.id === commitId);
                 console.log(`Mapping commit ${commitId}:`, { 
                   originalCommit: commit,
                   matchedDetails: details 
                 });
+                
+                // Add author to the set if available
+                if (details?.author?.name) {
+                  authors.add(details.author.name);
+                } else if (details?.author?.login) {
+                  authors.add(details.author.login);
+                } else if (typeof details?.author === 'string') {
+                  authors.add(details.author);
+                }
+                
                 return details ? { ...commit, ...details } : commit;
               });
               
               // Log the merged commits
               console.log('Merged commits with details:', fetchedReport.commits);
               
-              // Extract all unique authors for the authors card
-              const authors = new Set();
-              fetchedReport.commits.forEach(commit => {
-                if (commit.author?.name) {
-                  authors.add(commit.author.name);
-                } else if (commit.author?.login) {
-                  authors.add(commit.author.login);
-                } else if (typeof commit.author === 'string') {
-                  authors.add(commit.author);
-                }
-              });
+              // Update the report's allAuthors
               fetchedReport.allAuthors = Array.from(authors);
               console.log('Extracted authors:', fetchedReport.allAuthors);
             } catch (detailsErr) {
@@ -129,10 +135,23 @@ const ViewReport = () => {
                 
                 // Merge the commit info with the existing commits
                 fetchedReport.commits = fetchedReport.commits.map(commit => {
-                  const commitId = commit.id || commit.sha || commit.hash || commit.commitId;
-                  const info = commitInfo.find(c => c.id === commitId);
+                  const commitId = commit.sha || commit.commitId || commit.id;
+                  const info = commitInfo.find(c => c.sha === commitId);
+                  
+                  // Add author to the set if available
+                  if (info?.author?.name) {
+                    authors.add(info.author.name);
+                  } else if (info?.author?.login) {
+                    authors.add(info.author.login);
+                  } else if (typeof info?.author === 'string') {
+                    authors.add(info.author);
+                  }
+                  
                   return info ? { ...commit, ...info } : commit;
                 });
+                
+                // Update the report's allAuthors
+                fetchedReport.allAuthors = Array.from(authors);
               } catch (infoErr) {
                 console.error('Error fetching commit info:', infoErr);
               }

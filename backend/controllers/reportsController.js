@@ -113,8 +113,6 @@ exports.generateReport = async (req, res) => {
       return res.status(400).json({ error: 'Invalid request parameters' });
     }
     
-    console.log(`Generating report for ${repository} with ${commitIds.length} commits`);
-    
     // Get user access token
     const accessToken = req.user.accessToken;
     const userId = req.user.id;
@@ -148,14 +146,36 @@ exports.generateReport = async (req, res) => {
       return res.status(500).json({ error: 'User plan not found' });
     }
     
-    // Determine report type based on commit count
-    const reportType = commits.length <= user.plan.commitsPerStandardReport ? 'standard' : 'large';
+    console.log('Plan limits:', {
+      commitsPerStandardReport: user.plan.limits.commitsPerStandardReport,
+      commitsPerLargeReport: user.plan.limits.commitsPerLargeReport
+    });
+    
+    // Get unique commit count
+    const uniqueCommits = new Set(commits.map(commit => commit.commitId || commit.sha));
+    const uniqueCommitCount = uniqueCommits.size;
+    
+    console.log('Commit counts:', {
+      totalCommits: commits.length,
+      uniqueCommits: uniqueCommitCount,
+      uniqueCommitIds: Array.from(uniqueCommits)
+    });
+    
+    // Determine report type based on unique commit count
+    const reportType = uniqueCommitCount <= user.plan.limits.commitsPerStandardReport ? 'standard' : 'large';
+    
+    console.log('Report type determination:', {
+      uniqueCommitCount,
+      standardLimit: user.plan.limits.commitsPerStandardReport,
+      largeLimit: user.plan.limits.commitsPerLargeReport,
+      determinedType: reportType
+    });
 
     // Check if commit count exceeds the limit for the report type
-    if (reportType === 'large' && commits.length > user.plan.commitsPerLargeReport) {
+    if (reportType === 'large' && uniqueCommitCount > user.plan.limits.commitsPerLargeReport) {
       return res.status(400).json({
-        error: `Report exceeds maximum commits allowed for large reports (${user.plan.commitsPerLargeReport} commits)`,
-        limit: user.plan.commitsPerLargeReport
+        error: `Report exceeds maximum commits allowed for large reports (${user.plan.limits.commitsPerLargeReport} commits)`,
+        limit: user.plan.limits.commitsPerLargeReport
       });
     }
     
@@ -166,8 +186,6 @@ exports.generateReport = async (req, res) => {
     const existingReport = await findReportByCommitsHash(commitsHash);
     
     if (existingReport) {
-      console.log(`Found existing report with the same commits (${existingReport.id}), reusing it`);
-      
       // Update the access stats
       await updateReportAccessStats(existingReport);
       
@@ -183,8 +201,6 @@ exports.generateReport = async (req, res) => {
     }
     
     // No existing report, so generate a new one
-    console.log('No existing report found, generating new one');
-    
     // Initialize token tracking
     let inputTokenCount = 0;
     let outputTokenCount = 0;
@@ -206,13 +222,6 @@ exports.generateReport = async (req, res) => {
       inputTokenCount = reportContent.usage.prompt_tokens || 0;
       outputTokenCount = reportContent.usage.completion_tokens || 0;
       modelName = reportContent.model || 'gpt-4';
-      
-      console.log('Token usage tracked:', {
-        model: modelName,
-        inputTokens: inputTokenCount,
-        outputTokens: outputTokenCount,
-        totalTokens: inputTokenCount + outputTokenCount
-      });
     } else {
       // If no token tracking, estimate based on text length (rough estimate)
       const text = typeof reportContent === 'string' ? reportContent : JSON.stringify(reportContent);
@@ -243,18 +252,10 @@ exports.generateReport = async (req, res) => {
     
     const estimatedCost = (inputTokenCount * inputCost) + (outputTokenCount * outputCost);
     
-    console.log('Estimated cost:', {
-      model: modelName,
-      inputCost: inputTokenCount * inputCost,
-      outputCost: outputTokenCount * outputCost,
-      totalCost: estimatedCost
-    });
-    
     // Use provided branches from the request if available, otherwise detect them
     let selectedBranches = [];
     
     if (branches && branches.length > 0) {
-      console.log('Using branches provided in the request:', branches);
       selectedBranches = branches;
     } else {
       // Extract branch information from the commits if no branches were provided
@@ -273,13 +274,6 @@ exports.generateReport = async (req, res) => {
       });
       
       const branchResults = await Promise.all(branchPromises);
-      
-      // Log the results to debug
-      console.log('Branch detection results:', branchResults.map(result => ({
-        commit: result.commit.sha.substring(0, 7),
-        branches: result.branches,
-        message: result.commit.commit?.message?.split('\n')[0]?.substring(0, 50) || 'No message'
-      })));
       
       // Advanced branch detection logic
       const getBestBranches = (branchResults) => {
@@ -335,9 +329,6 @@ exports.generateReport = async (req, res) => {
           .slice(0, 2)
           .map(entry => entry[0]);
         
-        console.log('Branch scores:', adjustedBranchScores);
-        console.log('Selected branches:', sortedBranches);
-        
         return sortedBranches;
       };
       
@@ -385,7 +376,6 @@ exports.generateReport = async (req, res) => {
       await report.save();
       
       // Generate PDF if requested
-      console.log('Calling PDF service to generate PDF...');
       const pdfBuffer = await pdfService.generatePDF({
         title: report.name,
         content: reportContentText,
@@ -394,30 +384,12 @@ exports.generateReport = async (req, res) => {
         endDate: report.endDate
       });
       
-      console.log('PDF Buffer received in controller:', {
-        bufferExists: !!pdfBuffer,
-        isBuffer: Buffer.isBuffer(pdfBuffer),
-        bufferLength: pdfBuffer ? pdfBuffer.length : 0,
-        bufferType: pdfBuffer ? pdfBuffer.constructor.name : 'None'
-      });
-      
-      // Verify PDF buffer
-      if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer) || pdfBuffer.length === 0) {
-        console.error('PDF verification failed in controller');
-        throw new Error('PDF generation failed - empty buffer received');
-      }
-      
       // Upload PDF to S3
       const pdfUrl = await s3Service.uploadFile({
         fileName: `report-${report.id}.pdf`,
         fileContent: pdfBuffer,
         contentType: 'application/pdf'
       }).then(res => res.key);
-      
-      // Verify PDF URL
-      if (!pdfUrl) {
-        throw new Error('S3 upload failed - no URL returned');
-      }
       
       // Update report with PDF URL 
       report.pdfUrl = pdfUrl;
@@ -431,11 +403,12 @@ exports.generateReport = async (req, res) => {
           reportType // 'standard' or 'large'
         );
         
-        // Track commit analysis
+        // Track unique commits analyzed
+        const uniqueCommits = new Set(commits.map(commit => commit.commitId || commit.sha));
         await UsageStatsService.trackCommitAnalysis(
           userId,
-          commits.length, // Total commits analyzed
-          commits.length  // All commits were summarized
+          uniqueCommits.size, // Only count unique commits
+          uniqueCommits.size  // All commits were summarized
         );
         
         // Track token usage and cost
@@ -470,13 +443,11 @@ exports.generateReport = async (req, res) => {
             if (existingReport.pdfUrl === 'pending') {
               // Failed before S3 upload - delete the report
               await Report.findByIdAndDelete(report.id);
-              console.log(`Deleted incomplete report ${report.id} due to error`);
             } else {
               // Check if the PDF actually exists in S3
               const pdfExists = await s3Service.objectExists(existingReport.pdfUrl);
               if (!pdfExists) {
                 await Report.findByIdAndDelete(report.id);
-                console.log(`Deleted report ${report.id} with missing S3 file`);
               }
             }
           }

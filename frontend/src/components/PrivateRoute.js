@@ -53,7 +53,6 @@ const PrivateRoute = ({ children }) => {
   }
 
   // Render children if authenticated
-  console.log("PrivateRoute: User authenticated, rendering protected content");
   return children;
 };
 

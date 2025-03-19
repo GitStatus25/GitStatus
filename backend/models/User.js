@@ -37,30 +37,6 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Plan',
     required: true
-  },
-  currentUsage: {
-    reportsGenerated: {
-      standard: {
-        type: Number,
-        default: 0
-      },
-      large: {
-        type: Number,
-        default: 0
-      }
-    },
-    commitsAnalyzed: {
-      type: Number,
-      default: 0
-    },
-    tokensUsed: {
-      type: Number,
-      default: 0
-    },
-    lastResetDate: {
-      type: Date,
-      default: Date.now
-    }
   }
 });
 
@@ -68,32 +44,25 @@ const UserSchema = new mongoose.Schema({
 UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
   await this.populate('plan');
   
-  // Check if we need to reset usage (new month)
-  const lastReset = new Date(this.currentUsage.lastResetDate);
-  const now = new Date();
-  
-  if (lastReset.getMonth() !== now.getMonth() || 
-      lastReset.getFullYear() !== now.getFullYear()) {
-    this.currentUsage = {
-      reportsGenerated: {
-        standard: 0,
-        large: 0
-      },
-      commitsAnalyzed: 0,
-      tokensUsed: 0,
-      lastResetDate: now
-    };
-    await this.save();
-    return false;
-  }
+  // Get current month's stats
+  const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+  const currentMonthStats = await UsageStats.findOne({
+    user: this._id,
+    month: currentMonth
+  });
+
+  // If no stats for this month, user hasn't reached limit
+  if (!currentMonthStats) return false;
 
   switch (type) {
     case 'reports':
-      return (this.currentUsage.reportsGenerated.standard + this.currentUsage.reportsGenerated.large + amount) > this.plan.limits.reportsPerMonth;
+      const totalReports = (currentMonthStats.reports.standard || 0) + 
+                          (currentMonthStats.reports.large || 0);
+      return (totalReports + amount) > this.plan.limits.reportsPerMonth;
     case 'commits':
-      return (this.currentUsage.commitsAnalyzed + amount) > this.plan.limits.commitsPerMonth;
+      return (currentMonthStats.commits.total + amount) > this.plan.limits.commitsPerMonth;
     case 'tokens':
-      return (this.currentUsage.tokensUsed + amount) > this.plan.limits.tokensPerMonth;
+      return (currentMonthStats.tokenUsage.total + amount) > this.plan.limits.tokensPerMonth;
     default:
       throw new Error('Invalid limit type');
   }

@@ -262,7 +262,7 @@ const api = {
    */
   getCommitDetails: async (params) => {
     try {
-      const response = await axios.post('/api/commit-summaries/details', params);
+      const response = await axios.post('/api/commit-summary/details', params);
       return response.data.commits;
     } catch (error) {
       console.error('Error getting commit details:', error);

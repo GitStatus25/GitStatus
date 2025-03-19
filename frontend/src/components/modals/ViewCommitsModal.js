@@ -200,7 +200,7 @@ const ViewCommitsModal = () => {
     if (commitCount === 0) return null;
 
     const isStandard = commitCount <= commitsPerStandardReport;
-    const current = isStandard ? reportsGenerated.standard : reportsGenerated.large;
+    const current = isStandard ? reportsGenerated.standard || 0: reportsGenerated.large || 0;
     const limit = isStandard ? userStats.plan.limits.reportsPerMonth : userStats.plan.limits.reportsPerMonth;
 
     return {
