@@ -4,6 +4,7 @@ import tiktoken
 from anthropic import Anthropic
 from dotenv import load_dotenv
 import time
+import shutil
 
 # Load environment variables from .env
 load_dotenv()
@@ -132,7 +133,7 @@ def cache_codebase():
                         ]
                     }
                 ],
-                max_tokens=0  # No response, just caching
+                max_tokens=1  # No response, just caching
             )
             print(f"Chunk {i + 1} cached successfully")
         except Exception as e:
@@ -144,6 +145,53 @@ def cache_codebase():
             time.sleep(60)
 
     return codebase
+
+def parse_and_save_docs(raw_output_file):
+    # Read the raw output
+    with open(raw_output_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Parse Claude Bible section
+    bible_start = content.find("## Claude Bible")
+    bible_end = content.find("##", bible_start + 1)
+    if bible_end == -1:
+        bible_end = len(content)
+    bible_content = content[bible_start:bible_end].strip()
+
+    # Parse Ideal Application Docs section
+    app_docs_start = content.find("## Ideal Application Docs")
+    app_docs_end = content.find("##", app_docs_start + 1)
+    if app_docs_end == -1:
+        app_docs_end = len(content)
+    app_docs_content = content[app_docs_start:app_docs_end].strip()
+
+    # Backup existing files
+    bible_file = PROJECT_ROOT / 'BIBLE.md'
+    app_docs_file = PROJECT_ROOT / 'APP_DOCS.md'
+    bible_backup = PROJECT_ROOT / 'BIBLE_bk.md'
+    app_docs_backup = PROJECT_ROOT / 'APP_DOCS_bk.md'
+
+    if bible_file.exists():
+        print(f"Backing up {bible_file} to {bible_backup}...")
+        shutil.move(bible_file, bible_backup)
+    if app_docs_file.exists():
+        print(f"Backing up {app_docs_file} to {app_docs_backup}...")
+        shutil.move(app_docs_file, app_docs_backup)
+
+    # Save new files
+    if bible_content:
+        print("Saving updated Claude Bible to BIBLE.md...")
+        with open(bible_file, 'w', encoding='utf-8') as f:
+            f.write(bible_content)
+    else:
+        print("Warning: Claude Bible section not found in output.")
+
+    if app_docs_content:
+        print("Saving updated App Docs to APP_DOCS.md...")
+        with open(app_docs_file, 'w', encoding='utf-8') as f:
+            f.write(app_docs_content)
+    else:
+        print("Warning: Ideal Application Docs section not found in output.")
 
 def analyze_codebase():
     # Cache the codebase
@@ -264,9 +312,14 @@ Markdown:
                     print(f"Output tokens: {output_tokens}")
 
         # Write the complete response to output.md
-        print("Writing response to output.md...")
-        with open('output.md', 'w', encoding='utf-8') as f:
+        print("Writing raw response to output.md...")
+        raw_output_file = PROJECT_ROOT / 'output.md'
+        with open(raw_output_file, 'w', encoding='utf-8') as f:
             f.write("".join(output))
+
+        # Parse and save Claude Bible and App Docs
+        parse_and_save_docs(raw_output_file)
+
     except Exception as e:
         print(f"Error during streaming analysis: {e}")
 

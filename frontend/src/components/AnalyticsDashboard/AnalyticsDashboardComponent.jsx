@@ -25,7 +25,7 @@ import {
   AccountCircle as AccountCircleIcon,
   GitHub as GitHubIcon
 } from '@mui/icons-material';
-import Layout from '../../components/Layout';
+import Layout from '../PagePartials/Layout';
 import './AnalyticsDashboardComponent.css';
 
 // Stat Card Component

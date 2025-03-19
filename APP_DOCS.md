@@ -1,582 +1,296 @@
-## Application Docs
+## Ideal Application Docs
 
-### GitStatus Application Overview
+# GitStatus Application Documentation
 
-GitStatus is a full-stack application that analyzes GitHub commit history to generate concise, AI-powered reports of actual work accomplished. It helps developers and project managers track and report on progress by analyzing commit diffs and providing professional summaries.
+## Overview
 
-#### Core Features
+GitStatus is a full-stack application that analyzes GitHub commit history to generate professional reports. It leverages AI (OpenAI) to summarize repositories and produce detailed development activity reports that can be shared with stakeholders.
 
+### Core Features
 - GitHub OAuth integration for secure repository access
-- Repository, branch, and commit selection
+- Repository and commit selection with filtering
 - AI-powered commit analysis and report generation
-- PDF report generation and management
-- Usage analytics and tracking
-- Admin dashboard for system monitoring
+- PDF report generation with asynchronous processing
+- Usage tracking and analytics dashboard
+- User management with role-based access
 
-### System Architecture
+### Tech Stack
+- **Frontend**: React 18 with Material-UI
+- **Backend**: Node.js with Express 4.x
+- **Database**: MongoDB 6+
+- **Queue System**: Bull with Redis for background jobs
+- **External APIs**: GitHub API, OpenAI API
+- **Storage**: AWS S3 for PDF reports
 
-The application follows a client-server architecture:
+## Frontend Architecture
 
-- **Frontend**: React.js application with Material-UI
-- **Backend**: Node.js with Express.js
-- **Database**: MongoDB for data storage
-- **Queue System**: Bull with Redis for background job processing
-- **External Services**: GitHub API, OpenAI API, AWS S3
+### Component Structure
 
-### Frontend Components
+The frontend follows a clean separation of concerns, with each component split into:
+- Business logic (`.js` files)
+- Presentation (`.jsx` files)
+- Styling (`.css` files)
+- Index exports (`index.js` files)
 
-#### Frontend Organization
+Components are organized in three categories:
 
-The frontend codebase is organized with a clear component structure:
+1. **Page Components** (`src/components/`)
+   - Top-level components representing full screens
+   - Handle routing, state management, and data fetching
 
-1. **Components (`src/components/`)**: 
-   - Top-level components that represent entire routes/screens in the application
-   - Generally contain the main layout and composition of smaller elements
-   - Handle state, data fetching, and routing logic
-   - Named with the "Component" suffix (e.g., `DashboardComponent.js`, `LoginComponent.js`)
-   - Examples: `LoginComponent`, `DashboardComponent`, `ViewReportComponent`
-   - All components representing full screens/pages are placed directly in the components directory in their own feature folder (e.g., `components/Dashboard/`)
+2. **PagePartials** (`src/components/PagePartials/`)
+   - Reusable UI components that make up pages
+   - Organized by their parent component for clarity
 
-2. **PagePartials (`src/components/PagePartials/`)**: 
-   - Smaller, reusable UI elements that compose the main Components
-   - Focus on specific UI functionality and presentation
-   - Generally receive data and callbacks as props
-   - Named with the "Partial" suffix (e.g., `HeaderPartial.js`, `FooterPartial.js`)
-   - Examples: `LayoutPartial`, `CommitListPartial`, `ReportHeaderPartial`
-
-3. **Nested PagePartials**: 
-   - PagePartials that belong to a specific parent component
-   - Organized in subdirectories within PagePartials based on their parent component:
-     ```
-     PagePartials/
-     ├── ViewReport/              # For ViewReport-specific partials
-     │   ├── CommitList/          # A specific ViewReport partial
-     │   │   ├── ViewReportCommitListComponent.js
-     │   │   ├── ViewReportCommitListComponent.jsx
-     │   │   ├── ViewReportCommitListComponent.css
-     │   │   └── index.js
-     │   └── ReportHeader/        # Another ViewReport partial
-     │       ├── ViewReportReportHeaderComponent.js
-     │       └── ...
-     └── Dashboard/               # For Dashboard-specific partials
-         └── ...
-     ```
-   - Named by combining the parent component name with the partial name and "Component" suffix
-   - Example: `ViewReportCommitListComponent.js` for a CommitList partial used in the ViewReport component
-
-4. **Modals (`src/components/Modals/`)**: 
+3. **Modals** (`src/components/Modals/`)
    - Dialog components that appear over the main UI
-   - Named with the "Modal" suffix (e.g., `CreateReportModal.js`)
-   - Examples: `CreateReportModal`, `ViewCommitsModal`
-   - Each modal follows the component structure with separated logic and presentation
-
-5. **Custom Hooks (`src/components/*/[ComponentName]/use[FeatureName].js`)**: 
-   - Specialized hooks for encapsulating form logic, data fetching, or other stateful operations
-   - Stored in the same directory as the component that uses them
-   - Named with the `use` prefix following React convention (e.g., `useReportForm.js`)
-   - Used to separate business logic from component rendering
-   - Makes components more maintainable and testable
-   - Examples: `useReportForm.js` in the CreateReportModal component for handling complex form states and validations
-   - Benefits:
-     - Reduces component complexity by extracting state logic
-     - Makes business logic reusable across components
-     - Improves testability by isolating state management
-     - Allows clear separation between data logic and presentation
-
-6. **Component Organization Strategy**:
-   - When a component becomes too large (>300 lines), it should be split into smaller focused components
-   - Related components are grouped in feature-based folders (e.g., `components/ViewReport/`)
-   - Each feature folder includes an `index.js` file that re-exports its components for easier importing
-   - Complex UI elements are composed from multiple smaller PagePartials
-   - This approach improves maintainability, readability, and allows for component reuse
-
-7. **Component Structure**:
-   - Each component has its own folder containing separate files for logic, presentation, and styles
-   - The structure follows this pattern:
-     ```
-     ComponentName/
-     ├── ComponentName.js     # Business logic (state, data fetching, event handlers)
-     ├── ComponentName.jsx    # JSX template (presentation layer)
-     ├── ComponentName.css    # Component styles
-     ├── useComponentNameFeature.js # Custom hooks for specific functionality
-     ├── index.js             # Re-exports the component for easier imports
-     └── [other related files]
-     ```
-   - This separation of concerns makes the codebase more maintainable and testable
-   - Example: `ViewReport/ViewReportComponent.js` contains the business logic, while `ViewReport/ViewReportComponent.jsx` contains the template/JSX markup, and `ViewReport/ViewReportComponent.css` contains the styles
-
-8. **Sub-Component Structure**:
-   - For complex components that have specialized UI elements, sub-components follow the same pattern:
-     ```
-     ComponentName/
-     ├── ComponentName.js
-     ├── ComponentName.jsx
-     ├── ComponentName.css
-     ├── SubComponentA/
-     │   ├── SubComponentA.js    # Business logic for SubComponentA
-     │   ├── SubComponentA.jsx   # Presentation for SubComponentA
-     │   ├── SubComponentA.css   # Styles for SubComponentA
-     │   └── index.js           # Re-exports SubComponentA
-     ├── SubComponentB/
-     │   └── ...
-     └── index.js
-     ```
-   - Example: `CreateReportModal/RepositorySelector/` contains all files related to the repository selection functionality within the modal
-   - This helps maintain organization in complex components while still following the separation of concerns principle
-
-9. **Styling Approach**:
-   - CSS is kept in separate files rather than inline styles or CSS-in-JS
-   - Class names follow kebab-case convention (e.g., `view-report-container`)
-   - Material-UI theme configuration is centralized in `styles/theme.js`
-   - CSS variables are used for shared values and theming
-   - CSS selectors are kept flat (max 3 levels of nesting) for better performance
-
-#### File Naming Conventions
-
-To maintain consistency and clarity across the codebase, we follow these naming conventions:
-
-1. **Components**: Suffix with "Component" (e.g., `DashboardComponent.js`, `LoginComponent.js`)
-2. **PagePartials**: Suffix with "Partial" (e.g., `HeaderPartial.js`, `FooterPartial.js`)
-3. **Nested PagePartials**: Prefix with parent component name and suffix with "Component" (e.g., `ViewReportCommitListComponent.js`)
-4. **Modals**: Suffix with "Modal" (e.g., `CreateReportModal.js`, `ViewCommitsModal.js`) - Modals are special components that use the "Modal" suffix instead of "Component"
-5. **Context Providers**: Suffix with "Context" (e.g., `AuthContext.js`, `ThemeContext.js`)
-6. **Services**: Suffix with "Service" (e.g., `APIService.js`, `PDFService.js`)
-7. **Custom Hooks**: Prefix with "use" (e.g., `useReportForm.js`, `useFilteredData.js`)
-8. **Selector Components**: Components handling specific input types, following the same structure as regular components
-
-These conventions make it immediately clear what type of file you're working with, especially when imported from other locations in the codebase.
-
-#### Core Components
-
-1. **AuthContext** (`src/contexts/AuthContext.js`)
-   - Manages user authentication state
-   - Provides login/logout functionality
-   - Handles session persistence
-
-2. **ModalContext** (`src/contexts/ModalContext.js`)
-   - Manages modal state across the application
-   - Coordinates data flow between modals
-   - Provides modal open/close functionality
-
-3. **LayoutPartial** (`src/components/PagePartials/LayoutPartial.js`)
-   - Main application layout with navigation
-   - Responsive design with mobile support
-   - Handles theme and styling
-
-#### Main Application Components
-
-1. **DashboardComponent** (`src/components/Dashboard/DashboardComponent.js`)
-   - Displays user's generated reports
-   - Provides report management functionality
-   - Entry point for creating new reports
-
-2. **CreateReportComponent** (via modals)
-   - **CreateReportModal** (`src/components/Modals/CreateReport/CreateReportModal.js`)
-     - Manages the report creation UI and workflow
-     - Uses useReportForm custom hook for form state management
-     - Contains specialized sub-components:
-       - **RepositorySelector**: For repository search and selection
-       - **BranchSelector**: For branch multi-selection
-       - **DateRangeSelector**: For controlling the commit date range
-   - **ViewCommitsModal** (`src/components/Modals/ViewCommitsModal.js`)
-     - Commit selection and preview
-     - Diff viewing functionality
-     - Report generation trigger
-
-3. **ViewReportComponent** (`src/components/ViewReport/ViewReportComponent.js`)
-   - Displays generated report details
-   - Shows commit list and summaries
-   - Provides PDF preview and download
-   - Follows the component structure with separated logic and presentation:
-     - `ViewReportComponent.js` - Contains business logic (data fetching, state management)
-     - `ViewReportComponent.jsx` - Contains the template/JSX markup
-     - `ViewReportComponent.css` - Contains styles
-     - `index.js` - Re-exports the component
-
-4. **AnalyticsDashboardComponent** (`src/components/AnalyticsDashboard/AnalyticsDashboardComponent.js`)
-   - Displays usage statistics
-   - Shows limits and quotas
-   - Visualizes report generation trends
-
-5. **AdminDashboardComponent** (`src/components/AdminDashboard/AdminDashboardComponent.js`)
-   - User management functionality
-   - System-wide analytics
-   - Plan management
-
-#### Custom Hooks Implementation
-
-1. **useReportForm** (`src/components/Modals/CreateReport/useReportForm.js`)
-   - Purpose: Manages the form state and logic for the CreateReportModal
-   - Features:
-     - Repository and branch selection state management
-     - Date range validation and constraints
-     - Form validation and submission handling
-     - API calls for fetching repository, branch, and author data
-     - Caching mechanism for reducing redundant API calls
-   - Usage:
-     ```javascript
-     const {
-       formData,            // Current form values
-       repositoryValid,     // Whether the selected repository is valid
-       branches,            // Available branches for the repository
-       availableAuthors,    // Available authors for selected branches
-       
-       // Handler functions
-       handleRepositorySelect,
-       handleBranchesChange,
-       handleAuthorsChange,
-       handleDateChange,
-       
-       // Form state
-       error,
-       validateForm,
-       handleSubmit
-     } = useReportForm();
-     ```
-   - Benefits:
-     - Creates a clean, focused component by separating form logic
-     - Makes testing of business logic easier without UI concerns
-     - Allows the modal to focus on rendering and user interaction
-     - Improves maintainability by isolating complex state management
-
-2. **Example: Sub-Component Interaction**
-   The restructured CreateReportModal demonstrates how components should be organized:
-   - **CreateReportModal/**: Main modal component
-     - `CreateReportModal.js`: Orchestrates the overall modal behavior, using the useReportForm hook
-     - `CreateReportModal.jsx`: Renders the modal structure and layout
-     - `CreateReportModal.css`: Styles for the modal
-     - **RepositorySelector/**: Encapsulates repository selection functionality
-       - `RepositorySelector.js`: Logic for repository searching and selection
-       - `RepositorySelector.jsx`: Repository selection UI
-       - `RepositorySelector.css`: Styles for repository UI
-     - **BranchSelector/**: Encapsulates branch selection functionality
-       - `BranchSelector.js`: Logic for branch selection
-       - `BranchSelector.jsx`: Branch selection UI
-       - `BranchSelector.css`: Styles for branch selection UI
-     - **DateRangeSelector/**: Encapsulates date range selection
-       - `DateRangeSelector.js`: Logic for date validation and selection
-       - `DateRangeSelector.jsx`: Date range UI
-       - `DateRangeSelector.css`: Styles for date range UI
-     - `useReportForm.js`: Hook that manages form state and logic
-     - `index.js`: Re-exports components
-
-### Backend Structure
-
-#### API Routes
-
-1. **Authentication** (`/api/auth`)
-   - `GET /api/auth/github`: Initiate GitHub OAuth flow
-   - `GET /api/auth/github/callback`: Handle OAuth callback
-   - `GET /api/auth/me`: Get current user info
-   - `GET /api/auth/logout`: Log out current user
-
-2. **Reports** (`/api/reports`)
-   The reports functionality is split into focused controllers for better maintainability:
-
-   **Report Generation** (`ReportGenerationController`)
-   - `POST /api/reports`: Generate a new report
-   - `POST /api/reports/commit-info`: Get commit information for report generation
-   - `GET /api/reports/:id/pdf-status`: Get PDF generation status
-   
-   **Report Viewing** (`ReportViewController`)
-   - `GET /api/reports`: Get user's reports
-   - `GET /api/reports/:id`: Get a specific report
-   
-   **Report Management** (`ReportManagementController`)
-   - `DELETE /api/reports/:id`: Delete a report
-   - `POST /api/reports/cleanup`: Clean up invalid reports
-   
-   **Report Cache** (`ReportCacheController`)
-   - `GET /api/reports/cache/stats`: Get cache statistics
-   - `POST /api/reports/cache/cleanup`: Clean up old reports
-
-3. **Usage Stats** (`/api/usage-stats`)
-   - `GET /api/usage-stats/user`: Get user usage statistics
-   - `GET /api/usage-stats/check-limit`: Check usage limits
-   - `GET /api/usage-stats/admin`: Get admin analytics
-
-4. **Commits** (`/api/commits`)
-   - `GET /api/commits`: Get commits with filtering
-   - `GET /api/commits/repository`: Get repository info
-   - `GET /api/commits/branches`: Get repository branches
-   - `GET /api/commits/with-diffs`: Get commits with file diffs
-   - `GET /api/commits/search-repositories`: Search repositories
-   - `GET /api/commits/branch-authors`: Get authors for branches
-   - `GET /api/commits/date-range`: Get commit date range
-
-5. **Admin** (`/api/admin`)
-   - `GET /api/admin/users`: Get all users
-   - `PUT /api/admin/users/:userId/role`: Update user role
-   - `GET /api/admin/analytics`: Get system analytics
-
-6. **Plans** (`/api/plans`)
-   - `GET /api/plans`: Get all plans
-   - `PUT /api/plans/:planId/limits`: Update plan limits
-
-#### Database Models
-
-1. **User** (`models/User.js`)
-   - Stores user information and GitHub credentials
-   - Tracks user role and plan
-
-2. **Report** (`models/Report.js`)
-   - Stores generated reports
-   - Contains commit information and metadata
-   - Tracks PDF location and access statistics
-   - Includes job status tracking fields for background processing
-   - See `docs/DATABASE_INDEXES.md` for details on performance optimization
-
-3. **CommitSummary** (`models/CommitSummary.js`)
-   - Caches AI-generated commit summaries
-   - Improves performance by avoiding redundant analysis
-
-4. **Plan** (`models/Plan.js`)
-   - Defines available plans and their limits
-   - Used for enforcing usage restrictions
-
-5. **UsageStats** (`models/UsageStats.js`)
-   - Tracks detailed usage statistics
-   - Stores monthly report and token usage
-
-### Data Flow
-
-1. **Report Generation Flow**
-   1. User selects repository, branches, and filters in CreateReportModal
-   2. Backend fetches commits from GitHub API
-   3. User selects specific commits in ViewCommitsModal
-   4. Backend analyzes commits with OpenAI
-   5. Backend submits PDF generation to the job queue and returns immediately with a pending status
-   6. Bull worker processes the PDF generation job in the background
-   7. When complete, the PDF is uploaded to S3 and the report is updated
-   8. Frontend polls for job status and displays the report when ready
-
-2. **Authentication Flow**
-   1. User clicks "Login with GitHub" button
-   2. Backend initiates OAuth flow with GitHub
-   3. GitHub redirects back to application with authorization code
-   4. Backend exchanges code for access token
-   5. Backend creates or updates user in database
-   6. Frontend receives authentication status and displays dashboard
-
-3. **Usage Tracking Flow**
-   1. User performs actions (generates reports, analyzes commits)
-   2. Backend tracks usage in UsageStats collection
-   3. Frontend displays usage statistics in AnalyticsDashboardComponent
-   4. Admin can view system-wide statistics in AdminDashboardComponent
-
-### Integration Points
-
-1. **GitHub API**: Repository and commit data retrieval
-2. **OpenAI API**: Commit analysis and report generation
-3. **AWS S3**: PDF storage and retrieval
-4. **MongoDB**: Data persistence and retrieval
-
-### Security Features
-
-1. **CSRF Protection** (`docs/CSRF_PROTECTION.md`)
-   - Token-based protection for state-changing operations
-   - Selective application for POST, PUT, DELETE, and PATCH methods
-   - Frontend utilities for working with CSRF tokens
-
-2. **Input Validation** (`docs/INPUT_VALIDATION.md`)
-   - Comprehensive validation for all API endpoints
-   - Centralized validation rules with express-validator
-   - Global request sanitization
-   - Detailed validation error reporting
-
-3. **Authentication Security**
-   - OAuth 2.0 integration with GitHub
-   - HTTP-only, secure session cookies
-   - Role-based access control
-
-4. **API Security**
-   - Rate limiting to prevent abuse
-   - Helmet.js for security headers
-   - Input validation and sanitization
-
-### Backend Components
-
-#### Services
-
-1. **GitHub Services** (`services/GitHub/`)
-   GitHub functionality is organized into a folder with multiple specialized services:
-   
-   - `GitHubRepositoryService.js` - Handles repository-related operations
-   - `GitHubCommitService.js` - Handles commit-related operations
-   - `GitHubBranchService.js` - Handles branch-related operations
-   - `GitHubSearchService.js` - Handles repository search operations
-   - `index.js` - Exports all services for convenient importing
-   
-   Key functions across these services include:
-   - Repository information retrieval and contributor listing
-   - Commit analysis, filtering, and diff handling
-   - Branch listing and author tracking
-   - Repository search functionality
-   - Date range analysis for commits
-   
-   These services are imported directly where needed, rather than through a unified service,
-   promoting better modularity and clearer dependencies.
-
-2. **OpenAI Service** (`services/OpenAIService.js`)
-   - Analyzes commit data using OpenAI models
-   - Generates summaries and reports
-   - Provides caching mechanisms for AI responses
-
-3. **PDF Service** (`services/PDFService.js`)
-   - Handles PDF generation using Puppeteer
-   - Converts Markdown to properly formatted PDFs
-   - Interfaces with the job queue for background processing
-
-4. **Queue Service** (`services/QueueService.js`)
-   - Manages background job processing with Bull
-   - Handles PDF generation jobs
-   - Provides job status tracking and error handling
-   - Implements automatic job cleanup
-
-5. **S3 Service** (`services/S3Service.js`)
-   - Manages file storage in AWS S3
-   - Handles PDF upload and retrieval
-   - Generates pre-signed URLs for secure access
-
-#### Controllers
-
-1. **GitHub Controllers** (`controllers/GitHub/`)
-   
-   GitHub-related functionality is organized into specialized controllers that mirror the service structure.
-   These controllers are imported directly in route files, maintaining clean dependencies:
-
-   a. **GitHubRepositoryController**
-   - Handles repository information and search
-   - Uses GitHubRepositoryService and GitHubSearchService
-   - Key endpoints:
-     - `getRepositoryInfo`: Fetches repository details
-     - `getContributors`: Lists repository contributors
-     - `searchRepositories`: Searches for repositories
-
-   b. **GitHubBranchController**
-   - Handles branch-related operations
-   - Uses GitHubBranchService
-   - Key endpoints:
-     - `getBranches`: Lists branches in a repository
-     - `getAuthorsForBranches`: Gets authors who contributed to specific branches
-
-   c. **GitHubCommitController**
-   - Handles commit-related operations
-   - Uses GitHubCommitService
-   - Key endpoints:
-     - `getCommits`: Fetches commits from a repository
-     - `getDateRange`: Gets first and last commit dates
-     - `getCommitsWithDiffs`: Gets commits with their diffs
-
-2. **Report Controllers** (`controllers/Report/`)
-   
-   The report functionality is split into four focused controllers:
-
-   a. **ReportGenerationController**
-   - Handles report creation and PDF generation
-   - Manages commit analysis and content generation
-   - Tracks usage statistics and limits
-   - Key functions:
-     - `generateReport`: Creates new reports from commits
-     - `getCommitInfo`: Retrieves commit details with branch info
-     - `getPdfStatus`: Tracks PDF generation progress
-
-   b. **ReportViewController**
-   - Handles report retrieval and viewing
-   - Manages report access statistics
-   - Key functions:
-     - `getReports`: Lists all user reports
-     - `getReportById`: Retrieves specific report details
-
-   c. **ReportManagementController**
-   - Handles report lifecycle management
-   - Manages cleanup of invalid reports
-   - Key functions:
-     - `deleteReport`: Removes reports and associated files
-     - `cleanupInvalidReports`: Cleans up reports with missing files
-
-   d. **ReportCacheController**
-   - Handles report caching and statistics
-   - Manages cleanup of old/unused reports
-   - Key functions:
-     - `getCacheStats`: Retrieves caching statistics
-     - `cleanupReportsCache`: Removes old cached reports
-
-2. **Authentication Controller** (`controllers/auth.js`)
-   - Handles user authentication
-   - Manages GitHub OAuth flow
-   - Maintains user sessions
-
-### Error Handling System
-
-The application implements a standardized error handling system to ensure consistent error responses across all API endpoints and improved debugging capabilities.
-
-#### Backend Error Handling
-
-1. **Custom Error Classes** (`utils/errors.js`)
-   - `ApplicationError`: Base error class with standardized properties
-   - `NotFoundError`: For resources that don't exist (404)
-   - `ValidationError`: For invalid user input (400)
-   - `AuthenticationError`: For authentication issues (401)
-   - `AuthorizationError`: For permission issues (403)
-   - `ExternalServiceError`: For failures in external services (502)
-   - `RateLimitError`: For rate limit exceeded errors (429)
-   - `DatabaseError`: For database operation failures (500)
-   - `PdfGenerationError`: For PDF generation failures (500)
-   - `NotImplementedError`: For unimplemented features (501)
-
-2. **Global Error Handler** (`middleware/errorHandler.js`)
-   - Catches all errors thrown in the application
-   - Converts errors to the standardized format
-   - Logs detailed error information for debugging
-   - Returns consistent JSON responses to clients
-   - Includes appropriate HTTP status codes
-
-3. **Error Response Format**
-   ```json
-   {
-     "status": "error",
-     "error": {
-       "code": "ERROR_CODE",
-       "message": "Human-readable error message",
-       "details": ["Additional error details if applicable"]
-     }
-   }
-   ```
-
-#### Frontend Error Handling
-
-1. **Error Handling Utilities** (`utils/errorHandler.js`)
-   - Parses API error responses into a consistent format
-   - Provides helper functions for common error scenarios
-   - Maps backend error codes to frontend error types
-   - Handles authentication redirects automatically
-
-2. **API Service Integration**
-   - Centralizes error handling in API calls
-   - Uses axios interceptors for consistent error processing
-   - Provides standardized error objects to components
-
-3. **Component Error Handling**
-   - Components display user-friendly error messages
-   - Uses structured approach to handle different error types
-   - Implements appropriate UI for different error scenarios
-
-#### Error Handling Best Practices
-
-1. **Service Layer**
-   - Throw specific error types based on the scenario
-   - Include relevant context in error messages
-   - Document expected error types in JSDoc comments
-
-2. **Controller Layer**
-   - Use try/catch blocks and let errors propagate to the global handler
-   - Avoid handling errors directly unless specific logic is required
-   - Do not mix error handling patterns (throw vs return)
-
-3. **Frontend Components**
-   - Use the errorHandler utility for all API error handling
-   - Display appropriate UI feedback based on error type
-   - Handle authentication and validation errors specifically
-
-This documentation provides a high-level overview of the GitStatus application architecture and functionality. For detailed implementation information, refer to the specific files and components mentioned above.
+   - Each modal has its own folder with logic and presentation files
+
+### Key Components
+
+#### Dashboard (`src/components/Dashboard/`)
+- **Purpose**: Display user's reports and provide access to creation
+- **Key Files**:
+  - `DashboardComponent.js`: Logic for fetching and managing reports
+  - `DashboardComponent.jsx`: Report list presentation
+- **State**: Reports list, deletion confirmation dialog
+- **Props**: None (root component)
+
+#### Report Creation Flow
+- **CreateReportModal** (`src/components/Modals/CreateReport/`)
+  - **Purpose**: Configure and start report generation
+  - **Key Files**:
+    - `CreateReportModal.js`: Modal orchestration logic
+    - `useReportForm.js`: Custom hook for form state management
+    - `RepositorySelector/`: Repository search component
+    - `BranchSelector/`: Branch selection component
+    - `DateRangeSelector/`: Date filter component
+  - **State**: Form data, validation, repo/branch/author data
+  - **Props**: N/A (uses ModalContext)
+
+- **ViewCommitsModal** (`src/components/Modals/ViewCommits/`)
+  - **Purpose**: Select specific commits for report
+  - **Key Files**:
+    - `ViewCommitsModal.js`: Commit selection logic
+    - `ViewCommitsModal.jsx`: Commit list interface
+  - **State**: Selected commits, expanded commits
+  - **Props**: N/A (uses ModalContext)
+
+#### Report Viewing (`src/components/ViewReport/`)
+- **Purpose**: Display generated report with PDF preview
+- **Key Files**:
+  - `ViewReportComponent.js`: Report data and PDF status handling
+  - `useReportData.js`: Hook for report data and PDF status
+  - `ViewReportComponent.jsx`: Report layout
+- **Partials**:
+  - `ReportHeader/`: Title and metadata section
+  - `CommitList/`: List of included commits
+  - `PDFPreview/`: PDF viewer with status tracking
+- **State**: Report data, PDF generation status
+- **Props**: None (uses URL parameter)
+
+### State Management
+
+GitStatus uses a hybrid approach to state management:
+
+1. **Zustand Stores**:
+   - `authStore.js`: Authentication state (current user, login status)
+   - `modalStore.js`: Global modal visibility and data
+
+2. **React Context**:
+   - For less frequently updated global state
+   - Component-specific states that need to be shared with children
+
+3. **Custom Hooks**:
+   - Encapsulate complex local state logic
+   - Handle data fetching, caching, and updates
+   - Examples: `useReportForm.js`, `useReportData.js`
+
+### API Integration
+
+Frontend communicates with the backend using service modules:
+
+- `api.js`: Core API client with error handling and request formatting
+- `auth.js`: Authentication-related API functions
+- `github.js`: GitHub API interaction services
+
+## Backend Architecture
+
+### API Routes
+
+#### Authentication (`/api/auth`)
+- **GET /github**: Initiate GitHub OAuth
+- **GET /github/callback**: OAuth callback handling
+- **GET /me**: Get current user info
+- **GET /logout**: End user session
+
+#### Reports (`/api/reports`)
+- **GET /**: List user's reports
+- **GET /:id**: Get specific report
+- **POST /**: Generate new report
+- **DELETE /:id**: Delete report
+- **GET /:id/pdf-status**: Check PDF generation status
+
+#### GitHub Data (`/api/commits`)
+- **GET /search-repositories**: Search GitHub repositories
+- **GET /repository**: Get repository info
+- **GET /branches**: Get repository branches
+- **GET /branch-authors**: Get authors in branches
+- **GET /with-diffs**: Get commits with file changes
+
+#### Usage Stats (`/api/usage-stats`)
+- **GET /user**: Get current user's usage statistics
+- **GET /check-limit**: Check if user has reached limits
+
+#### Admin (`/api/admin`)
+- **GET /users**: List all users
+- **PUT /users/:id/role**: Update user role
+- **GET /analytics**: Get system-wide statistics
+
+### Core Services
+
+#### GitHub Services (`services/GitHub/`)
+- **GitHubRepositoryService**: Repository info and search
+- **GitHubCommitService**: Commit fetching and analysis
+- **GitHubBranchService**: Branch handling and filtering
+
+#### OpenAI Services (`services/OpenAI/`)
+- **OpenAIClient**: Raw API interaction
+- **CommitAnalysisService**: Commit summary generation
+- **ReportGenerationService**: Full report creation
+
+#### PDF Services (`services/PDF/`)
+- **PDFTemplateService**: HTML generation for reports
+- **PDFJobProcessor**: Background job processing
+- **PDFStorageService**: S3 upload and management
+
+### Database Models
+
+#### User (`models/User.js`)
+- GitHub authentication info
+- Role (user/admin)
+- Plan reference
+
+#### Report (`models/Report.js`)
+- Repository and filter information
+- Commit data with summaries
+- PDF status and location
+- Access tracking
+
+#### CommitSummary (`models/CommitSummary.js`)
+- Cached AI-generated summaries
+- Access tracking for optimization
+
+#### UsageStats (`models/UsageStats.js`)
+- Monthly usage statistics
+- Token and report counts
+- Per-model tracking
+
+## Data Flow
+
+### Report Generation Flow
+
+1. **Repository Selection**: User selects a repository and filters in CreateReportModal
+2. **Commit Selection**: User views and selects specific commits in ViewCommitsModal
+3. **Report Generation**:
+   - Backend fetches detailed commit info from GitHub
+   - AI generates commit summaries (with caching)
+   - AI creates a comprehensive report from summaries
+4. **PDF Generation**:
+   - Report is submitted to background job queue
+   - Bull worker generates PDF using Puppeteer
+   - PDF is uploaded to S3
+   - Report record is updated with PDF location
+5. **Viewing**:
+   - Frontend polls for PDF status and displays report
+   - User can view online or download PDF
+
+### Authentication Flow
+
+1. User clicks "Login with GitHub"
+2. Backend initiates OAuth flow
+3. GitHub redirects back with authorization code
+4. Backend exchanges code for token and creates/updates user
+5. User session is established with secure cookie
+6. Frontend redirects to dashboard
+
+## Performance Optimizations
+
+1. **Database Indexes**:
+   - Compound index on `user` and `createdAt` in Reports collection
+   - Index on `commitsHash` for duplicate detection
+   - Indexes on frequently queried fields
+
+2. **Caching Strategy**:
+   - AI-generated commit summaries cached in database
+   - Frequently used GitHub data cached with short TTL
+   - API requests debounced on frontend
+
+3. **Background Processing**:
+   - PDF generation handled by Bull/Redis job queue
+   - Separate worker processes for CPU-intensive tasks
+   - Smart retry logic with exponential backoff
+
+4. **Connection Management**:
+   - MongoDB connection pooling with reconnection logic
+   - Redis persistent connections with health checks
+   - Circuit breakers for external API dependencies
+
+## Security Measures
+
+1. **Authentication**:
+   - GitHub OAuth with secure session handling
+   - HTTP-only cookies for session storage
+   - CSRF protection for state-changing operations
+
+2. **Input Validation**:
+   - Express Validator middleware for all API endpoints
+   - Request sanitization to prevent XSS and injection
+   - Content Security Policy headers
+
+3. **Error Handling**:
+   - Custom error classes with appropriate status codes
+   - Sanitized error messages in production
+   - Comprehensive error logging
+
+4. **Rate Limiting**:
+   - API-level rate limiting to prevent abuse
+   - User-level usage quotas based on plans
+   - Graduated backoff for repeated failures
+
+## Deployment Architecture
+
+1. **Environment Configuration**:
+   - Environment variables for all sensitive configuration
+   - Separate development and production settings
+   - Health check endpoints for monitoring
+
+2. **Scalability**:
+   - Stateless application design for horizontal scaling
+   - Database connection pooling for load management
+   - Queue-based processing for background tasks
+
+3. **Monitoring**:
+   - Request logging with correlation IDs
+   - Job queue monitoring and alerting
+   - Error tracking with stack traces and context
+
+## Extending the Application
+
+To add new features to GitStatus, follow these steps:
+
+1. **Backend**:
+   - Add models in `models/` for any new data entities
+   - Create service modules in `services/` for business logic
+   - Add controllers in `controllers/` for API endpoints
+   - Define routes in `routes/` to map URLs to controllers
+
+2. **Frontend**:
+   - Add API methods in `services/api.js` for new endpoints
+   - Create new components following the established pattern
+   - Add to navigation/routing as needed
+
+3. **Documentation**:
+   - Update APP_DOCS.md with new components and endpoints
+   - Document environment variables and configuration
+   - Include examples for API usage

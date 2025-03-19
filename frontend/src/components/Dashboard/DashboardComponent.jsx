@@ -35,7 +35,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import Layout from '../../components/Layout';
+import Layout from '../PagePartials/Layout';
 import './DashboardComponent.css';
 
 const DashboardComponentTemplate = ({

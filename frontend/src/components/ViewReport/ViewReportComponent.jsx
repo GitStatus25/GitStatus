@@ -6,10 +6,12 @@ import {
   Button,
   CircularProgress,
   Fade,
-  Grid
+  Grid,
+  Typography,
+  Divider
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Layout from '../../components/PagePartials/Layout';
+import Layout from '../PagePartials/Layout';
 import {
   ViewReportReportHeaderComponent,
   ViewReportReportMetadataComponent,

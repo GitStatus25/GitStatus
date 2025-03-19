@@ -6,16 +6,16 @@ import AuthContext from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
 import PrivateRouteComponent from './components/PrivateRoute';
 import AdminRouteComponent from './components/AdminRoute';
-import LoginPage from './pages/Login';
-import DashboardPage from './pages/Dashboard';
-import CreateReportPage from './pages/CreateReport';
-import ViewReportPage from './pages/ViewReport';
-import NotFoundPage from './pages/NotFound';
+import LoginComponent from './components/Login';
+import DashboardComponent from './components/Dashboard';
+import CreateReportComponent from './components/CreateReport';
+import ViewReportComponent from './components/ViewReport';
+import NotFoundComponent from './components/NotFound';
 import AdminDashboardComponent from './components/AdminDashboard';
-import AnalyticsDashboardPage from './pages/AnalyticsDashboard';
-import CreateReportModalComponent from './components/modals/CreateReportModal';
-import ViewCommitsModalComponent from './components/modals/ViewCommitsModal';
-import AuthCallbackPage from './pages/AuthCallback';
+import AnalyticsDashboardComponent from './components/AnalyticsDashboard';
+import CreateReportModalComponent from './components/Modals/CreateReport';
+import ViewCommitsModalComponent from './components/Modals/ViewCommits';
+import AuthCallbackComponent from './components/AuthCallback';
 import theme from './styles/theme';
 
 function App() {
@@ -26,15 +26,15 @@ function App() {
         <ModalProvider>
           <Router>
             <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/login" element={<LoginComponent />} />
+              <Route path="/auth/callback" element={<AuthCallbackComponent />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               
               <Route 
                 path="/dashboard" 
                 element={
                   <PrivateRouteComponent>
-                    <DashboardPage />
+                    <DashboardComponent />
                   </PrivateRouteComponent>
                 }
               />
@@ -43,7 +43,7 @@ function App() {
                 path="/reports/:id" 
                 element={
                   <PrivateRouteComponent>
-                    <ViewReportPage />
+                    <ViewReportComponent />
                   </PrivateRouteComponent>
                 }
               />
@@ -52,7 +52,7 @@ function App() {
                 path="/create-report" 
                 element={
                   <PrivateRouteComponent>
-                    <CreateReportPage />
+                    <CreateReportComponent />
                   </PrivateRouteComponent>
                 }
               />
@@ -61,7 +61,7 @@ function App() {
                 path="/analytics" 
                 element={
                   <PrivateRouteComponent>
-                    <AnalyticsDashboardPage />
+                    <AnalyticsDashboardComponent />
                   </PrivateRouteComponent>
                 }
               />
@@ -75,7 +75,7 @@ function App() {
                 }
               />
               
-              <Route path="*" element={<NotFoundPage />} />
+              <Route path="*" element={<NotFoundComponent />} />
             </Routes>
             
             {/* Global Modals */}

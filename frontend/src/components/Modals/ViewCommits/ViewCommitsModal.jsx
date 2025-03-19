@@ -25,8 +25,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CodeIcon from '@mui/icons-material/Code';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import DiffViewer from '../../DiffViewer';
-import './ViewCommitsModalComponent.css';
+import DiffViewer from '../../PagePartials/DiffViewer';
+import './ViewCommitsModal.css';
 
 const ViewCommitsModalComponent = ({
   open,
