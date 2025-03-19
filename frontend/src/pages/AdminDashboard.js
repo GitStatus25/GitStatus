@@ -122,7 +122,7 @@ const AdminDashboard = () => {
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || !user?.isAdmin)) {
+    if (!authLoading && (!isAuthenticated || user?.role !== 'admin')) {
       navigate('/');
     }
   }, [isAuthenticated, authLoading, user, navigate]);
@@ -143,7 +143,7 @@ const AdminDashboard = () => {
       }
     };
 
-    if (isAuthenticated && user?.isAdmin) {
+    if (isAuthenticated && user?.role === 'admin') {
       fetchPlans();
     }
   }, [isAuthenticated, user]);
