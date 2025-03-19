@@ -1,9 +1,14 @@
+const path = require('path');
 const mongoose = require('mongoose');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 const User = require('../models/User');
-require('dotenv').config();
 
 async function migrateReportUsage() {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is not set');
+    }
+
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
