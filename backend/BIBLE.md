@@ -7,6 +7,7 @@
    - Controllers handle request/response, services contain business logic, models define data structure
    - Keep components and functions small and focused on a single responsibility
    - Limit component files to 300 lines maximum; extract larger components into smaller ones
+   - When splitting large files (services, components, routes, etc.) into multiple focused files, organize them in a dedicated folder with an index.js that re-exports the components
 
 2. **Naming Conventions**
    - Use descriptive, consistent naming throughout the codebase
@@ -17,6 +18,7 @@
    - Functions and variables: camelCase
    - Constants: UPPER_SNAKE_CASE
    - MongoDB models: PascalCase singular nouns (e.g., `User.js`)
+   - Folders for grouped services/components: PascalCase (e.g., `GitHub/`, `UserProfile/`)
 
 3. **State Management**
    - Use React Context for global state that changes infrequently

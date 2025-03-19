@@ -212,14 +212,15 @@ The application follows a client-server architecture:
 
 #### Services
 
-1. **GitHub Service** (`services/GitHubService.js`)
-   The GitHub service is split into multiple specialized services for better organization:
+1. **GitHub Service** (`services/GitHub/`)
+   The GitHub service is organized into a folder with multiple specialized services:
    
-   - **GitHubService** - Aggregates functionality from specialized services
-   - **GitHubRepositoryService** - Handles repository-related operations
-   - **GitHubCommitService** - Handles commit-related operations
-   - **GitHubBranchService** - Handles branch-related operations
-   - **GitHubSearchService** - Handles repository search operations
+   - `GitHubService.js` - Aggregates functionality from specialized services
+   - `GitHubRepositoryService.js` - Handles repository-related operations
+   - `GitHubCommitService.js` - Handles commit-related operations
+   - `GitHubBranchService.js` - Handles branch-related operations
+   - `GitHubSearchService.js` - Handles repository search operations
+   - `index.js` - Exports all services for convenient importing
    
    Key functions across these services include:
    - Repository information retrieval
