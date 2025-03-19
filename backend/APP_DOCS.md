@@ -51,6 +51,27 @@ The frontend codebase is organized with a clear separation between pages and com
    - Complex UI elements are composed from multiple smaller components
    - This approach improves maintainability, readability, and allows for component reuse
 
+4. **Component/Page Structure**:
+   - Each component or page has its own folder containing separate files for logic, presentation, and styles
+   - The structure follows this pattern:
+     ```
+     ComponentName/
+     ├── ComponentName.js     # Business logic (state, data fetching, event handlers)
+     ├── ComponentName.jsx    # JSX template (presentation layer)
+     ├── ComponentName.css    # Component styles
+     ├── index.js             # Re-exports the component for easier imports
+     └── [other related files]
+     ```
+   - This separation of concerns makes the codebase more maintainable and testable
+   - Example: `ViewReport/ViewReportPage.js` contains the business logic, while `ViewReport/ViewReportPage.jsx` contains the template/JSX markup, and `ViewReport/ViewReportPage.css` contains the styles
+
+5. **Styling Approach**:
+   - CSS is kept in separate files rather than inline styles or CSS-in-JS
+   - Class names follow kebab-case convention (e.g., `view-report-container`)
+   - Material-UI theme configuration is centralized in `styles/theme.js`
+   - CSS variables are used for shared values and theming
+   - CSS selectors are kept flat (max 3 levels of nesting) for better performance
+
 #### File Naming Conventions
 
 To maintain consistency and clarity across the codebase, we follow these naming conventions:
@@ -96,10 +117,15 @@ These conventions make it immediately clear what type of file you're working wit
      - Diff viewing functionality
      - Report generation trigger
 
-3. **ViewReportPage** (`src/pages/ViewReportPage.js`)
+3. **ViewReportPage** (`src/pages/ViewReport/ViewReportPage.js`)
    - Displays generated report details
    - Shows commit list and summaries
    - Provides PDF preview and download
+   - Follows the new folder structure with separated logic and presentation:
+     - `ViewReportPage.js` - Contains business logic (data fetching, state management)
+     - `ViewReportPage.jsx` - Contains the template/JSX markup
+     - `ViewReportPage.css` - Contains styles
+     - `index.js` - Re-exports the component
 
 4. **AnalyticsDashboardPage** (`src/pages/AnalyticsDashboardPage.js`)
    - Displays usage statistics

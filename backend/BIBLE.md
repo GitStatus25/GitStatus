@@ -18,6 +18,12 @@
      - **Components**: Reusable UI elements that receive data via props and focus on specific UI functionality
      - Group related components in feature-based folders (e.g., `components/ViewReport/`)
      - Include an index.js in feature folders to re-export components for easier importing
+   - Separate logic from presentation in components and pages:
+     - Use the folder structure: `/ComponentName/ComponentName{Page/Component}.js` (logic), `/ComponentName/ComponentName{Page/Component}.jsx` (template), `/ComponentName/ComponentName{Page/Component}.css` (styles), `/ComponentName/index.js` (export)
+     - Keep business logic (state management, data fetching, event handlers) in .js files
+     - Keep presentation (JSX markup) in .jsx files
+     - Keep styles in separate CSS files, not inline styles or CSS-in-JS
+     - Use className for styling instead of Material-UI's sx prop when possible
 
 2. **Naming Conventions**
    - Use descriptive, consistent naming throughout the codebase
@@ -39,6 +45,7 @@
      - Routes: suffix with "Routes" (e.g., `AuthRoutes.js`, `AdminRoutes.js`)
      - Models: no suffix, use singular nouns in PascalCase (e.g., `User.js`, `Report.js`)
      - Utilities: no suffix, use camelCase (e.g., `errorHandler.js`, `dateFormatter.js`)
+   - CSS class names: use kebab-case (e.g., `view-report-container`, `loading-spinner`)
 
 3. **State Management**
    - Use React Context for global state that changes infrequently
@@ -79,6 +86,15 @@
    - Use index files to simplify imports
    - Keep configuration separate from business logic
    - Use consistent file structure across similar components
+   - Follow this folder structure for components and pages:
+     ```
+     ComponentName/
+     ├── ComponentName{Page/Component}.js     # Business logic
+     ├── ComponentName{Page/Component}.jsx    # JSX template 
+     ├── ComponentName{Page/Component}.css    # Component styles
+     ├── index.js             # Re-exports the component
+     └── [other related files]
+     ```
 
 9. **Documentation**
    - Document all non-obvious code with comments
@@ -91,6 +107,13 @@
     - Implement integration tests for API endpoints
     - Use snapshot testing for UI components
     - Maintain high test coverage for core functionality
+
+11. **Styling**
+    - Keep styles in separate CSS files, not inline or CSS-in-JS
+    - Use consistent classNames following kebab-case convention
+    - Avoid deeply nested CSS selectors (max 3 levels)
+    - Use CSS variables for theme colors and shared values
+    - Centralize theme configuration in dedicated files
 
 Claude must update APP_DOCS.md after every change to the codebase to ensure documentation remains current and accurate.
 

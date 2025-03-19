@@ -1,0 +1,118 @@
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Fade,
+  Grid
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import LayoutComponent from '../../components/LayoutComponent';
+import {
+  ReportHeaderComponent,
+  ReportMetadataComponent,
+  CommitListComponent,
+  PDFPreviewComponent
+} from '../../components/ViewReport';
+import './ViewReportPage.css';
+
+const ViewReportPageTemplate = ({
+  loading,
+  error,
+  report,
+  pdfStatus,
+  pdfProgress,
+  handleNavigateBack
+}) => {
+  if (loading) {
+    return (
+      <LayoutComponent title="Loading Report...">
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress 
+            size={60}
+            thickness={4}
+            className="loading-spinner"
+          />
+        </Box>
+      </LayoutComponent>
+    );
+  }
+
+  if (error) {
+    return (
+      <LayoutComponent title="Error">
+        <Alert className="error-alert" severity="error">
+          {error}
+        </Alert>
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<ArrowBackIcon />}
+            component={RouterLink}
+            to="/dashboard"
+            className="back-button"
+          >
+            Back to Dashboard
+          </Button>
+        </Box>
+      </LayoutComponent>
+    );
+  }
+
+  if (!report) {
+    return (
+      <LayoutComponent title="Report Not Found">
+        <Alert className="info-alert" severity="info">
+          The requested report could not be found.
+        </Alert>
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<ArrowBackIcon />}
+            component={RouterLink}
+            to="/dashboard"
+            className="back-button"
+          >
+            Back to Dashboard
+          </Button>
+        </Box>
+      </LayoutComponent>
+    );
+  }
+
+  return (
+    <LayoutComponent title={report.name}>
+      <Fade in={true} timeout={800}>
+        <Box className="view-report-container">
+          <ReportHeaderComponent report={report} />
+
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <ReportMetadataComponent report={report} />
+            </Grid>
+
+            {/* Commit List Section */}
+            <Grid item xs={12}>
+              <CommitListComponent commits={report.commits || []} />
+            </Grid>
+
+            {/* PDF Preview Section */}
+            {report && (
+              <Grid item xs={12}>
+                <PDFPreviewComponent 
+                  report={report} 
+                  pdfStatus={pdfStatus} 
+                  pdfProgress={pdfProgress} 
+                />
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+      </Fade>
+    </LayoutComponent>
+  );
+};
+
+export default ViewReportPageTemplate; 
