@@ -217,8 +217,22 @@ class UsageStatsService {
         {
           $group: {
             _id: null,
-            reports: { $sum: '$reports.total' },
-            commits: { $sum: '$commits.summarized' },
+            reports: { 
+              $sum: {
+                $add: [
+                  { $ifNull: ['$reports.small', 0] },
+                  { $ifNull: ['$reports.big', 0] }
+                ]
+              }
+            },
+            commits: { 
+              $sum: {
+                $add: [
+                  { $ifNull: ['$commits.small', 0] },
+                  { $ifNull: ['$commits.big', 0] }
+                ]
+              }
+            },
             tokenUsage: { $sum: '$tokenUsage.total' }
           }
         }
@@ -226,7 +240,12 @@ class UsageStatsService {
 
       // Get current usage from user model
       const currentUsage = {
-        reportsGenerated: user.currentUsage?.reportsGenerated || 0,
+        reportsGenerated: {
+          small: user.currentUsage?.reportsGenerated?.small || 0,
+          big: user.currentUsage?.reportsGenerated?.big || 0,
+          total: (user.currentUsage?.reportsGenerated?.small || 0) + 
+                 (user.currentUsage?.reportsGenerated?.big || 0)
+        },
         commitsAnalyzed: user.currentUsage?.commitsAnalyzed || 0
       };
 
@@ -234,9 +253,21 @@ class UsageStatsService {
         plan: user.plan,
         currentUsage,
         currentMonthStats: currentMonthStats || {
-          reports: { total: 0 },
-          commits: { summarized: 0 },
-          tokenUsage: { total: 0 }
+          reports: { 
+            small: 0,
+            big: 0,
+            total: 0
+          },
+          commits: { 
+            small: 0,
+            big: 0,
+            total: 0
+          },
+          tokenUsage: { 
+            total: 0,
+            input: 0,
+            output: 0
+          }
         },
         allTimeStats: allTimeStats[0] || {
           reports: 0,
