@@ -41,10 +41,14 @@
    - Implement request throttling and rate limiting
 
 7. **Error Handling**
-   - Use try/catch blocks for all async operations
-   - Provide meaningful error messages to users
-   - Log detailed errors on the server
-   - Implement global error boundaries in React
+   - Use custom error classes from `utils/errors.js` for all error scenarios
+   - In services: throw specific error types (e.g., NotFoundError, ValidationError)
+   - In controllers: use try/catch and let the global error handler format responses
+   - In frontend: use the errorHandler utility to process and display errors
+   - Include relevant details in errors for debugging but sanitize sensitive information
+   - Always log errors on the server with appropriate context
+   - Use consistent error response format for all API endpoints
+   - Return appropriate HTTP status codes that match the error type
 
 8. **Code Organization**
    - Group related functionality in the same directory

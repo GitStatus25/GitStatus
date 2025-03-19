@@ -17,6 +17,7 @@ const adminRoutes = require('./routes/admin');
 const planRoutes = require('./routes/planRoutes');
 const commitSummaryRoutes = require('./routes/commitSummaryRoutes');
 const PlanService = require('./services/planService');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('./config/passport');
 
 const app = express();
@@ -142,14 +143,11 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to GitStatus API' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
+// Handle 404 for routes that don't exist
+app.use(notFoundHandler);
+
+// Global error handler
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

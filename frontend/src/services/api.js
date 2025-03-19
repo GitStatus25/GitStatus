@@ -1,24 +1,47 @@
 import axios from 'axios';
+import errorHandler from '../utils/errorHandler';
 
 // Set up axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 axios.defaults.withCredentials = true; // Important for cookies/sessions
 
-// Add response interceptor for rate limit handling
+// Add response interceptor for centralized error handling
 axios.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 429) {
-      // Rate limit exceeded
-      const limitError = new Error(error.response.data.message);
-      limitError.isRateLimit = true;
-      limitError.limit = error.response.data.limit;
-      limitError.current = error.response.data.current;
-      throw limitError;
-    }
+    // Parse and standardize the error
+    const parsedError = errorHandler.parseApiError(error);
+    
+    // Enhance error with our parsed data for easier handling
+    error.parsedError = parsedError;
+    
+    // Still throw the error so it can be caught in the calling code
     throw error;
   }
 );
+
+/**
+ * Generic API request handler with standardized error handling
+ * 
+ * @param {Function} apiCall - The API call function to execute
+ * @returns {Promise} - Resolved with data or rejected with standardized error
+ */
+const handleApiRequest = async (apiCall) => {
+  try {
+    const result = await apiCall();
+    return result;
+  } catch (error) {
+    console.error('API request failed:', error);
+    
+    // If the error was already parsed by the interceptor, use that
+    if (error.parsedError) {
+      throw error.parsedError;
+    }
+    
+    // Otherwise parse it now and throw the parsed version
+    throw errorHandler.parseApiError(error);
+  }
+};
 
 const api = {
   /**

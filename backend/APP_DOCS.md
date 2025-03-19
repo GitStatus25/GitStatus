@@ -227,4 +227,76 @@ The application follows a client-server architecture:
    - Handles PDF upload and retrieval
    - Generates pre-signed URLs for secure access
 
+### Error Handling System
+
+The application implements a standardized error handling system to ensure consistent error responses across all API endpoints and improved debugging capabilities.
+
+#### Backend Error Handling
+
+1. **Custom Error Classes** (`utils/errors.js`)
+   - `ApplicationError`: Base error class with standardized properties
+   - `NotFoundError`: For resources that don't exist (404)
+   - `ValidationError`: For invalid user input (400)
+   - `AuthenticationError`: For authentication issues (401)
+   - `AuthorizationError`: For permission issues (403)
+   - `ExternalServiceError`: For failures in external services (502)
+   - `RateLimitError`: For rate limit exceeded errors (429)
+   - `DatabaseError`: For database operation failures (500)
+   - `PdfGenerationError`: For PDF generation failures (500)
+   - `NotImplementedError`: For unimplemented features (501)
+
+2. **Global Error Handler** (`middleware/errorHandler.js`)
+   - Catches all errors thrown in the application
+   - Converts errors to the standardized format
+   - Logs detailed error information for debugging
+   - Returns consistent JSON responses to clients
+   - Includes appropriate HTTP status codes
+
+3. **Error Response Format**
+   ```json
+   {
+     "status": "error",
+     "error": {
+       "code": "ERROR_CODE",
+       "message": "Human-readable error message",
+       "details": ["Additional error details if applicable"]
+     }
+   }
+   ```
+
+#### Frontend Error Handling
+
+1. **Error Handling Utilities** (`utils/errorHandler.js`)
+   - Parses API error responses into a consistent format
+   - Provides helper functions for common error scenarios
+   - Maps backend error codes to frontend error types
+   - Handles authentication redirects automatically
+
+2. **API Service Integration**
+   - Centralizes error handling in API calls
+   - Uses axios interceptors for consistent error processing
+   - Provides standardized error objects to components
+
+3. **Component Error Handling**
+   - Components display user-friendly error messages
+   - Uses structured approach to handle different error types
+   - Implements appropriate UI for different error scenarios
+
+#### Error Handling Best Practices
+
+1. **Service Layer**
+   - Throw specific error types based on the scenario
+   - Include relevant context in error messages
+   - Document expected error types in JSDoc comments
+
+2. **Controller Layer**
+   - Use try/catch blocks and let errors propagate to the global handler
+   - Avoid handling errors directly unless specific logic is required
+   - Do not mix error handling patterns (throw vs return)
+
+3. **Frontend Components**
+   - Use the errorHandler utility for all API error handling
+   - Display appropriate UI feedback based on error type
+   - Handle authentication and validation errors specifically
+
 This documentation provides a high-level overview of the GitStatus application architecture and functionality. For detailed implementation information, refer to the specific files and components mentioned above.
