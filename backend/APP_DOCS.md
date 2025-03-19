@@ -254,7 +254,34 @@ The application follows a client-server architecture:
 
 #### Controllers
 
-1. **Report Controllers** (`controllers/Report/`)
+1. **GitHub Controllers** (`controllers/GitHub/`)
+   
+   GitHub-related functionality is organized into specialized controllers that mirror the service structure:
+
+   a. **RepositoryController**
+   - Handles repository information and search
+   - Uses GitHubRepositoryService and GitHubSearchService
+   - Key endpoints:
+     - `getRepositoryInfo`: Fetches repository details
+     - `getContributors`: Lists repository contributors
+     - `searchRepositories`: Searches for repositories
+
+   b. **BranchController**
+   - Handles branch-related operations
+   - Uses GitHubBranchService
+   - Key endpoints:
+     - `getBranches`: Lists branches in a repository
+     - `getAuthorsForBranches`: Gets authors who contributed to specific branches
+
+   c. **CommitController**
+   - Handles commit-related operations
+   - Uses GitHubCommitService
+   - Key endpoints:
+     - `getCommits`: Fetches commits from a repository
+     - `getDateRange`: Gets first and last commit dates
+     - `getCommitsWithDiffs`: Gets commits with their diffs
+
+2. **Report Controllers** (`controllers/Report/`)
    
    The report functionality is split into four focused controllers:
 
