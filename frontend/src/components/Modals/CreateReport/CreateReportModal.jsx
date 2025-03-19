@@ -8,21 +8,18 @@ import {
   TextField, 
   Button, 
   Grid, 
-  CircularProgress, 
   FormControl, 
-  Chip, 
-  Autocomplete, 
-  FormHelperText, 
   Box, 
   Checkbox,
   IconButton
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import CloseIcon from '@mui/icons-material/Close';
-import './CreateReportModalComponent.css';
+import CircularProgress from '@mui/material/CircularProgress';
+import RepositorySelector from './RepositorySelector';
+import BranchSelector from './BranchSelector';
+import DateRangeSelector from './DateRangeSelector';
+import './CreateReportModal.css';
 
 const CreateReportModalComponentTemplate = ({
   open,
@@ -72,188 +69,54 @@ const CreateReportModalComponentTemplate = ({
       
       <DialogContent dividers>
         <Grid container spacing={3}>
-          {/* Repository Selection */}
+          {/* Repository Selection using RepositorySelector component */}
           <Grid item xs={12}>
-            <FormControl fullWidth className="form-field">
-              <Autocomplete
-                value={formData.repository}
-                onChange={(event, newValue) => handleRepositorySelect(newValue)}
-                inputValue={searchQuery}
-                onInputChange={(event, newInputValue) => setSearchQuery(newInputValue)}
-                options={searchResults}
-                getOptionLabel={(option) => option}
-                filterOptions={(x) => x} // Disable built-in filtering
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Repository"
-                    variant="outlined"
-                    error={formSubmitted && !repositoryValid}
-                    helperText={formSubmitted && !repositoryValid ? "Please select a valid repository" : ""}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {searching && (
-                            <CircularProgress
-                              color="inherit"
-                              size={20}
-                              className="search-loading-indicator"
-                            />
-                          )}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
-              />
-              <FormHelperText className="info-text">
-                Search for a GitHub repository to analyze
-              </FormHelperText>
-            </FormControl>
+            <RepositorySelector
+              repository={formData.repository}
+              searchQuery={searchQuery}
+              searchResults={searchResults}
+              searching={searching}
+              repositoryValid={repositoryValid}
+              formSubmitted={formSubmitted}
+              onRepositorySelect={handleRepositorySelect}
+              onSearchQueryChange={setSearchQuery}
+            />
           </Grid>
 
-          {/* Branch Selection */}
+          {/* Branch Selection using BranchSelector component */}
           <Grid item xs={12} md={6}>
-            <FormControl fullWidth className="form-field">
-              <Autocomplete
-                multiple
-                value={formData.branches}
-                onChange={(event, newValue) => handleBranchesChange(newValue)}
-                options={branches}
-                getOptionLabel={(option) => typeof option === 'object' ? option.name : option}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Branches"
-                    variant="outlined"
-                    error={formSubmitted && formData.branches.length === 0}
-                    helperText={formSubmitted && formData.branches.length === 0 ? "Please select at least one branch" : ""}
-                  />
-                )}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      label={typeof option === 'object' ? option.name : option}
-                      {...getTagProps({ index })}
-                      className="author-chip"
-                    />
-                  ))
-                }
-                disabled={!repositoryValid}
-              />
-              <FormHelperText className="info-text">
-                Select branches to include in the report
-              </FormHelperText>
-            </FormControl>
+            <BranchSelector
+              branches={branches}
+              selectedBranches={formData.branches}
+              disabled={!repositoryValid}
+              formSubmitted={formSubmitted}
+              onBranchesChange={handleBranchesChange}
+            />
           </Grid>
 
           {/* Author Selection */}
           <Grid item xs={12} md={6}>
             <FormControl fullWidth className="form-field">
-              <Autocomplete
-                multiple
-                value={formData.authors}
-                onChange={(event, newValue) => handleAuthorsChange(newValue)}
-                options={availableAuthors}
-                getOptionLabel={(option) => option}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Authors (optional)"
-                    variant="outlined"
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {isLoadingAuthors && (
-                            <CircularProgress
-                              color="inherit"
-                              size={20}
-                              className="loading-indicator"
-                            />
-                          )}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      label={option}
-                      {...getTagProps({ index })}
-                      className="author-chip"
-                    />
-                  ))
-                }
+              <BranchSelector
+                branches={availableAuthors}
+                selectedBranches={formData.authors}
                 disabled={!repositoryValid || formData.branches.length === 0 || isLoadingAuthors}
+                formSubmitted={false} // Authors are optional
+                onBranchesChange={handleAuthorsChange}
               />
-              <FormHelperText className="info-text">
-                Filter by specific authors (leave empty to include all)
-              </FormHelperText>
             </FormControl>
           </Grid>
 
-          {/* Date Range */}
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth className="form-field">
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="Start Date"
-                  value={formData.startDate}
-                  onChange={(newValue) => handleDateChange('startDate', newValue)}
-                  minDate={dateRange?.firstCommitDate ? new Date(dateRange.firstCommitDate) : undefined}
-                  maxDate={dateRange?.lastCommitDate ? new Date(dateRange.lastCommitDate) : undefined}
-                  disabled={!repositoryValid || formData.branches.length === 0 || isLoadingDateRange}
-                  className="date-picker-container"
-                />
-              </LocalizationProvider>
-              
-              {isLoadingDateRange ? (
-                <Box className="date-range-indicator">
-                  <CircularProgress size={14} className="loading-indicator" />
-                  <Typography className="date-range-text">
-                    Loading date range...
-                  </Typography>
-                </Box>
-              ) : dateRange?.firstCommitDate ? (
-                <FormHelperText className="info-text">
-                  First commit: {new Date(dateRange.firstCommitDate).toLocaleDateString()}
-                </FormHelperText>
-              ) : null}
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth className="form-field">
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="End Date"
-                  value={formData.endDate}
-                  onChange={(newValue) => handleDateChange('endDate', newValue)}
-                  minDate={formData.startDate || (dateRange?.firstCommitDate ? new Date(dateRange.firstCommitDate) : undefined)}
-                  maxDate={dateRange?.lastCommitDate ? new Date(dateRange.lastCommitDate) : undefined}
-                  disabled={!repositoryValid || formData.branches.length === 0 || isLoadingDateRange}
-                  className="date-picker-container"
-                />
-              </LocalizationProvider>
-              
-              {isLoadingDateRange ? (
-                <Box className="date-range-indicator">
-                  <CircularProgress size={14} className="loading-indicator" />
-                  <Typography className="date-range-text">
-                    Loading date range...
-                  </Typography>
-                </Box>
-              ) : dateRange?.lastCommitDate ? (
-                <FormHelperText className="info-text">
-                  Last commit: {new Date(dateRange.lastCommitDate).toLocaleDateString()}
-                </FormHelperText>
-              ) : null}
-            </FormControl>
+          {/* Date Range Selection using DateRangeSelector component */}
+          <Grid item xs={12}>
+            <DateRangeSelector
+              startDate={formData.startDate}
+              endDate={formData.endDate}
+              dateRange={dateRange}
+              disabled={!repositoryValid || formData.branches.length === 0}
+              isLoadingDateRange={isLoadingDateRange}
+              onDateChange={handleDateChange}
+            />
           </Grid>
 
           {/* Report Title */}
@@ -268,9 +131,9 @@ const CreateReportModalComponentTemplate = ({
                 error={formSubmitted && !formData.title}
                 helperText={formSubmitted && !formData.title ? "Please enter a title for your report" : ""}
               />
-              <FormHelperText className="info-text">
+              <Typography variant="caption" className="info-text">
                 Give your report a descriptive title
-              </FormHelperText>
+              </Typography>
             </FormControl>
           </Grid>
 
@@ -287,9 +150,9 @@ const CreateReportModalComponentTemplate = ({
                 Include code snippets in the report
               </Typography>
             </Box>
-            <FormHelperText className="info-text">
+            <Typography variant="caption" className="info-text">
               When enabled, the report will include relevant code snippets from commits
-            </FormHelperText>
+            </Typography>
           </Grid>
 
           {/* Error Display */}

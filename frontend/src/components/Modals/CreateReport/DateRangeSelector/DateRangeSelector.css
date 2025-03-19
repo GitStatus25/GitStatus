@@ -1,0 +1,25 @@
+/* Date Range Selector specific styles */
+.date-picker-container {
+  width: 100%;
+}
+
+.date-range-indicator {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.date-range-text {
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+.loading-indicator {
+  margin-right: 8px;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  margin-top: 8px;
+} 

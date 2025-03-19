@@ -1,0 +1,9 @@
+/* Repository Selector specific styles */
+.search-loading-indicator {
+  margin-right: 8px;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  margin-top: 8px;
+} 

@@ -1,0 +1,9 @@
+/* Branch Selector specific styles */
+.branch-chip {
+  margin: 2px;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  margin-top: 8px;
+} 
