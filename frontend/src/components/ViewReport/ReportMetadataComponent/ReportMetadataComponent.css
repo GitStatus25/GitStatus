@@ -1,0 +1,90 @@
+.metadata-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.metadata-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-content {
+  padding: 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header-icon {
+  margin-right: 8px;
+}
+
+.header-title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.divider {
+  margin-bottom: 24px;
+}
+
+.metadata-container {
+  margin-bottom: 24px;
+}
+
+.metadata-item {
+  padding: 16px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.03);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.metadata-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.metadata-icon {
+  margin-right: 8px;
+  opacity: 0.7;
+}
+
+.metadata-value {
+  font-weight: 500;
+}
+
+.author-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.author-chip {
+  border-radius: 4px;
+}
+
+.author-chip .MuiChip-label {
+  padding: 0 8px;
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+}
+
+.date-chip {
+  border-radius: 4px;
+}
+
+.date-separator {
+  margin: 0 8px;
+} 

@@ -1,0 +1,74 @@
+.commit-list-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.commit-list-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-content {
+  padding: 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header-icon {
+  margin-right: 8px;
+}
+
+.header-title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.divider {
+  margin-bottom: 24px;
+}
+
+.table-header-cell {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+}
+
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.commit-id-cell {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+}
+
+.author-container {
+  display: flex;
+  align-items: center;
+}
+
+.author-icon {
+  margin-right: 8px;
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.truncated-text {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.tooltip-text {
+  white-space: pre-wrap;
+} 
