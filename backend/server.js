@@ -7,6 +7,8 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { doubleCsrf } = require('csrf-csrf');
+const { selectiveCsrfProtection } = require('./middleware/csrfMiddleware');
 const authRoutes = require('./routes/auth');
 const commitRoutes = require('./routes/commits');
 const reportRoutes = require('./routes/reports');
@@ -76,19 +78,45 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// CSRF Protection setup
+const { generateToken, doubleCsrfProtection } = doubleCsrf({
+  getSecret: () => process.env.CSRF_SECRET || 'gitstatus-csrf-secret',
+  cookieName: 'csrf-token',
+  cookieOptions: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/'
+  },
+  size: 64, // token size in bytes
+});
+
+// Create middleware that only applies CSRF protection to state-changing methods
+const csrfProtection = selectiveCsrfProtection(doubleCsrfProtection);
+
+// Endpoint to get CSRF token
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: generateToken(req, res) });
+});
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gitstatus')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
+// Apply CSRF protection to all API routes that might have state-changing operations
+app.use('/api/auth', csrfProtection, authRoutes);
+app.use('/api/commits', csrfProtection, commitRoutes);
+app.use('/api/reports', csrfProtection, reportRoutes);
+app.use('/api/usage-stats', csrfProtection, usageStatsRoutes);
+app.use('/api/admin', csrfProtection, adminRoutes);
+app.use('/api/plans', csrfProtection, planRoutes);
+app.use('/api/commit-summary', csrfProtection, commitSummaryRoutes);
+
+// Routes without CSRF protection (read-only operations, OAuth flow)
 app.use('/api/auth', authRoutes);
 app.use('/api/commits', commitRoutes);
-app.use('/api/reports', reportRoutes);
 app.use('/api/usage-stats', usageStatsRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/plans', planRoutes);
-app.use('/api/commit-summary', commitSummaryRoutes);
 
 // Base route
 app.get('/', (req, res) => {
