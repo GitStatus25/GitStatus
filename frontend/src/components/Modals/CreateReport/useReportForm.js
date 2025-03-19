@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../../../services/api.js';
 import { useModal } from '../../../contexts/ModalContext.js';
+import useRepositorySearch from './useRepositorySearch.js';
+import useAuthorSelection from './useAuthorSelection.js';
+import useDateRange from './useDateRange.js';
 
 /**
  * Custom hook for managing the report creation form state and logic
@@ -38,195 +41,67 @@ const useReportForm = () => {
   // Repository data state
   const [repositoryInfo, setRepositoryInfo] = useState(null);
   const [branches, setBranches] = useState([]);
-  const [availableAuthors, setAvailableAuthors] = useState([]);
   const [repositoryValid, setRepositoryValid] = useState(false);
-  
-  // Repository search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  
-  // Date constraint state
-  const [dateRange, setDateRange] = useState({
-    firstCommitDate: null,
-    lastCommitDate: null
-  });
   
   // UI state
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
   const [error, setError] = useState(null);
-  const [isLoadingAuthors, setIsLoadingAuthors] = useState(false);
-  const [isLoadingDateRange, setIsLoadingDateRange] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loadingViewCommits, setLoadingViewCommits] = useState(false);
 
-  // Caching mechanism for API calls
-  const apiCache = useRef({
-    authors: {},
-    dateRanges: {}
-  });
+  // Use the repository search hook
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    searching
+  } = useRepositorySearch();
   
-  // Debounce timers
-  const authorsDebounceTimer = useRef(null);
-  const dateRangeDebounceTimer = useRef(null);
-
-  // Handle repository search
-  useEffect(() => {
-    const searchRepositories = async () => {
-      if (!searchQuery || searchQuery.trim().length < 2) {
-        setSearchResults([]);
-        return;
-      }
-      
-      try {
-        setSearching(true);
-        const repos = await api.searchRepositories(searchQuery);
-        setSearchResults(repos);
-      } catch (err) {
-        console.error('Repository search error:', err);
-      } finally {
-        setSearching(false);
-      }
-    };
-    
-    // Debounce search requests
-    const timeoutId = setTimeout(() => {
-      searchRepositories();
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  // Use the author selection hook
+  const {
+    availableAuthors,
+    isLoadingAuthors,
+    filterSelectedAuthors
+  } = useAuthorSelection(formData.repository, formData.branches, repositoryValid);
   
-  // Update authors when branches change
+  // Use the date range hook
+  const {
+    dateRange,
+    isLoadingDateRange,
+    getAdjustedDates
+  } = useDateRange(formData.repository, formData.branches, formData.authors, repositoryValid);
+  
+  // Update authors when they may have changed due to branch selection
   useEffect(() => {
-    const updateAvailableAuthors = async () => {
-      const { repository, branches } = formData;
-      
-      if (!repository || !repositoryValid || !branches.length) {
-        setAvailableAuthors([]);
-        return;
-      }
-      
-      try {
-        setIsLoadingAuthors(true);
-        const branchNames = branches.map(branch => typeof branch === 'object' ? branch.name : branch);
-        
-        // Create a cache key based on repository and branches
-        const cacheKey = `${repository}:${branchNames.sort().join(',')}`;
-        
-        // Check if we have cached results
-        if (apiCache.current.authors[cacheKey]) {
-          setAvailableAuthors(apiCache.current.authors[cacheKey]);
-        } else {
-          // Fetch from API if not cached
-          const authors = await api.getAuthorsForBranches(repository, branchNames);
-          
-          // Cache the results
-          apiCache.current.authors[cacheKey] = authors;
-          setAvailableAuthors(authors);
-        }
-        
-        // Filter out selected authors that are no longer available
-        setFormData(prev => ({
-          ...prev,
-          authors: prev.authors.filter(author => 
-            apiCache.current.authors[cacheKey].includes(author)
-          )
-        }));
-      } catch (err) {
-        console.error('Error fetching authors:', err);
-        setAvailableAuthors([]);
-      } finally {
-        setIsLoadingAuthors(false);
-      }
-    };
+    // Filter out selected authors that are no longer available
+    const filteredAuthors = filterSelectedAuthors(formData.authors);
     
-    // Clear any existing debounce timer
-    if (authorsDebounceTimer.current) {
-      clearTimeout(authorsDebounceTimer.current);
+    if (filteredAuthors.length !== formData.authors.length) {
+      setFormData(prev => ({
+        ...prev,
+        authors: filteredAuthors
+      }));
     }
-    
-    // Set a new debounce timer
-    authorsDebounceTimer.current = setTimeout(updateAvailableAuthors, 300);
-    
-    // Clean up the timer on component unmount
-    return () => {
-      if (authorsDebounceTimer.current) {
-        clearTimeout(authorsDebounceTimer.current);
-      }
-    };
-  }, [formData.repository, formData.branches, repositoryValid]);
+  }, [availableAuthors, formData.authors, filterSelectedAuthors]);
   
-  // Update date range when branches or authors change
+  // Update dates when date range changes
   useEffect(() => {
-    const updateDateRange = async () => {
-      const { repository, branches, authors } = formData;
-      
-      if (!repository || !repositoryValid || !branches.length) {
-        return;
-      }
-      
-      try {
-        setIsLoadingDateRange(true);
-        const branchNames = branches.map(branch => typeof branch === 'object' ? branch.name : branch);
-        
-        // Create a cache key based on repository, branches and authors
-        const cacheKey = `${repository}:${branchNames.sort().join(',')}:${authors.sort().join(',')}`;
-        
-        let newDateRange;
-        
-        // Check if we have cached results
-        if (apiCache.current.dateRanges[cacheKey]) {
-          newDateRange = apiCache.current.dateRanges[cacheKey];
-        } else {
-          // Fetch from API if not cached
-          newDateRange = await api.getDateRange(repository, branchNames, authors);
-          
-          // Cache the results
-          apiCache.current.dateRanges[cacheKey] = newDateRange;
-        }
-        
-        setDateRange(newDateRange);
-        
-        // Update date fields if they're outside the new range
-        setFormData(prev => {
-          const updatedForm = { ...prev };
-          
-          // If start date is before first commit date, update it
-          if (newDateRange.firstCommitDate && (!prev.startDate || new Date(prev.startDate) < new Date(newDateRange.firstCommitDate))) {
-            updatedForm.startDate = new Date(newDateRange.firstCommitDate);
-          }
-          
-          // If end date is after last commit date, update it
-          if (newDateRange.lastCommitDate && (!prev.endDate || new Date(prev.endDate) > new Date(newDateRange.lastCommitDate))) {
-            updatedForm.endDate = new Date(newDateRange.lastCommitDate);
-          }
-          
-          return updatedForm;
-        });
-      } catch (err) {
-        console.error('Error fetching date range:', err);
-      } finally {
-        setIsLoadingDateRange(false);
-      }
-    };
+    // Get adjusted dates based on date range
+    const { startDate, endDate } = getAdjustedDates(formData.startDate, formData.endDate);
     
-    // Clear any existing debounce timer
-    if (dateRangeDebounceTimer.current) {
-      clearTimeout(dateRangeDebounceTimer.current);
+    // Update form if dates have changed
+    if (
+      startDate !== formData.startDate || 
+      endDate !== formData.endDate
+    ) {
+      setFormData(prev => ({
+        ...prev,
+        startDate,
+        endDate
+      }));
     }
-    
-    // Set a new debounce timer
-    dateRangeDebounceTimer.current = setTimeout(updateDateRange, 300);
-    
-    // Clean up the timer on component unmount
-    return () => {
-      if (dateRangeDebounceTimer.current) {
-        clearTimeout(dateRangeDebounceTimer.current);
-      }
-    };
-  }, [formData.repository, formData.branches, formData.authors, repositoryValid]);
+  }, [dateRange, formData.startDate, formData.endDate, getAdjustedDates]);
 
   // Handle repository selection
   const handleRepositorySelect = async (repo) => {
@@ -253,41 +128,42 @@ const useReportForm = () => {
       setBranches(repoBranches);
       setRepositoryValid(true);
     } catch (err) {
-      console.error('Error fetching repository details:', err);
-      setError(`Error loading repository details: ${err.message || 'Unknown error'}`);
+      console.error('Error fetching repository data:', err);
+      setFormData(prev => ({ ...prev, repository: '', branches: [] }));
       setRepositoryValid(false);
       setBranches([]);
+      setError('Repository not found or inaccessible');
     } finally {
       setLoading(false);
     }
   };
-
-  // Handle form input changes
+  
+  // Handle input field changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-
-  // Handle branches selection
+  
+  // Handle branch selection changes
   const handleBranchesChange = (newBranches) => {
     setFormData(prev => ({ ...prev, branches: newBranches, authors: [] }));
   };
-
-  // Handle authors selection
+  
+  // Handle author selection changes
   const handleAuthorsChange = (newAuthors) => {
     setFormData(prev => ({ ...prev, authors: newAuthors }));
   };
-
+  
   // Handle date changes
   const handleDateChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
+  
   // Handle checkbox changes
   const handleCheckboxChange = (field, checked) => {
     setFormData(prev => ({ ...prev, [field]: checked }));
   };
-
+  
   // Validate form data
   const validateForm = () => {
     const { repository, branches, title, startDate, endDate } = formData;
@@ -303,7 +179,7 @@ const useReportForm = () => {
     
     return true;
   };
-
+  
   // Handle form submission
   const handleSubmit = async () => {
     setFormSubmitted(true);
@@ -329,7 +205,7 @@ const useReportForm = () => {
       setLoadingViewCommits(false);
     }
   };
-
+  
   // Handle closing the modal
   const handleClose = () => {
     closeModals();
@@ -338,7 +214,7 @@ const useReportForm = () => {
     setFormSubmitted(false);
     setError(null);
   };
-
+  
   return {
     // Form state
     formData,
