@@ -52,7 +52,15 @@ const ReportSchema = new mongoose.Schema({
   }],
   pdfUrl: {
     type: String,
-    required: true
+    default: 'pending'
+  },
+  pdfJobId: {
+    type: String,
+    default: null
+  },
+  pdfError: {
+    type: String,
+    default: null
   },
   createdAt: {
     type: Date,

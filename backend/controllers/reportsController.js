@@ -375,24 +375,17 @@ exports.generateReport = async (req, res) => {
       // Create report in database
       await report.save();
       
-      // Generate PDF if requested
-      const pdfBuffer = await pdfService.generatePDF({
+      // Generate PDF in the background
+      const jobInfo = await pdfService.generatePDF({
         title: report.name,
         content: reportContentText,
         repository: report.repository,
         startDate: report.startDate,
         endDate: report.endDate
-      });
+      }, report.id);
       
-      // Upload PDF to S3
-      const pdfUrl = await s3Service.uploadFile({
-        fileName: `report-${report.id}.pdf`,
-        fileContent: pdfBuffer,
-        contentType: 'application/pdf'
-      }).then(res => res.key);
-      
-      // Update report with PDF URL 
-      report.pdfUrl = pdfUrl;
+      // Store job ID in the report
+      report.pdfJobId = jobInfo.id;
       await report.save();
       
       // Track report generation with UsageStatsService
@@ -429,7 +422,9 @@ exports.generateReport = async (req, res) => {
         title: report.name,
         repository,
         createdAt: report.createdAt,
-        pdfUrl: report.pdfUrl
+        pdfUrl: report.pdfUrl,
+        pdfJobId: report.pdfJobId,
+        pdfStatus: 'pending'
       });
     } catch (innerError) {
       console.error('Error in PDF generation or S3 upload:', innerError);
@@ -755,5 +750,68 @@ exports.deleteReport = async (req, res) => {
   } catch (error) {
     console.error('Error deleting report:', error);
     res.status(500).json({ error: 'Failed to delete report' });
+  }
+};
+
+/**
+ * Get PDF generation status
+ */
+exports.getPdfStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the report
+    const report = await Report.findOne({
+      _id: id,
+      user: req.user.id
+    });
+    
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+    
+    // If PDF URL exists and is not 'pending' or 'failed', it's ready
+    if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
+      // Generate pre-signed URLs
+      const [viewUrl, downloadUrl] = await Promise.all([
+        s3Service.getSignedUrl(report.pdfUrl),
+        s3Service.getDownloadUrl(report.pdfUrl, `${report.name.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.pdf`)
+      ]);
+      
+      return res.json({
+        status: 'completed',
+        progress: 100,
+        viewUrl,
+        downloadUrl
+      });
+    }
+    
+    // If PDF URL is 'failed', return the error
+    if (report.pdfUrl === 'failed') {
+      return res.json({
+        status: 'failed',
+        error: report.pdfError || 'PDF generation failed'
+      });
+    }
+    
+    // If job ID exists, check job status
+    if (report.pdfJobId) {
+      const jobStatus = await pdfService.getPdfJobStatus(report.pdfJobId);
+      
+      return res.json({
+        status: jobStatus.status,
+        progress: jobStatus.progress,
+        jobId: jobStatus.id
+      });
+    }
+    
+    // Default case - still pending
+    return res.json({
+      status: 'pending',
+      progress: 0
+    });
+  } catch (error) {
+    console.error('Error getting PDF status:', error);
+    res.status(500).json({ message: 'Error getting PDF status', error: error.message });
   }
 };

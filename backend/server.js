@@ -22,13 +22,27 @@ require('./config/passport');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize default plan
+// Initialize services that need to be started with the app
 (async () => {
   try {
+    // Initialize default plan
     await PlanService.initializeDefaultPlan();
     console.log('Plan initialization complete');
+    
+    // Run scheduled queue cleanup (once a day)
+    const queueService = require('./services/queue');
+    setInterval(async () => {
+      try {
+        await queueService.cleanupJobs();
+        console.log('Queue cleanup completed');
+      } catch (error) {
+        console.error('Error during queue cleanup:', error);
+      }
+    }, 24 * 60 * 60 * 1000); // Once a day
+    
+    console.log('Queue service initialized');
   } catch (error) {
-    console.error('Error initializing plans:', error);
+    console.error('Error initializing services:', error);
     process.exit(1);
   }
 })();

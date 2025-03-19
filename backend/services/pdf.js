@@ -9,6 +9,7 @@ const marked = require('marked');
 const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
+const queueService = require('./queue');
 
 // Configure marked for GFM (GitHub Flavored Markdown)
 marked.setOptions({
@@ -154,21 +155,13 @@ const getHtmlTemplate = (options) => {
 
 /**
  * Generate a PDF file from Markdown content
+ * This implementation is used directly by the PDF job queue processor
+ * 
  * @param {object} options - PDF generation options
  * @returns {Buffer} - PDF file buffer
  */
-const generatePDF = async (options) => {
+const _generatePDF = async (options) => {
   const { title, content, repository, startDate, endDate } = options;
-  
-  console.log('PDF Generation Options:', {
-    title,
-    contentType: typeof content,
-    contentIsEmpty: !content,
-    contentLength: typeof content === 'string' ? content.length : null,
-    repository,
-    startDate: startDate ? new Date(startDate).toISOString() : 'Not provided',
-    endDate: endDate ? new Date(endDate).toISOString() : 'Not provided'
-  });
   
   if (!content) {
     throw new Error('No content provided for PDF generation');
@@ -179,19 +172,8 @@ const generatePDF = async (options) => {
     ? content 
     : (content?.content || JSON.stringify(content, null, 2));
   
-  console.log('Content after conversion to string:', {
-    contentStrType: typeof contentStr,
-    contentStrLength: contentStr.length,
-    contentStrSample: contentStr.substring(0, 200) + '...'
-  });
-  
   // Convert markdown to HTML
   const htmlContent = marked.parse(contentStr);
-  
-  console.log('HTML content after markdown parsing:', {
-    htmlContentLength: htmlContent.length,
-    htmlContentSample: htmlContent.substring(0, 200) + '...'
-  });
   
   // Create full HTML document
   const htmlTemplate = getHtmlTemplate({
@@ -203,9 +185,6 @@ const generatePDF = async (options) => {
     endDate
   });
   
-  console.log('HTML template length:', htmlTemplate.length);
-  console.log('HTML template sample:', htmlTemplate.substring(0, 200) + '...');
-  
   // Create a temporary file for the HTML
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gitstatus-'));
   const htmlPath = path.join(tempDir, 'report.html');
@@ -213,7 +192,6 @@ const generatePDF = async (options) => {
   try {
     // Write HTML to temporary file
     await fs.writeFile(htmlPath, htmlTemplate, 'utf8');
-    console.log('Temporary HTML file created:', htmlPath);
     
     // Launch browser and create PDF
     let browser;
@@ -233,7 +211,6 @@ const generatePDF = async (options) => {
           '--disable-gpu'
         ]
       });
-      console.log('Puppeteer browser launched successfully');
     } catch (browserError) {
       console.error('Error launching puppeteer browser:', browserError);
       throw new Error('Failed to launch browser: ' + browserError.message);
@@ -241,14 +218,12 @@ const generatePDF = async (options) => {
     
     try {
       const page = await browser.newPage();
-      console.log('New page created');
       
       try {
         await page.goto(`file://${htmlPath}`, { 
           waitUntil: 'networkidle0',
           timeout: 30000
         });
-        console.log('Browser navigated to temporary HTML file');
       } catch (navError) {
         console.error('Navigation error:', navError);
         throw new Error('Failed to load HTML in browser: ' + navError.message);
@@ -270,7 +245,6 @@ const generatePDF = async (options) => {
           footerTemplate: '<div style="font-size: 10px; text-align: right; width: 100%; padding-right: 30px; color: #95a5a6;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>',
           timeout: 60000
         });
-        console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
         
         // Always create a Buffer from the result (even if it's not a proper Buffer instance)
         if (!pdfBuffer || pdfBuffer.length === 0) {
@@ -280,7 +254,6 @@ const generatePDF = async (options) => {
         
         // Create a Buffer from the ArrayBuffer/Uint8Array that Puppeteer returns
         resultBuffer = Buffer.from(pdfBuffer);
-        console.log('Created Node.js Buffer with size:', resultBuffer.length);
       } catch (pdfError) {
         console.error('PDF generation error:', pdfError);
         throw new Error('Failed to generate PDF: ' + pdfError.message);
@@ -288,7 +261,6 @@ const generatePDF = async (options) => {
     } finally {
       if (browser) {
         await browser.close();
-        console.log('Browser closed');
       }
     }
     
@@ -303,13 +275,43 @@ const generatePDF = async (options) => {
     try {
       await fs.unlink(htmlPath);
       await fs.rmdir(tempDir);
-      console.log('Temporary files cleaned up');
     } catch (error) {
       console.error('Error cleaning up temporary files:', error);
     }
   }
 };
 
+/**
+ * Public interface for PDF generation that returns a job ID
+ * and triggers background processing
+ * 
+ * @param {object} options - PDF generation options
+ * @param {string} reportId - Report ID to update when complete
+ * @returns {Promise<Object>} - Job information with ID and status
+ */
+const generatePDF = async (options, reportId) => {
+  if (!reportId) {
+    throw new Error('Report ID is required for background PDF generation');
+  }
+  
+  // Add job to the queue
+  const jobInfo = await queueService.addPdfGenerationJob(options, reportId);
+  
+  return jobInfo;
+};
+
+/**
+ * Get the status of a PDF generation job
+ * 
+ * @param {string} jobId - Job ID to check
+ * @returns {Promise<Object>} - Job status information
+ */
+const getPdfJobStatus = async (jobId) => {
+  return await queueService.getPdfJobStatus(jobId);
+};
+
 module.exports = {
-  generatePDF
+  generatePDF,
+  _generatePDF,
+  getPdfJobStatus
 };

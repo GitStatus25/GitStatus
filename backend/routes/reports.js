@@ -37,4 +37,7 @@ router.get('/:id', isAuthenticated, getReportByIdValidation, reportsController.g
 // Delete a report
 router.delete('/:id', isAuthenticated, deleteReportValidation, reportsController.deleteReport);
 
+// Get PDF generation status
+router.get('/:id/pdf-status', isAuthenticated, getReportByIdValidation, reportsController.getPdfStatus);
+
 module.exports = router;
