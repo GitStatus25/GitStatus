@@ -9,6 +9,7 @@
    - Limit component files to 300 lines maximum; extract larger components into smaller ones
    - When splitting large files (services, components, routes, etc.) into multiple focused files, organize them in a dedicated folder with an index.js that re-exports the components
    - Import specific service modules directly where needed rather than through aggregating services, promoting clear dependencies and better modularity
+   - When refactoring, update all existing references to use the new structure directly, rather than creating backward compatibility wrappers
    - Avoid circular dependencies by carefully planning the service hierarchy
 
 2. **Naming Conventions**

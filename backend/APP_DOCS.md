@@ -256,7 +256,8 @@ The application follows a client-server architecture:
 
 1. **GitHub Controllers** (`controllers/GitHub/`)
    
-   GitHub-related functionality is organized into specialized controllers that mirror the service structure:
+   GitHub-related functionality is organized into specialized controllers that mirror the service structure.
+   These controllers are imported directly in route files, maintaining clean dependencies:
 
    a. **RepositoryController**
    - Handles repository information and search
