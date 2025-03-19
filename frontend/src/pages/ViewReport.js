@@ -67,6 +67,10 @@ const ViewReport = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const [pdfPreviewFailed, setPdfPreviewFailed] = useState(false);
   const iframeRef = useRef(null);
+  // Add these state variables to track PDF generation status
+  const [pdfStatus, setPdfStatus] = useState('loading');
+  const [pdfProgress, setPdfProgress] = useState(0);
+  const [pdfPollInterval, setPdfPollInterval] = useState(null);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -205,6 +209,63 @@ const ViewReport = () => {
       checkPdfPreview();
     }
   }, [report]);
+
+  // Add this useEffect to poll for PDF generation status
+  useEffect(() => {
+    // Function to check PDF generation status
+    const checkPdfStatus = async () => {
+      if (!id || !report || (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed')) {
+        // If we have a complete PDF URL, no need to poll
+        clearInterval(pdfPollInterval);
+        setPdfPollInterval(null);
+        return;
+      }
+
+      try {
+        const statusResponse = await api.getPdfStatus(id);
+        console.log('PDF Status:', statusResponse);
+        
+        setPdfStatus(statusResponse.status);
+        if (statusResponse.progress) {
+          setPdfProgress(statusResponse.progress);
+        }
+        
+        // If complete or failed, stop polling
+        if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
+          clearInterval(pdfPollInterval);
+          setPdfPollInterval(null);
+          
+          // If completed, update the report with the new URLs
+          if (statusResponse.status === 'completed' && statusResponse.viewUrl && statusResponse.downloadUrl) {
+            setReport(prev => ({
+              ...prev,
+              viewUrl: statusResponse.viewUrl,
+              downloadUrl: statusResponse.downloadUrl
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error checking PDF status:', error);
+      }
+    };
+
+    // Start polling when component mounts and we have an ID
+    if (id && report && !pdfPollInterval && (report.pdfUrl === 'pending' || report.pdfJobId)) {
+      // Check immediately
+      checkPdfStatus();
+      
+      // Then set up interval (every 3 seconds)
+      const interval = setInterval(checkPdfStatus, 3000);
+      setPdfPollInterval(interval);
+    }
+
+    // Clean up interval on unmount
+    return () => {
+      if (pdfPollInterval) {
+        clearInterval(pdfPollInterval);
+      }
+    };
+  }, [id, report, pdfPollInterval]);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -766,7 +827,7 @@ const ViewReport = () => {
             </Grid>
 
             {/* PDF Preview Section */}
-            {report.downloadUrl && (
+            {report && (
               <Grid item xs={12}>
                 <Card 
                   elevation={2}
@@ -808,7 +869,70 @@ const ViewReport = () => {
                         position: 'relative'
                       }}
                     >
-                      {!pdfPreviewFailed ? (
+                      {report.pdfUrl === 'pending' || pdfStatus === 'pending' || pdfStatus === 'waiting' || pdfStatus === 'active' ? (
+                        <Box 
+                          sx={{ 
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(18, 24, 36, 0.9)',
+                            p: 3,
+                            textAlign: 'center'
+                          }}
+                        >
+                          <CircularProgress 
+                            variant={pdfProgress > 0 ? "determinate" : "indeterminate"} 
+                            value={pdfProgress}
+                            size={60}
+                            thickness={4}
+                            sx={{ mb: 3 }}
+                          />
+                          <Typography variant="h6" gutterBottom>
+                            Generating PDF Report
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, maxWidth: 500 }}>
+                            {pdfStatus === 'active' 
+                              ? `Processing... (${pdfProgress}% complete)`
+                              : "Your report is being generated. This may take a moment..."}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500 }}>
+                            You can check back later or wait on this page. The report will automatically update when ready.
+                          </Typography>
+                        </Box>
+                      ) : report.pdfUrl === 'failed' || pdfStatus === 'failed' ? (
+                        <Box 
+                          sx={{ 
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(18, 24, 36, 0.9)',
+                            p: 3,
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Typography variant="h6" gutterBottom color="error">
+                            PDF Generation Failed
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 500 }}>
+                            There was a problem generating your PDF. Please try again or contact support if the issue persists.
+                          </Typography>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate('/dashboard')}
+                            sx={{
+                              borderRadius: 2,
+                              boxShadow: '0 4px 12px rgba(77, 171, 245, 0.3)',
+                            }}
+                          >
+                            Back to Dashboard
+                          </Button>
+                        </Box>
+                      ) : report.downloadUrl && !pdfPreviewFailed ? (
                         <iframe
                           ref={iframeRef}
                           src={`https://docs.google.com/viewer?url=${encodeURIComponent(report.downloadUrl)}&embedded=true`}
@@ -847,26 +971,29 @@ const ViewReport = () => {
                             PDF Preview not available
                           </Typography>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 500 }}>
-                            Your browser doesn't support the embedded PDF viewer or the document couldn't be loaded. 
-                            Please use the button below to download and view the report.
+                            {report.downloadUrl ? 
+                              "Your browser doesn't support the embedded PDF viewer or the document couldn't be loaded. Please use the button below to download and view the report." :
+                              "The PDF download is not available yet. Please check back later."}
                           </Typography>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<DownloadIcon />}
-                            href={report.downloadUrl}
-                            target="_blank"
-                            sx={{
-                              borderRadius: 2,
-                              boxShadow: '0 4px 12px rgba(77, 171, 245, 0.3)',
-                              '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 6px 16px rgba(77, 171, 245, 0.4)',
-                              }
-                            }}
-                          >
-                            Download Report
-                          </Button>
+                          {report.downloadUrl && (
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              startIcon={<DownloadIcon />}
+                              href={report.downloadUrl}
+                              target="_blank"
+                              sx={{
+                                borderRadius: 2,
+                                boxShadow: '0 4px 12px rgba(77, 171, 245, 0.3)',
+                                '&:hover': {
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: '0 6px 16px rgba(77, 171, 245, 0.4)',
+                                }
+                              }}
+                            >
+                              Download Report
+                            </Button>
+                          )}
                         </Box>
                       )}
                     </Box>

@@ -364,7 +364,22 @@ const api = {
   // Plan management
   getPlans: () => axios.get('/api/plans').then(response => response.data),
   updatePlanLimits: (planId, limits) => 
-    axios.put(`/api/plans/${planId}/limits`, { limits }).then(response => response.data)
+    axios.put(`/api/plans/${planId}/limits`, { limits }).then(response => response.data),
+
+  /**
+   * Get PDF generation status
+   * @param {string} reportId - Report ID
+   * @returns {Promise} - API response with status information
+   */
+  getPdfStatus: async (reportId) => {
+    try {
+      const response = await axios.get(`/api/reports/${reportId}/pdf-status`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting PDF status:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;
