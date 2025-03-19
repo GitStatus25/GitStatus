@@ -4,6 +4,22 @@ import axios from 'axios';
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 axios.defaults.withCredentials = true; // Important for cookies/sessions
 
+// Add response interceptor for rate limit handling
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 429) {
+      // Rate limit exceeded
+      const limitError = new Error(error.response.data.message);
+      limitError.isRateLimit = true;
+      limitError.limit = error.response.data.limit;
+      limitError.current = error.response.data.current;
+      throw limitError;
+    }
+    throw error;
+  }
+);
+
 const api = {
   /**
    * Get the currently authenticated user
@@ -306,7 +322,50 @@ const api = {
       console.error('Error fetching user stats:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Check if an operation would exceed rate limits
+   * @param {Object} stats - Current usage statistics
+   * @param {string} type - Type of operation ('reports', 'commits', 'tokens')
+   * @param {number} amount - Amount to check
+   * @returns {boolean} Whether operation would exceed limits
+   */
+  wouldExceedLimit: (stats, type, amount = 1) => {
+    if (!stats?.plan?.limits) return true;
+
+    const current = stats.currentUsage[
+      type === 'reports' ? 'reportsGenerated' :
+      type === 'commits' ? 'commitsAnalyzed' : 'tokensUsed'
+    ] || 0;
+
+    const limit = stats.plan.limits[`${type}PerMonth`];
+    return (current + amount) > limit;
+  },
+
+  /**
+   * Get remaining quota for a specific type
+   * @param {Object} stats - Current usage statistics
+   * @param {string} type - Type of operation ('reports', 'commits', 'tokens')
+   * @returns {number} Remaining quota
+   */
+  getRemainingQuota: (stats, type) => {
+    if (!stats?.plan?.limits) return 0;
+
+    const current = stats.currentUsage[
+      type === 'reports' ? 'reportsGenerated' :
+      type === 'commits' ? 'commitsAnalyzed' : 'tokensUsed'
+    ] || 0;
+
+    const limit = stats.plan.limits[`${type}PerMonth`];
+    return Math.max(0, limit - current);
+  },
+
+  // Plan Management
+  getPlans: () => axios.get('/api/plans'),
+  createPlan: (planData) => axios.post('/api/plans', planData),
+  updatePlan: (planId, planData) => axios.put(`/api/plans/${planId}`, planData),
+  deletePlan: (planId) => axios.delete(`/api/plans/${planId}`)
 };
 
 export default api;
