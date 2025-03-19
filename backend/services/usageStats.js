@@ -20,7 +20,7 @@ class UsageStatsService {
    * @param {string} userId - User ID
    * @param {string} reportType - Type of report ('small' or 'big')
    */
-  async trackReportGeneration(userId, reportType) {
+  static async trackReportGeneration(userId, reportType) {
     try {
       const now = new Date();
       const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
