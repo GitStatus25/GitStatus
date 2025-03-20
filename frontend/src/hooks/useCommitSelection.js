@@ -14,10 +14,8 @@ const useCommitSelection = () => {
   // Extract modal data from the store
   const viewCommitsOpen = modalStore.openModals['viewCommits'] || false;
   const modalData = modalStore.modalData['viewCommits'] || {};
-  console.log('ViewCommits modal data:', modalData);
   
   const { reportData = {}, commits = [], selectedCommits: initialSelectedCommits = [] } = modalData;
-  console.log('Extracted reportData:', reportData);
 
   // Local state
   const [selectedCommits, setSelectedCommits] = useState(initialSelectedCommits);
@@ -51,7 +49,7 @@ const useCommitSelection = () => {
           startDate: reportData.startDate ? reportData.startDate.toISOString() : null,
           endDate: reportData.endDate ? reportData.endDate.toISOString() : null
         });
-        setCommitsData(response.data);
+        setCommitsData(response);
       } catch (err) {
         console.error('Error fetching commits:', err);
         setError('Failed to load commits. Please try again.');
@@ -60,10 +58,11 @@ const useCommitSelection = () => {
       }
     };
 
-    if (viewCommitsOpen) {
+    if (viewCommitsOpen && reportData?.repository) {
+      console.log('Fetching commits...');
       fetchFilteredCommits();
     }
-  }, [viewCommitsOpen, reportData]);
+  }, [viewCommitsOpen, reportData?.repository]);
 
   // Toggle a commit's selection status
   const toggleCommitSelection = (commitSha) => {
@@ -141,8 +140,9 @@ const useCommitSelection = () => {
 
       const report = await api.generateReport(reportParams);
       
-      // Close modal and navigate to the report view page
+      // Close both modals and navigate to the report view page
       modalStore.closeModal('viewCommits');
+      modalStore.closeModal('createReport');
       navigate(`/reports/${report.reportId || report.id}`);
     } catch (error) {
       console.error('Error generating report:', error);
@@ -155,7 +155,7 @@ const useCommitSelection = () => {
   return {
     // State
     modalOpen: viewCommitsOpen,
-    commits: commits || [],
+    commits: commitsData || [],
     selectedCommits,
     expandedCommit,
     expandedFiles,
