@@ -48,7 +48,7 @@ const rateLimiter = {
         ? user.plan.limits.commitsPerLargeReport 
         : user.plan.limits.commitsPerStandardReport;
 
-      const { commitCount } = req.body;
+      const commitCount = req.body.commits?.length || 0;
       if (commitCount > commitsPerReport) {
         return res.status(429).json({
           error: `Commit limit exceeded for ${reportType} report`,
