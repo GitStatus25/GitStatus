@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { SnackbarProvider } from 'notistack';
 import PrivateRouteComponent from './components/PrivateRoute';
 import AdminRouteComponent from './components/AdminRoute';
 import LoginComponent from './components/Login';
@@ -26,64 +27,66 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path="/login" element={<LoginComponent />} />
-          <Route path="/auth/callback" element={<AuthCallbackComponent />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <SnackbarProvider maxSnack={3}>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<LoginComponent />} />
+            <Route path="/auth/callback" element={<AuthCallbackComponent />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
+            <Route 
+              path="/dashboard" 
+              element={
+                <PrivateRouteComponent>
+                  <DashboardComponent />
+                </PrivateRouteComponent>
+              }
+            />
+            
+            <Route 
+              path="/reports/:id" 
+              element={
+                <PrivateRouteComponent>
+                  <ViewReportComponent />
+                </PrivateRouteComponent>
+              }
+            />
+            
+            <Route 
+              path="/create-report" 
+              element={
+                <PrivateRouteComponent>
+                  <CreateReportComponent />
+                </PrivateRouteComponent>
+              }
+            />
+            
+            <Route 
+              path="/analytics" 
+              element={
+                <PrivateRouteComponent>
+                  <AnalyticsDashboardComponent />
+                </PrivateRouteComponent>
+              }
+            />
+            
+            <Route 
+              path="/admin" 
+              element={
+                <AdminRouteComponent>
+                  <AdminDashboardComponent />
+                </AdminRouteComponent>
+              }
+            />
+            
+            <Route path="*" element={<NotFoundComponent />} />
+          </Routes>
           
-          <Route 
-            path="/dashboard" 
-            element={
-              <PrivateRouteComponent>
-                <DashboardComponent />
-              </PrivateRouteComponent>
-            }
-          />
-          
-          <Route 
-            path="/reports/:id" 
-            element={
-              <PrivateRouteComponent>
-                <ViewReportComponent />
-              </PrivateRouteComponent>
-            }
-          />
-          
-          <Route 
-            path="/create-report" 
-            element={
-              <PrivateRouteComponent>
-                <CreateReportComponent />
-              </PrivateRouteComponent>
-            }
-          />
-          
-          <Route 
-            path="/analytics" 
-            element={
-              <PrivateRouteComponent>
-                <AnalyticsDashboardComponent />
-              </PrivateRouteComponent>
-            }
-          />
-          
-          <Route 
-            path="/admin" 
-            element={
-              <AdminRouteComponent>
-                <AdminDashboardComponent />
-              </AdminRouteComponent>
-            }
-          />
-          
-          <Route path="*" element={<NotFoundComponent />} />
-        </Routes>
-        
-        {/* Global Modals */}
-        <CreateReportModal />
-        <ViewCommitsModal />
-      </Router>
+          {/* Global Modals */}
+          <CreateReportModal />
+          <ViewCommitsModal />
+        </Router>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 }
