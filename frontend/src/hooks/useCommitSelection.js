@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { useModal } from '../contexts/ModalContext';
+import useModalStore from '../store/modalStore';
 
 /**
  * Custom hook for managing commit selection functionality
@@ -9,22 +9,15 @@ import { useModal } from '../contexts/ModalContext';
  */
 const useCommitSelection = () => {
   const navigate = useNavigate();
-  const {
-    modalState,
-    closeModals,
-    openCreateReportModal,
-    updateSelectedCommits
-  } = useModal();
-
-  const {
-    viewCommitsOpen,
-    reportData,
-    commits,
-    selectedCommits: initialSelectedCommits
-  } = modalState;
+  const modalStore = useModalStore();
+  
+  // Extract modal data from the store
+  const viewCommitsOpen = modalStore.openModals['viewCommits'] || false;
+  const modalData = modalStore.modalData['viewCommits'] || {};
+  const { reportData = {}, commits = [], selectedCommits: initialSelectedCommits = [] } = modalData;
 
   // Local state
-  const [selectedCommits, setSelectedCommits] = useState(initialSelectedCommits || []);
+  const [selectedCommits, setSelectedCommits] = useState(initialSelectedCommits);
   const [expandedCommit, setExpandedCommit] = useState(null);
   const [expandedFiles, setExpandedFiles] = useState({});
   const [loading, setLoading] = useState(false);
@@ -88,15 +81,16 @@ const useCommitSelection = () => {
 
   // Go back to create report modal
   const handleBackToForm = () => {
-    // Save selected commits to context
-    updateSelectedCommits(selectedCommits);
-    openCreateReportModal();
+    // Save selected commits to the store
+    modalStore.updateModalData('viewCommits', { selectedCommits });
+    modalStore.closeModal('viewCommits');
+    modalStore.openModal('createReport', { ...reportData, selectedCommits });
   };
 
   // Handle closing the modal
   const handleClose = () => {
-    updateSelectedCommits(selectedCommits);
-    closeModals();
+    modalStore.updateModalData('viewCommits', { selectedCommits });
+    modalStore.closeModal('viewCommits');
   };
 
   // Generate report from selected commits
@@ -133,7 +127,7 @@ const useCommitSelection = () => {
       const report = await api.generateReport(reportParams);
       
       // Close modal and navigate to the report view page
-      closeModals();
+      modalStore.closeModal('viewCommits');
       navigate(`/reports/${report.reportId || report.id}`);
     } catch (error) {
       console.error('Error generating report:', error);
