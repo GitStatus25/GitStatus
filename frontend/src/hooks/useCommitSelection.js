@@ -29,12 +29,22 @@ const useCommitSelection = () => {
   useEffect(() => {
     const fetchFilteredCommits = async () => {
       try {
+        console.log('Report data:', reportData);
+        
+        // Check if reportData has necessary properties
+        if (!reportData || !reportData.repository) {
+          console.error('Report data is missing required properties');
+          setError('Missing repository information. Please go back and try again.');
+          setLoadingCommits(false);
+          return;
+        }
+        
         const response = await api.getCommitsByFilters({
           repository: reportData.repository,
-          branches: reportData.branches.map(branch => 
-            typeof branch === 'object' ? branch.name : branch
-          ),
-          authors: reportData.authors,
+          branches: Array.isArray(reportData.branches) 
+            ? reportData.branches.map(branch => typeof branch === 'object' ? branch.name : branch)
+            : [],
+          authors: reportData.authors || [],
           startDate: reportData.startDate ? reportData.startDate.toISOString() : null,
           endDate: reportData.endDate ? reportData.endDate.toISOString() : null
         });
@@ -50,7 +60,7 @@ const useCommitSelection = () => {
     if (viewCommitsOpen) {
       fetchFilteredCommits();
     }
-  }, [viewCommitsOpen]);
+  }, [viewCommitsOpen, reportData]);
 
   // Toggle a commit's selection status
   const toggleCommitSelection = (commitSha) => {
