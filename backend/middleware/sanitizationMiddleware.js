@@ -1,7 +1,14 @@
 /**
  * Middleware for sanitizing user input
- * Applies basic sanitization to request body, query params, and URL params
+ * Applies secure sanitization to request body, query params, and URL params
+ * using DOMPurify to prevent XSS attacks
  */
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
+// Create a DOMPurify instance with a virtual DOM window
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
 
 const sanitizeInput = (obj) => {
   if (!obj || typeof obj !== 'object') return obj;
@@ -11,8 +18,8 @@ const sanitizeInput = (obj) => {
     
     // Sanitize strings
     if (typeof value === 'string') {
-      // Remove any HTML tags
-      obj[key] = value.replace(/<[^>]*>/g, '');
+      // Sanitize HTML using DOMPurify
+      obj[key] = DOMPurify.sanitize(value);
       
       // Normalize whitespace
       obj[key] = obj[key].replace(/\s+/g, ' ').trim();
@@ -23,7 +30,7 @@ const sanitizeInput = (obj) => {
       if (Array.isArray(value)) {
         obj[key] = value.map(item => {
           if (typeof item === 'string') {
-            return item.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+            return DOMPurify.sanitize(item).replace(/\s+/g, ' ').trim();
           } else if (item && typeof item === 'object') {
             return sanitizeInput(item);
           }

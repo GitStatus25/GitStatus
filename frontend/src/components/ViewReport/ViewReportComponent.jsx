@@ -26,7 +26,8 @@ const ViewReportComponentTemplate = ({
   report,
   pdfStatus,
   pdfProgress,
-  handleNavigateBack
+  handleNavigateBack,
+  formatDate
 }) => {
   if (loading) {
     return (
