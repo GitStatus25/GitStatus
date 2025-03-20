@@ -61,12 +61,25 @@ const api = {
   },
 
   /**
+   * Helper function to format repository parameter
+   * @param {string|Object} repository - Repository name or object
+   * @returns {string} - Formatted repository string
+   */
+  _formatRepository: (repository) => {
+    if (typeof repository === 'object' && repository.owner && repository.name) {
+      return `${repository.owner}/${repository.name}`;
+    }
+    return repository;
+  },
+
+  /**
    * Get repository information
-   * @param {string} repository - Repository name in format 'owner/repo'
+   * @param {string|Object} repository - Repository name in format 'owner/repo' or repository object
    */
   getRepositoryInfo: async (repository) => {
     try {
-      const response = await axios.get('/api/commits/repository', { params: { repository } });
+      const repoParam = api._formatRepository(repository);
+      const response = await axios.get('/api/commits/repository', { params: { repository: repoParam } });
       return response.data;
     } catch (error) {
       console.error('Error fetching repository info:', error);
@@ -76,11 +89,12 @@ const api = {
 
   /**
    * Get branches for a repository
-   * @param {string} repository - Repository name in format 'owner/repo'
+   * @param {string|Object} repository - Repository name in format 'owner/repo' or repository object
    */
   getBranches: async (repository) => {
     try {
-      const response = await axios.get('/api/commits/branches', { params: { repository } });
+      const repoParam = api._formatRepository(repository);
+      const response = await axios.get('/api/commits/branches', { params: { repository: repoParam } });
       return response.data;
     } catch (error) {
       console.error('Error fetching branches:', error);
@@ -90,11 +104,12 @@ const api = {
 
   /**
    * Get contributors for a repository
-   * @param {string} repository - Repository name in format 'owner/repo'
+   * @param {string|Object} repository - Repository name in format 'owner/repo' or repository object
    */
   getContributors: async (repository) => {
     try {
-      const response = await axios.get('/api/commits/contributors', { params: { repository } });
+      const repoParam = api._formatRepository(repository);
+      const response = await axios.get('/api/commits/contributors', { params: { repository: repoParam } });
       return response.data;
     } catch (error) {
       console.error('Error fetching contributors:', error);
@@ -104,14 +119,15 @@ const api = {
 
   /**
    * Get authors for specific branches
-   * @param {string} repository - Repository name in format 'owner/repo'
+   * @param {string|Object} repository - Repository name in format 'owner/repo' or repository object
    * @param {Array<string>} branches - List of branch names
    */
   getAuthorsForBranches: async (repository, branches) => {
     try {
+      const repoParam = api._formatRepository(repository);
       const response = await axios.get('/api/commits/branch-authors', {
         params: { 
-          repository,
+          repository: repoParam,
           branches
         }
       });
@@ -124,15 +140,16 @@ const api = {
 
   /**
    * Get date range for branches and authors
-   * @param {string} repository - Repository name in format 'owner/repo'
+   * @param {string|Object} repository - Repository name in format 'owner/repo' or repository object
    * @param {Array<string>} branches - List of branch names
    * @param {Array<string>} authors - List of author names
    */
   getDateRange: async (repository, branches, authors) => {
     try {
+      const repoParam = api._formatRepository(repository);
       const response = await axios.get('/api/commits/date-range', {
         params: { 
-          repository,
+          repository: repoParam,
           branches,
           authors
         }
@@ -168,7 +185,7 @@ const api = {
    */
   getCommitsByFilters: async ({ repository, branches, authors, startDate, endDate }) => {
     const params = {
-      repository,
+      repository: api._formatRepository(repository),
       branches: branches.join(','),
       includeFiles: true // Include file diffs in the response
     };
@@ -194,7 +211,7 @@ const api = {
    */
   generateReport: async ({ repository, branches, authors, startDate, endDate, title, includeCode, commitIds }) => {
     const response = await axios.post('/api/reports', {
-      repository,
+      repository: api._formatRepository(repository),
       branches,
       authors,
       startDate,

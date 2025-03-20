@@ -31,8 +31,19 @@ class GitHubRepositoryService {
         auth: accessToken
       });
 
-      // Extract owner and repo from repository string
-      const [owner, repo] = repository.split('/');
+      // Handle repository parameter that could be a string "owner/repo" or an object with owner and name properties
+      let owner, repo;
+      
+      if (typeof repository === 'string') {
+        // Extract owner and repo from repository string
+        [owner, repo] = repository.split('/');
+      } else if (typeof repository === 'object' && repository.owner && repository.name) {
+        // Extract from object
+        owner = repository.owner;
+        repo = repository.name;
+      } else {
+        throw new ValidationError('Invalid repository format. Must be owner/repo string or object with owner and name properties');
+      }
 
       if (!owner || !repo) {
         throw new ValidationError('Invalid repository format. Must be owner/repo');
