@@ -54,8 +54,11 @@ const useReportForm = () => {
   const abortControllerRef = useRef(new AbortController());
   
   useEffect(() => {
+    // Capture the current value of the ref
+    const controller = abortControllerRef.current;
+    
     return () => {
-      abortControllerRef.current.abort();
+      controller.abort();
     };
   }, []);
 
