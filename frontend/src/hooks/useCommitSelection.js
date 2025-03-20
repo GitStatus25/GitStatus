@@ -14,7 +14,10 @@ const useCommitSelection = () => {
   // Extract modal data from the store
   const viewCommitsOpen = modalStore.openModals['viewCommits'] || false;
   const modalData = modalStore.modalData['viewCommits'] || {};
+  console.log('ViewCommits modal data:', modalData);
+  
   const { reportData = {}, commits = [], selectedCommits: initialSelectedCommits = [] } = modalData;
+  console.log('Extracted reportData:', reportData);
 
   // Local state
   const [selectedCommits, setSelectedCommits] = useState(initialSelectedCommits);
@@ -29,7 +32,7 @@ const useCommitSelection = () => {
   useEffect(() => {
     const fetchFilteredCommits = async () => {
       try {
-        console.log('Report data:', reportData);
+        console.log('Report data before API call:', reportData);
         
         // Check if reportData has necessary properties
         if (!reportData || !reportData.repository) {
