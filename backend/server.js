@@ -17,6 +17,7 @@ const planRoutes = require('./routes/PlanRoutes');
 const commitSummaryRoutes = require('./routes/CommitSummaryRoutes');
 const PlanService = require('./services/PlanService');
 const dbService = require('./services/database/mongoConnection');
+const Plan = require('./models/Plan');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('./config/passport');
 
@@ -160,8 +161,25 @@ app.use(notFoundHandler);
 // Global error handler
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Initialize database connection
+const startServer = async () => {
+  try {
+    // Connect to MongoDB
+    await dbService.connect();
+    console.log('Connected to MongoDB');
+    
+    // Initialize default plans
+    await Plan.createDefaultPlans();
+    
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 module.exports = app;

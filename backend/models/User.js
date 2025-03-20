@@ -35,15 +35,29 @@ const UserSchema = new mongoose.Schema({
     default: 'user'
   },
   plan: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Plan',
-    required: true
+    type: String,
+    default: 'free',
+    lowercase: true
   }
 });
 
 // Method to check if user has exceeded their monthly limits
 UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
-  await this.populate('plan');
+  // Get user plan details
+  const Plan = mongoose.model('Plan');
+  const userPlan = await Plan.findOne({ name: { $regex: new RegExp(`^${this.plan}$`, 'i') } });
+  
+  if (!userPlan) {
+    // If no plan found, use the free plan limits as fallback
+    const freePlan = await Plan.findOne({ name: 'free' });
+    if (!freePlan) {
+      throw new Error('No plan defined in system');
+    }
+    
+    this.plan = 'free';
+    await this.save();
+    return this.hasExceededLimits(type, amount);
+  }
   
   // Get current month's stats
   const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -59,11 +73,11 @@ UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
     case 'reports':
       const totalReports = (currentMonthStats.reports.standard || 0) + 
                           (currentMonthStats.reports.large || 0);
-      return (totalReports + amount) > this.plan.limits.reportsPerMonth;
+      return (totalReports + amount) > userPlan.limits.reportsPerMonth;
     case 'commits':
-      return (currentMonthStats.commits.total + amount) > this.plan.limits.commitsPerMonth;
+      return (currentMonthStats.commits.total + amount) > userPlan.limits.commitsPerMonth;
     case 'tokens':
-      return (currentMonthStats.tokenUsage.total + amount) > this.plan.limits.tokensPerMonth;
+      return (currentMonthStats.tokenUsage.total + amount) > userPlan.limits.tokensPerMonth;
     default:
       throw new Error('Invalid limit type');
   }

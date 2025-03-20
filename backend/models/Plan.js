@@ -1,60 +1,108 @@
 const mongoose = require('mongoose');
 
+/**
+ * Plan schema for subscription plans
+ */
 const planSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    trim: true
   },
-  displayName: {
+  rateLimit: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-  description: {
+  price: {
     type: String,
-    required: true
+    required: true,
+    trim: true
+  },
+  features: {
+    type: String,
+    trim: true
   },
   limits: {
     reportsPerMonth: {
       type: Number,
-      required: true,
-      default: 50
+      default: 100
     },
-    commitsPerStandardReport: {
+    commitsPerMonth: {
       type: Number,
-      required: true,
-      default: 5
-    },
-    commitsPerLargeReport: {
-      type: Number,
-      required: true,
-      default: 20
+      default: 1000
     },
     tokensPerMonth: {
-      type: Number
-    },
-    maxReportSize: {
-      type: Number
+      type: Number,
+      default: 10000
     }
   },
-  isDefault: {
+  isActive: {
     type: Boolean,
-    default: false
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    default: true
   }
+}, {
+  timestamps: true
 });
 
-// Update timestamps on save
-planSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
+// Ensure plan names are unique regardless of case
+planSchema.index({ name: 1 }, { 
+  unique: true,
+  collation: { locale: 'en', strength: 2 }
 });
 
-module.exports = mongoose.model('Plan', planSchema); 
+/**
+ * Create default plans if none exist
+ */
+planSchema.statics.createDefaultPlans = async function() {
+  try {
+    const count = await this.countDocuments();
+    if (count === 0) {
+      const defaultPlans = [
+        {
+          name: 'Free',
+          rateLimit: '100 req/day',
+          price: '$0',
+          features: 'Basic access',
+          limits: {
+            reportsPerMonth: 5,
+            commitsPerMonth: 100,
+            tokensPerMonth: 10000
+          }
+        },
+        {
+          name: 'Professional',
+          rateLimit: '1000 req/day',
+          price: '$10/month',
+          features: 'Advanced features',
+          limits: {
+            reportsPerMonth: 50,
+            commitsPerMonth: 1000,
+            tokensPerMonth: 100000
+          }
+        },
+        {
+          name: 'Enterprise',
+          rateLimit: 'Unlimited',
+          price: '$99/month',
+          features: 'All features',
+          limits: {
+            reportsPerMonth: 500,
+            commitsPerMonth: 10000,
+            tokensPerMonth: 1000000
+          }
+        }
+      ];
+
+      await this.insertMany(defaultPlans);
+      console.log('Default plans created');
+    }
+  } catch (error) {
+    console.error('Error creating default plans:', error);
+  }
+};
+
+const Plan = mongoose.model('Plan', planSchema);
+
+module.exports = Plan; 
