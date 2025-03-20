@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -19,9 +19,16 @@ import theme from './styles/theme';
 import useAuthStore from './store/authStore';
 
 function App() {
+  // Use a ref to track initialization
+  const initializedRef = useRef(false);
+
   // Initialize auth store on app startup
   useEffect(() => {
-    useAuthStore.getState().initialize();
+    // Only initialize once
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      useAuthStore.getState().initialize();
+    }
   }, []);
 
   return (
