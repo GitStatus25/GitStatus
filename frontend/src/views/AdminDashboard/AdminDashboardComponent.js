@@ -51,14 +51,14 @@ const AdminDashboardComponent = () => {
     }
   };
 
-  const handleUpdateUserPlan = async (userId, newPlan) => {
+  const handleUpdateUserPlan = async (userId, planId) => {
     try {
-      await api.updateUserPlan(userId, newPlan);
+      await api.updateUserPlan(userId, planId);
       
       // Update local state to reflect the change
       setUsers(prevUsers => 
         prevUsers.map(user => 
-          user._id === userId ? { ...user, plan: newPlan } : user
+          user._id === userId ? { ...user, plan: plans.find(p => p._id === planId) } : user
         )
       );
     } catch (err) {

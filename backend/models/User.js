@@ -35,26 +35,26 @@ const UserSchema = new mongoose.Schema({
     default: 'user'
   },
   plan: {
-    type: String,
-    default: 'free',
-    lowercase: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Plan',
+    required: true
   }
 });
 
 // Method to check if user has exceeded their monthly limits
 UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
-  // Get user plan details
-  const Plan = mongoose.model('Plan');
-  const userPlan = await Plan.findOne({ name: { $regex: new RegExp(`^${this.plan}$`, 'i') } });
+  // Populate the plan reference
+  await this.populate('plan');
   
-  if (!userPlan) {
-    // If no plan found, use the free plan limits as fallback
-    const freePlan = await Plan.findOne({ name: 'free' });
+  if (!this.plan) {
+    // If no plan found, assign the free plan as fallback
+    const Plan = mongoose.model('Plan');
+    const freePlan = await Plan.findOne({ name: 'Free' });
     if (!freePlan) {
       throw new Error('No plan defined in system');
     }
     
-    this.plan = 'free';
+    this.plan = freePlan._id;
     await this.save();
     return this.hasExceededLimits(type, amount);
   }
@@ -73,11 +73,11 @@ UserSchema.methods.hasExceededLimits = async function(type, amount = 1) {
     case 'reports':
       const totalReports = (currentMonthStats.reports.standard || 0) + 
                           (currentMonthStats.reports.large || 0);
-      return (totalReports + amount) > userPlan.limits.reportsPerMonth;
+      return (totalReports + amount) > this.plan.limits.reportsPerMonth;
     case 'commits':
-      return (currentMonthStats.commits.total + amount) > userPlan.limits.commitsPerMonth;
+      return (currentMonthStats.commits.total + amount) > this.plan.limits.commitsPerMonth;
     case 'tokens':
-      return (currentMonthStats.tokenUsage.total + amount) > userPlan.limits.tokensPerMonth;
+      return (currentMonthStats.tokenUsage.total + amount) > this.plan.limits.tokensPerMonth;
     default:
       throw new Error('Invalid limit type');
   }
@@ -105,5 +105,21 @@ UserSchema.methods.incrementUsage = async function(type, amount = 1, reportType 
 
   return this.save();
 };
+
+// Add a pre-save hook to assign default plan if none set
+UserSchema.pre('save', async function(next) {
+  if (!this.plan) {
+    try {
+      const Plan = mongoose.model('Plan');
+      const freePlan = await Plan.findOne({ name: 'Free' });
+      if (freePlan) {
+        this.plan = freePlan._id;
+      }
+    } catch (err) {
+      console.error('Error setting default plan:', err);
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.model('User', UserSchema);

@@ -11,7 +11,7 @@ class AdminController {
    */
   static async getUsers(req, res) {
     try {
-      const users = await User.find({}, { accessToken: 0 }); // Exclude access token
+      const users = await User.find({}, { accessToken: 0 }).populate('plan'); // Exclude access token, include plan details
       res.json({ users });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching users', error: error.message });
@@ -49,19 +49,19 @@ class AdminController {
    */
   static async updateUserPlan(req, res) {
     try {
-      const { plan } = req.body;
+      const { planId } = req.body;
       
       // Verify plan exists
-      const planExists = await Plan.findOne({ name: { $regex: new RegExp(`^${plan}$`, 'i') } });
-      if (!planExists) {
-        return res.status(400).json({ message: 'Invalid plan' });
+      const plan = await Plan.findById(planId);
+      if (!plan) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
       }
 
       const user = await User.findByIdAndUpdate(
         req.params.userId,
-        { plan: plan.toLowerCase() },
+        { plan: planId },
         { new: true, select: '-accessToken' }
-      );
+      ).populate('plan');
 
       if (!user) {
         return res.status(404).json({ message: 'User not found' });

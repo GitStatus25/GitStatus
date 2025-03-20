@@ -593,12 +593,12 @@ const api = {
   /**
    * Update user plan (admin only)
    * @param {string} userId - User ID
-   * @param {string} plan - New plan (free/professional/enterprise)
+   * @param {string} planId - Plan ID
    * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
    */
-  updateUserPlan: async (userId, plan, signal) => {
+  updateUserPlan: async (userId, planId, signal) => {
     try {
-      const response = await axios.put(`/api/admin/users/${userId}/plan`, { plan }, { signal });
+      const response = await axios.put(`/api/admin/users/${userId}/plan`, { planId }, { signal });
       return response.data;
     } catch (error) {
       if (axios.isCancel(error)) {

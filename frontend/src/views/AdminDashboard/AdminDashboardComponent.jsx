@@ -258,11 +258,11 @@ const AdminDashboardComponent = ({
                     <TableCell>
                       <FormControl variant="standard" size="small">
                         <Select
-                          value={user.plan || 'free'}
+                          value={user.plan?._id || ''}
                           onChange={(e) => onUpdateUserPlan(user._id, e.target.value)}
                         >
                           {availablePlans.map(plan => (
-                            <MenuItem key={plan._id} value={plan.name.toLowerCase()}>{plan.name}</MenuItem>
+                            <MenuItem key={plan._id} value={plan._id}>{plan.name}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>
