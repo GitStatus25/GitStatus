@@ -1,0 +1,12 @@
+.form-field {
+  margin-bottom: 16px;
+}
+
+.author-chip {
+  margin: 2px;
+}
+
+.info-text {
+  margin-top: 4px;
+  color: rgba(0, 0, 0, 0.6);
+} 

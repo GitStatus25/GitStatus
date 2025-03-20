@@ -18,6 +18,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CircularProgress from '@mui/material/CircularProgress';
 import RepositorySelector from './RepositorySelector';
 import BranchSelector from './BranchSelector';
+import AuthorSelector from './AuthorSelector';
 import DateRangeSelector from './DateRangeSelector';
 import './CreateReportModal.css';
 
@@ -97,12 +98,12 @@ const CreateReportModalComponentTemplate = ({
           {/* Author Selection */}
           <Grid item xs={12} md={6}>
             <FormControl fullWidth className="form-field">
-              <BranchSelector
-                branches={availableAuthors}
-                selectedBranches={formData.authors}
+              <AuthorSelector
+                authors={availableAuthors}
+                selectedAuthors={formData.authors}
                 disabled={!repositoryValid || formData.branches.length === 0 || isLoadingAuthors}
                 formSubmitted={false} // Authors are optional
-                onBranchesChange={handleAuthorsChange}
+                onAuthorsChange={handleAuthorsChange}
               />
             </FormControl>
           </Grid>
