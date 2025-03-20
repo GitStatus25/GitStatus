@@ -115,6 +115,7 @@ app.use(passport.session());
 const { generateToken, doubleCsrfProtection } = doubleCsrf({
   getSecret: () => process.env.CSRF_SECRET || 'gitstatus-csrf-secret',
   cookieName: 'csrf-token',
+  headerName: 'x-csrf-token', // Explicitly set the header name
   cookieOptions: {
     httpOnly: true,
     sameSite: 'lax',
@@ -122,6 +123,11 @@ const { generateToken, doubleCsrfProtection } = doubleCsrf({
     path: '/'
   },
   size: 64, // token size in bytes
+  ignoredMethods: ['GET', 'HEAD', 'OPTIONS'], // Methods that don't need CSRF protection
+  getTokenFromRequest: (req) => {
+    // Check multiple header variations for better compatibility
+    return req.headers['x-csrf-token'] || req.headers['csrf-token'] || req.headers['x-xsrf-token'];
+  }
 });
 
 // Create middleware that only applies CSRF protection to state-changing methods
