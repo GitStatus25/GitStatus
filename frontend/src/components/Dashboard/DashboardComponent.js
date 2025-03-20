@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useDashboard } from '../../hooks';
 import DashboardComponentTemplate from './DashboardComponent.jsx';
 import useAuthStore from '../../store/authStore';
@@ -24,7 +24,17 @@ const DashboardComponent = () => {
     openCreateReportModal
   } = useDashboard();
 
-  const { user, isAuthenticated, loading: authLoading } = useAuthStore();
+  // Memoize the auth selector
+  const authSelector = useMemo(() => 
+    (state) => ({
+      user: state.user,
+      isAuthenticated: state.isAuthenticated,
+      loading: state.loading
+    }),
+    []
+  );
+  
+  const { user, isAuthenticated, loading: authLoading } = useAuthStore(authSelector);
 
   return (
     <DashboardComponentTemplate

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme, useMediaQuery } from '@mui/material';
 import useAuthStore from '../../../store/authStore';
@@ -11,10 +11,18 @@ import LayoutComponentTemplate from './LayoutComponent.jsx';
  * @param {string} props.title - Page title to display in the header
  */
 const LayoutComponent = ({ children, title }) => {
-  const { user, logout } = useAuthStore(state => ({
-    user: state.user,
-    logout: state.logout
-  }));
+  // Use useMemo to cache the selector function
+  const authSelector = useMemo(() => 
+    (state) => ({
+      user: state.user,
+      logout: state.logout
+    }), 
+    []
+  );
+  
+  // Use the memoized selector with useAuthStore
+  const { user, logout } = useAuthStore(authSelector);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -32,7 +40,8 @@ const LayoutComponent = ({ children, title }) => {
     setAnimate(true);
   }, [location]);
 
-  const toggleDrawer = (open) => (event) => {
+  // Memoize the toggleDrawer function to prevent unnecessary re-renders
+  const toggleDrawer = useCallback((open) => (event) => {
     if (
       event.type === 'keydown' &&
       (event.key === 'Tab' || event.key === 'Shift')
@@ -40,12 +49,13 @@ const LayoutComponent = ({ children, title }) => {
       return;
     }
     setDrawerOpen(open);
-  };
+  }, []);
 
-  const handleLogout = async () => {
+  // Memoize the logout handler
+  const handleLogout = useCallback(async () => {
     await logout();
     navigate('/login');
-  };
+  }, [logout, navigate]);
 
   return (
     <LayoutComponentTemplate
