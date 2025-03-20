@@ -42,13 +42,10 @@ const useReportForm = () => {
   }, [modalData]);
 
   // Repository data state
-  const [repositoryInfo, setRepositoryInfo] = useState(null);
   const [branches, setBranches] = useState([]);
   const [repositoryValid, setRepositoryValid] = useState(false);
   
   // UI state
-  const [loading, setLoading] = useState(false);
-  const [validating, setValidating] = useState(false);
   const [error, setError] = useState(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loadingViewCommits, setLoadingViewCommits] = useState(false);
@@ -135,17 +132,12 @@ const useReportForm = () => {
     setFormData(prev => ({ ...prev, repository: repo, branches: [] }));
     
     try {
-      setLoading(true);
       setError(null);
       
-      // Fetch repository info and branches
-      const [repoInfo, repoBranches] = await Promise.all([
-        api.getRepositoryInfo(repo, abortControllerRef.current.signal),
-        api.getBranches(repo, abortControllerRef.current.signal)
-      ]);
+      // Fetch repository branches
+      const branches = await api.getBranches(repo, abortControllerRef.current.signal);
       
-      setRepositoryInfo(repoInfo);
-      setBranches(repoBranches);
+      setBranches(branches);
       setRepositoryValid(true);
     } catch (err) {
       // Don't update state if request was aborted
@@ -159,11 +151,6 @@ const useReportForm = () => {
       setRepositoryValid(false);
       setBranches([]);
       setError('Repository not found or inaccessible');
-    } finally {
-      // Don't update state if request was aborted
-      if (!abortControllerRef.current.signal.aborted) {
-        setLoading(false);
-      }
     }
   };
   
