@@ -2,6 +2,7 @@ const Report = require('../models/Report');
 const s3Service = require('./s3');
 const crypto = require('crypto');
 const { NotFoundError } = require('../utils/errors');
+const pdfJobProcessor = require('./pdf/PDFJobProcessor');
 
 /**
  * Generate a hash from an array of commit IDs
@@ -125,11 +126,111 @@ const formatReportResponse = (report, urls = {}) => {
   };
 };
 
+/**
+ * Generate a PDF report for the specified report ID
+ * @param {string} reportId - The ID of the report to generate PDF for
+ * @returns {Promise<Object>} - Job information
+ */
+const generatePdfReport = async (reportId) => {
+  try {
+    // Get the report data
+    const report = await Report.findById(reportId);
+    if (!report) {
+      throw new Error('Report not found');
+    }
+    
+    // Check if PDF generation is already in progress
+    if (report.pdfStatus === 'pending') {
+      return { status: 'pending', message: 'PDF generation already in progress' };
+    }
+    
+    // Prepare options for PDF generation
+    const options = {
+      title: `Git Report: ${report.repository}`,
+      content: report.content,
+      repository: report.repository,
+      startDate: report.dateRange?.startDate,
+      endDate: report.dateRange?.endDate
+    };
+    
+    // Add job to the queue
+    const job = await pdfJobProcessor.addJob(reportId, options);
+    
+    return {
+      status: 'pending',
+      jobId: job.id,
+      message: 'PDF generation job added to queue'
+    };
+  } catch (error) {
+    console.error('Error queueing PDF generation:', error);
+    
+    // Update report with error
+    await Report.findByIdAndUpdate(reportId, {
+      pdfStatus: 'failed',
+      pdfError: error.message
+    });
+    
+    throw error;
+  }
+};
+
+/**
+ * Get the status of a PDF generation job
+ * @param {string} reportId - The ID of the report
+ * @param {string} jobId - The ID of the job
+ * @returns {Promise<Object>} - Job status information
+ */
+const getPdfStatus = async (reportId, jobId) => {
+  try {
+    // Get the report data
+    const report = await Report.findById(reportId);
+    if (!report) {
+      throw new Error('Report not found');
+    }
+    
+    // If we have a completed PDF, return it
+    if (report.pdfStatus === 'completed' && report.pdfUrl) {
+      return {
+        status: 'completed',
+        pdfUrl: report.pdfUrl
+      };
+    }
+    
+    // If we have a failed PDF, return the error
+    if (report.pdfStatus === 'failed') {
+      return {
+        status: 'failed',
+        error: report.pdfError || 'Unknown error'
+      };
+    }
+    
+    // If we're still pending and have a job ID, check the job status
+    if (jobId) {
+      const jobStatus = await pdfJobProcessor.getJobStatus(jobId);
+      return {
+        ...jobStatus,
+        reportId
+      };
+    }
+    
+    // Otherwise, just return the current status
+    return {
+      status: report.pdfStatus || 'unknown',
+      reportId
+    };
+  } catch (error) {
+    console.error('Error checking PDF status:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   generateCommitsHash,
   findReportByCommitsHash,
   updateReportAccessStats,
   getReportById,
   generateReportUrls,
-  formatReportResponse
+  formatReportResponse,
+  generatePdfReport,
+  getPdfStatus
 }; 

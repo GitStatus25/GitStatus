@@ -52,13 +52,18 @@ const ReportSchema = new mongoose.Schema({
   }],
   pdfUrl: {
     type: String,
-    default: 'pending'
+    default: null
   },
-  pdfJobId: {
+  pdfStatus: {
     type: String,
+    enum: ['pending', 'completed', 'failed', null],
     default: null
   },
   pdfError: {
+    type: String,
+    default: null
+  },
+  pdfJobId: {
     type: String,
     default: null
   },
