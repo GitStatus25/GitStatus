@@ -115,66 +115,73 @@ class UsageAnalyticsService {
         totalCost: 0,
         inputCost: 0,
         outputCost: 0,
-        uniqueUsers: []
+        numUniqueUsers: 0
       };
-
+      monthlyStats.numUniqueUsers = monthlyStats.uniqueUsers.length;
       monthlyStats.totalReports = monthlyStats.reportsStandard + monthlyStats.reportsLarge;
 
-      // Get user breakdown
-      let userBreakdown = await UsageStats.aggregate([
-        { $match: { month: currentMonth } },
-        {
-          $project: {
-            user: 1,
-            reportsStandard: { $ifNull: ['$reports.standard', 0] },
-            reportsLarge: { $ifNull: ['$reports.large', 0] },
-            commitsTotal: { $ifNull: ['$commits.total', 0] },
-            tokensTotal: { $ifNull: ['$tokenUsage.total', 0] },
-            inputTokens: { $ifNull: ['$tokenUsage.input', 0] },
-            outputTokens: { $ifNull: ['$tokenUsage.output', 0] },
-            costTotal: { $ifNull: ['$costEstimate.total', 0] },
-            inputCost: { $ifNull: ['$costEstimate.input', 0] },
-            outputCost: { $ifNull: ['$costEstimate.output', 0] }
+      if (monthlyStats.totalTokens == 0) {
+        monthlyStats.totalTokens = monthlyStats.inputTokens + monthlyStats.outputTokens;
+      }
+
+      if (monthlyStats.totalCost == 0) {
+        monthlyStats.totalCost = monthlyStats.inputCost + monthlyStats.outputCost;
+      }
+
+
+      // Get aggregated stats all time
+      let allTimeStats = await UsageStats.aggregate([
+        { 
+          $group: {
+            _id: null,
+            reportsStandard: { $sum: { $ifNull: ['$reports.standard', 0] } },
+            reportsLarge: { $sum: { $ifNull: ['$reports.large', 0] } },
+            commitsTotal: { $sum: { $ifNull: ['$commits.total', 0] } },
+            totalTokens: { $sum: { $ifNull: ['$tokenUsage.total', 0] } },
+            inputTokens: { $sum: { $ifNull: ['$tokenUsage.input', 0] } },
+            outputTokens: { $sum: { $ifNull: ['$tokenUsage.output', 0] } },
+            totalCost: { $sum: { $ifNull: ['$costEstimate.total', 0] } },
+            inputCost: { $sum: { $ifNull: ['$costEstimate.input', 0] } },
+            outputCost: { $sum: { $ifNull: ['$costEstimate.output', 0] } },
+            uniqueUsers: { $addToSet: '$user' }
           }
-        },
-        { $sort: { reportsStandard: -1 } },
-        { $limit: 10 }
+        }
       ]);
 
-      // Map user IDs to usernames
-      const userIds = userBreakdown.map(item => item.user);
-      const users = await User.find({ _id: { $in: userIds } }, { username: 1 });
-      const userMap = users.reduce((map, user) => {
-        map[user._id.toString()] = user.username;
-        return map;
-      }, {});
+      allTimeStats = allTimeStats[0] || {
+        reportsStandard: 0,
+        reportsLarge: 0,
+        commitsTotal: 0,
+        totalTokens: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalCost: 0,
+        inputCost: 0,
+        outputCost: 0,
+        numUniqueUsers: 0
+      };
 
-      const userStats = userBreakdown.map(item => ({
-        username: userMap[item.user.toString()] || 'Unknown',
-        reports: item.reportsStandard + item.reportsLarge,
-        commits: item.commitsTotal,
-        tokens: {
-          total: item.tokensTotal,
-          input: item.inputTokens,
-          output: item.outputTokens
-        },
-        cost: {
-          total: item.costTotal,
-          input: item.inputCost,
-          output: item.outputCost
-        }
-      }));
+      allTimeStats.numUniqueUsers = allTimeStats.uniqueUsers.length;
+      allTimeStats.totalReports = allTimeStats.reportsStandard + allTimeStats.reportsLarge;
+      if (allTimeStats.totalTokens == 0) {
+        allTimeStats.totalTokens = allTimeStats.inputTokens + allTimeStats.outputTokens;
+      }
+      if (allTimeStats.totalCost == 0) {
+        allTimeStats.totalCost = allTimeStats.inputCost + allTimeStats.outputCost;
+      }
 
       return {
         currentMonth,
-        summary: monthlyStats,
-        topUsers: userStats
+        monthlyStats: monthlyStats,
+        allTimeStats: allTimeStats
       };
     } catch (error) {
       console.error('Error fetching admin analytics:', error);
       throw error;
     }
   }
+
+
 }
 
 module.exports = UsageAnalyticsService; 

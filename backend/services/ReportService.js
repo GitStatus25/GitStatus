@@ -94,8 +94,6 @@ const generateReportUrls = async (report) => {
     return { viewUrl: null, downloadUrl: null };
   }
 
-  console.log(`Generating signed URL for report ${report._id} with PDF URL: "${report.pdfUrl}"`);
-
   try {
     const signedUrl = await S3Service.getSignedUrl({ key: report.pdfUrl });
     const viewUrl = signedUrl;

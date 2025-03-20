@@ -15,7 +15,7 @@ client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
 # Configuration
 input_token_limit = 64000  # R3's input token limit
 valid_sections = ["code_review", "readme", "rules", "docs"]
-output_sections = ["code_review", "rules"]  # Set to "docs", "readme", or "rules" for other runs
+output_sections = ["code_review"]  # Set to "docs", "readme", or "rules" for other runs
 
 # Validate the selected section
 for output_section in output_sections:
@@ -27,14 +27,13 @@ def estimate_tokens(text):
     encoding = tiktoken.get_encoding("cl100k_base")
     return len(encoding.encode(text))
 
-# Replace with your actual codebase content
 frontend_content = ""
 for root, dirs, files in os.walk("frontend"):
     # Skip hidden folders, node_modules, etc
     dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', 'venv', 'output']]
     
     for file in files:
-        if file.endswith(('.js', '.jsx', '.css')):
+        if file.endswith(('.js', '.jsx')):
             file_path = os.path.join(root, file)
             with open(file_path, 'r', encoding='utf-8') as f:
                 frontend_content += f"--- file start: {file_path} ---\n"
@@ -83,7 +82,32 @@ system_prompt = (
 
 # Instructions for each section
 section_instructions = {
-    "code_review": "Provide a detailed code review with suggestions for fixing technical issues, formatted as 'File: <path> - Line: <number> - Suggestion: <description>'.",
+    "code_review": """
+        Perform a detailed code review of the provided codebase. For each technical issue found, provide a suggestion in the following format:
+
+        File: <path>
+        Line: <number>
+        Issue: <description of the issue>
+        Impact: <explanation of why it’s an issue>
+        Fix: <description of how to fix it>
+        Diff:
+        <unified diff of the necessary changes>
+
+        Please ensure that each suggestion is separated by '---' and that the diff is presented in unified diff format (using '+' for added lines and '-' for removed lines).
+
+        Example:
+
+        ---
+        File: src/main.py
+        Line: 42
+        Issue: Using a deprecated function 'old_function'
+        Impact: The function may be removed in future versions, causing the code to break.
+        Fix: Replace 'old_function' with 'new_function'
+        Diff:
+        - result = old_function(input)
+        + result = new_function(input)
+        ---
+        """,
     "readme": "Create a concise README for developer onboarding, including project description, setup, and usage examples.",
     "rules": "Define rules for an AI assistant to follow when working on this codebase.",
     "docs": "Generate complete application documentation, covering architecture and key components."

@@ -79,18 +79,10 @@ class AdminController {
   static async getAnalytics(req, res) {
     try {
       const analytics = await UsageAnalyticsService.getAdminAnalytics();
-      
-      // Get token usage and cost estimates
-      const tokenStats = await UsageAnalyticsService.getTokenUsageStats();
-      
       const data = {
-        ...analytics,
-        inputTokens: tokenStats.totalInputTokens,
-        outputTokens: tokenStats.totalOutputTokens,
-        estimatedCost: tokenStats.estimatedCost,
-        totalCommits: await UsageAnalyticsService.getTotalCommits()
+        ...analytics
       };
-      
+      console.log('Data:', data);
       res.json({ data });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching analytics', error: error.message });
