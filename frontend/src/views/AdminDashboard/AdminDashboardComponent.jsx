@@ -25,8 +25,13 @@ import {
   DialogActions,
   TextField,
   Tabs,
-  Tab
+  Tab,
+  Switch,
+  FormControlLabel,
+  Tooltip,
+  IconButton
 } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 import './AdminDashboardComponent.css';
 
 const AdminDashboardComponent = ({
@@ -38,11 +43,24 @@ const AdminDashboardComponent = ({
   onUpdateUserRole,
   onUpdateUserPlan,
   onAddPlan,
-  onUpdatePlan
+  onUpdatePlan,
+  onSetDefaultPlan
 }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
-  const [newPlan, setNewPlan] = useState({ name: '', rateLimit: '', price: '', features: '' });
+  const [newPlan, setNewPlan] = useState({ 
+    name: '', 
+    rateLimit: '', 
+    price: '', 
+    features: '',
+    limits: {
+      reportsPerMonth: 100,
+      commitsPerMonth: 1000,
+      tokensPerMonth: 10000
+    },
+    isActive: true,
+    isDefault: false
+  });
   const [editingPlan, setEditingPlan] = useState(null);
 
   const handleTabChange = (event, newValue) => {
@@ -55,12 +73,38 @@ const AdminDashboardComponent = ({
 
   const handleClosePlanDialog = () => {
     setPlanDialogOpen(false);
-    setNewPlan({ name: '', rateLimit: '', price: '', features: '' });
+    setNewPlan({ 
+      name: '', 
+      rateLimit: '', 
+      price: '', 
+      features: '',
+      limits: {
+        reportsPerMonth: 100,
+        commitsPerMonth: 1000,
+        tokensPerMonth: 10000
+      },
+      isActive: true,
+      isDefault: false
+    });
     setEditingPlan(null);
   };
 
   const handleNewPlanChange = (field) => (event) => {
-    setNewPlan({ ...newPlan, [field]: event.target.value });
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setNewPlan({ 
+        ...newPlan, 
+        [parent]: { 
+          ...newPlan[parent], 
+          [child]: event.target.type === 'number' ? parseInt(event.target.value) : event.target.value 
+        } 
+      });
+    } else {
+      setNewPlan({ 
+        ...newPlan, 
+        [field]: field === 'isActive' || field === 'isDefault' ? event.target.checked : event.target.value 
+      });
+    }
   };
 
   const handleAddPlan = async () => {
@@ -70,13 +114,24 @@ const AdminDashboardComponent = ({
     }
   };
 
+  const handleSetDefaultPlan = async (planId) => {
+    await onSetDefaultPlan(planId);
+  };
+
   const handleOpenEditPlan = (plan) => {
     setEditingPlan(plan._id);
     setNewPlan({
       name: plan.name,
       rateLimit: plan.rateLimit,
       price: plan.price,
-      features: plan.features
+      features: plan.features || '',
+      limits: {
+        reportsPerMonth: plan.limits?.reportsPerMonth || 100,
+        commitsPerMonth: plan.limits?.commitsPerMonth || 1000,
+        tokensPerMonth: plan.limits?.tokensPerMonth || 10000
+      },
+      isActive: plan.isActive ?? true,
+      isDefault: plan.isDefault ?? false
     });
     setPlanDialogOpen(true);
   };
@@ -466,6 +521,11 @@ const AdminDashboardComponent = ({
                   <TableCell>Rate Limit</TableCell>
                   <TableCell>Price</TableCell>
                   <TableCell>Features</TableCell>
+                  <TableCell>Reports/Month</TableCell>
+                  <TableCell>Commits/Month</TableCell>
+                  <TableCell>Tokens/Month</TableCell>
+                  <TableCell>Active</TableCell>
+                  <TableCell>Default</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -476,6 +536,28 @@ const AdminDashboardComponent = ({
                     <TableCell>{plan.rateLimit}</TableCell>
                     <TableCell>{plan.price}</TableCell>
                     <TableCell>{plan.features}</TableCell>
+                    <TableCell>{plan.limits?.reportsPerMonth || 100}</TableCell>
+                    <TableCell>{plan.limits?.commitsPerMonth || 1000}</TableCell>
+                    <TableCell>{plan.limits?.tokensPerMonth || 10000}</TableCell>
+                    <TableCell>
+                      <Switch 
+                        checked={plan.isActive ?? true} 
+                        onChange={(e) => onUpdatePlan(plan._id, { ...plan, isActive: e.target.checked })}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch 
+                        checked={plan.isDefault ?? false} 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleSetDefaultPlan(plan._id);
+                          }
+                        }}
+                        size="small"
+                        disabled={plan.isDefault}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Button size="small" onClick={() => handleOpenEditPlan(plan)}>
                         Edit
@@ -490,7 +572,7 @@ const AdminDashboardComponent = ({
       )}
 
       {/* Dialog for adding/editing a new plan */}
-      <Dialog open={planDialogOpen} onClose={handleClosePlanDialog}>
+      <Dialog open={planDialogOpen} onClose={handleClosePlanDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editingPlan ? 'Edit Plan' : 'Add New Plan'}</DialogTitle>
         <DialogContent>
           <TextField
@@ -501,6 +583,9 @@ const AdminDashboardComponent = ({
             variant="standard"
             value={newPlan.name}
             onChange={handleNewPlanChange('name')}
+            disabled={editingPlan !== null}
+            helperText={editingPlan !== null ? "Plan name cannot be changed" : ""}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -509,6 +594,7 @@ const AdminDashboardComponent = ({
             variant="standard"
             value={newPlan.rateLimit}
             onChange={handleNewPlanChange('rateLimit')}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -517,6 +603,7 @@ const AdminDashboardComponent = ({
             variant="standard"
             value={newPlan.price}
             onChange={handleNewPlanChange('price')}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -525,7 +612,76 @@ const AdminDashboardComponent = ({
             variant="standard"
             value={newPlan.features}
             onChange={handleNewPlanChange('features')}
+            sx={{ mb: 3 }}
           />
+          
+          <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+            Usage Limits
+            <Tooltip title="Monthly usage limits for different features">
+              <IconButton size="small">
+                <InfoIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Typography>
+          
+          <Grid container spacing={2}>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                label="Reports Per Month"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={newPlan.limits.reportsPerMonth}
+                onChange={handleNewPlanChange('limits.reportsPerMonth')}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                label="Commits Per Month"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={newPlan.limits.commitsPerMonth}
+                onChange={handleNewPlanChange('limits.commitsPerMonth')}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <TextField
+                margin="dense"
+                label="Tokens Per Month"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={newPlan.limits.tokensPerMonth}
+                onChange={handleNewPlanChange('limits.tokensPerMonth')}
+              />
+            </Grid>
+          </Grid>
+          
+          <Box sx={{ mt: 3 }}>
+            <FormControlLabel 
+              control={
+                <Switch 
+                  checked={newPlan.isActive} 
+                  onChange={handleNewPlanChange('isActive')}
+                />
+              }
+              label="Active"
+            />
+            
+            <FormControlLabel 
+              control={
+                <Switch 
+                  checked={newPlan.isDefault} 
+                  onChange={handleNewPlanChange('isDefault')}
+                />
+              }
+              label="Set as Default Plan"
+              sx={{ ml: 2 }}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePlanDialog}>Cancel</Button>

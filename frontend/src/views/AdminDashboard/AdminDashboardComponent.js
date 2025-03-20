@@ -20,6 +20,8 @@ const AdminDashboardComponent = () => {
           api.getAdminAnalytics(),
           api.getPlans()
         ]);
+
+        console.log(analyticsResponse.data);
         setUsers(usersResponse.users);
         setAnalytics(analyticsResponse.data);
         setPlans(plansResponse.plans || []);
@@ -70,7 +72,16 @@ const AdminDashboardComponent = () => {
   const handleAddPlan = async (planData) => {
     try {
       const response = await api.createPlan(planData);
-      setPlans(prevPlans => [...prevPlans, response.plan]);
+      
+      // If this plan is set as default, update all other plans
+      if (planData.isDefault) {
+        setPlans(prevPlans => 
+          [...prevPlans.map(p => ({ ...p, isDefault: false })), response.plan]
+        );
+      } else {
+        setPlans(prevPlans => [...prevPlans, response.plan]);
+      }
+      
       return true;
     } catch (err) {
       setError('Failed to create new plan. Please try again.');
@@ -83,15 +94,42 @@ const AdminDashboardComponent = () => {
     try {
       await api.updatePlan(planId, planData);
       
-      // Update local state to reflect the change
-      setPlans(prevPlans => 
-        prevPlans.map(plan => 
-          plan._id === planId ? { ...plan, ...planData } : plan
-        )
-      );
+      // If this plan is set as default, update all other plans
+      if (planData.isDefault) {
+        setPlans(prevPlans => 
+          prevPlans.map(plan => ({
+            ...plan,
+            isDefault: plan._id === planId
+          }))
+        );
+      } else {
+        // Update just this plan
+        setPlans(prevPlans => 
+          prevPlans.map(plan => 
+            plan._id === planId ? { ...plan, ...planData } : plan
+          )
+        );
+      }
     } catch (err) {
       setError('Failed to update plan. Please try again.');
       console.error('Update plan error:', err);
+    }
+  };
+
+  const handleSetDefaultPlan = async (planId) => {
+    try {
+      await api.setDefaultPlan(planId);
+      
+      // Update all plans in the UI to reflect the new default
+      setPlans(prevPlans => 
+        prevPlans.map(plan => ({
+          ...plan,
+          isDefault: plan._id === planId
+        }))
+      );
+    } catch (err) {
+      setError('Failed to set default plan. Please try again.');
+      console.error('Set default plan error:', err);
     }
   };
 
@@ -106,6 +144,7 @@ const AdminDashboardComponent = () => {
       onUpdateUserPlan={handleUpdateUserPlan}
       onAddPlan={handleAddPlan}
       onUpdatePlan={handleUpdatePlan}
+      onSetDefaultPlan={handleSetDefaultPlan}
     />
   );
 };
