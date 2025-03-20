@@ -53,6 +53,15 @@ const useReportForm = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [loadingViewCommits, setLoadingViewCommits] = useState(false);
 
+  // Add AbortController to abort pending API requests when component unmounts
+  const abortControllerRef = useRef(new AbortController());
+  
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current.abort();
+    };
+  }, []);
+
   // Use the repository search hook
   const {
     searchQuery,
@@ -131,21 +140,30 @@ const useReportForm = () => {
       
       // Fetch repository info and branches
       const [repoInfo, repoBranches] = await Promise.all([
-        api.getRepositoryInfo(repo),
-        api.getBranches(repo)
+        api.getRepositoryInfo(repo, abortControllerRef.current.signal),
+        api.getBranches(repo, abortControllerRef.current.signal)
       ]);
       
       setRepositoryInfo(repoInfo);
       setBranches(repoBranches);
       setRepositoryValid(true);
     } catch (err) {
+      // Don't update state if request was aborted
+      if (err.name === 'AbortError' || err.canceled) {
+        console.log('Repository data request was aborted');
+        return;
+      }
+      
       console.error('Error fetching repository data:', err);
       setFormData(prev => ({ ...prev, repository: '', branches: [] }));
       setRepositoryValid(false);
       setBranches([]);
       setError('Repository not found or inaccessible');
     } finally {
-      setLoading(false);
+      // Don't update state if request was aborted
+      if (!abortControllerRef.current.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
   
@@ -209,10 +227,19 @@ const useReportForm = () => {
       // Open the ViewCommits modal with the form data
       openViewCommitsModal(formData);
     } catch (err) {
+      // Don't update state if request was aborted
+      if (err.name === 'AbortError' || err.canceled) {
+        console.log('Submit request was aborted');
+        return;
+      }
+      
       console.error('Error preparing report:', err);
       setError(`Error preparing report: ${err.message || 'Unknown error'}`);
     } finally {
-      setLoadingViewCommits(false);
+      // Don't update state if request was aborted
+      if (!abortControllerRef.current.signal.aborted) {
+        setLoadingViewCommits(false);
+      }
     }
   };
   
