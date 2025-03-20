@@ -95,7 +95,7 @@ const { sanitizeRequest } = require('./middleware/sanitizationMiddleware');
 app.use(sanitizeRequest);
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'gitstatus-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
