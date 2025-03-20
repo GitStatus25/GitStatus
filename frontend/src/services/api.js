@@ -1,14 +1,48 @@
 import axios from 'axios';
 import errorHandler from '../utils/errorHandler';
+import { addCsrfToken } from '../utils/csrf';
 
 // Set up axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 axios.defaults.withCredentials = true; // Important for cookies/sessions
 
+// Add request interceptor for CSRF tokens
+axios.interceptors.request.use(
+  async config => {
+    // Only add CSRF token for state-changing methods
+    const stateChangingMethods = ['post', 'put', 'delete', 'patch'];
+    
+    if (stateChangingMethods.includes(config.method)) {
+      // Add CSRF token to headers
+      const headers = await addCsrfToken(config.headers);
+      config.headers = headers;
+    }
+    
+    return config;
+  },
+  error => Promise.reject(error)
+);
+
 // Add response interceptor for centralized error handling
 axios.interceptors.response.use(
   response => response,
-  error => {
+  async error => {
+    // Check if error is related to CSRF token
+    if (error.response && error.response.status === 403 && 
+        error.response.data && error.response.data.error === 'Invalid CSRF token') {
+      // Handle CSRF token error by retrying the request (only once)
+      if (!error.config._retryCount || error.config._retryCount < 1) {
+        error.config._retryCount = (error.config._retryCount || 0) + 1;
+        
+        // Force fetch a new CSRF token
+        const { fetchCsrfToken } = await import('../utils/csrf');
+        await fetchCsrfToken();
+        
+        // Retry the request
+        return axios(error.config);
+      }
+    }
+    
     // Parse and standardize the error
     const parsedError = errorHandler.parseApiError(error);
     
