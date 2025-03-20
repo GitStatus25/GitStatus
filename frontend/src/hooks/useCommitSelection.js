@@ -5,7 +5,7 @@ import useModalStore from '../store/modalStore';
 
 /**
  * Custom hook for managing commit selection functionality
- * Handles user stats, commit selection, and report generation
+ * Handles commit selection and report generation
  */
 const useCommitSelection = () => {
   const navigate = useNavigate();
@@ -22,27 +22,6 @@ const useCommitSelection = () => {
   const [expandedFiles, setExpandedFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [userStats, setUserStats] = useState(null);
-  const [loadingStats, setLoadingStats] = useState(true);
-
-  // Fetch user stats when component mounts
-  useEffect(() => {
-    const fetchUserStats = async () => {
-      try {
-        const response = await api.getUserStats();
-        setUserStats(response.data);
-      } catch (err) {
-        console.error('Error fetching user stats:', err);
-        setError('Failed to load user limits. Please try again.');
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-
-    if (viewCommitsOpen) {
-      fetchUserStats();
-    }
-  }, [viewCommitsOpen]);
 
   // Toggle a commit's selection status
   const toggleCommitSelection = (commitSha) => {
@@ -140,8 +119,6 @@ const useCommitSelection = () => {
     expandedFiles,
     loading,
     error,
-    userStats,
-    loadingStats,
     
     // Handlers
     toggleCommitSelection,
