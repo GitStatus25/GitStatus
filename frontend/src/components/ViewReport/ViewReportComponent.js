@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useReportData from './useReportData';
+import { useReportData } from '../../hooks';
 import ViewReportComponentTemplate from './ViewReportComponent.jsx';
 
 /**

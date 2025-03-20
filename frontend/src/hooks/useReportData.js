@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api from '../../services/api';
+import api from '../services/api';
 
 /**
  * Custom hook for fetching and managing report data
@@ -61,51 +61,31 @@ export const useReportData = (reportId) => {
               
               // Update the report's allAuthors
               fetchedReport.allAuthors = Array.from(authors);
-            } catch (detailsErr) {
-              console.error('Error fetching commit details:', detailsErr);
-              // Fallback to basic commit info if detailed info fails
-              try {
-                const commitInfo = await api.getCommitInfo({
-                  repository: fetchedReport.repository,
-                  commitIds
-                });
-                
-                // Merge the commit info with the existing commits
-                fetchedReport.commits = fetchedReport.commits.map(commit => {
-                  const commitId = commit.sha || commit.commitId || commit.id;
-                  const info = commitInfo.find(c => c.sha === commitId);
-                  
-                  // Add author to the set if available
-                  if (info?.author?.name) {
-                    authors.add(info.author.name);
-                  } else if (info?.author?.login) {
-                    authors.add(info.author.login);
-                  } else if (typeof info?.author === 'string') {
-                    authors.add(info.author);
-                  }
-                  
-                  return info ? { ...commit, ...info } : commit;
-                });
-                
-                // Update the report's allAuthors
-                fetchedReport.allAuthors = Array.from(authors);
-              } catch (infoErr) {
-                console.error('Error fetching commit info:', infoErr);
-              }
+            } catch (error) {
+              console.error('Error fetching commit details:', error);
             }
           }
         }
         
+        // Handle PDF status
+        if (fetchedReport.pdfUrl === 'pending' || fetchedReport.pdfJobId) {
+          setPdfStatus('generating');
+        } else if (fetchedReport.pdfUrl === 'failed') {
+          setPdfStatus('failed');
+        } else if (fetchedReport.pdfUrl) {
+          setPdfStatus('completed');
+        }
+        
         setReport(fetchedReport);
         setError(null);
-      } catch (err) {
-        console.error('Error fetching report:', err);
-        setError('Failed to load report. Please try again.');
+      } catch (error) {
+        console.error('Error fetching report:', error);
+        setError('Failed to load report');
       } finally {
         setLoading(false);
       }
     };
-
+    
     if (reportId) {
       fetchReport();
     }

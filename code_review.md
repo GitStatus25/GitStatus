@@ -234,190 +234,55 @@ In the next sections, I'll provide more detailed recommendations for addressing 
 
 ## Digestibility Refactors
 
-### ✅ ViewReportComponent Refactor
+### ✅ ViewReportComponent Refactor (COMPLETED)
 
-The current ViewReportComponent combines data fetching, state management, and presentation:
+The ViewReportComponent has been refactored to follow the separation of concerns pattern:
 
-```javascript
-// Split into separate concerns:
-// 1. Create a custom hook for data fetching and processing
-// frontend/src/components/ViewReport/useReportData.js
-export const useReportData = (reportId) => {
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pdfStatus, setPdfStatus] = useState('loading');
-  const [pdfProgress, setPdfProgress] = useState(0);
-  
-  useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        setLoading(true);
-        const report = await api.getReportById(reportId);
-        setReport(report);
-        setError(null);
-        
-        // Initialize PDF status
-        if (report.pdfUrl === 'pending') {
-          startPollingPdfStatus(reportId);
-        } else if (report.pdfUrl === 'failed') {
-          setPdfStatus('failed');
-        } else {
-          setPdfStatus('completed');
-        }
-      } catch (error) {
-        setError('Failed to load report');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (reportId) fetchReport();
-  }, [reportId]);
-  
-  // PDF status polling function
-  const startPollingPdfStatus = useCallback((reportId) => {
-    // Implementation...
-  }, []);
-  
-  return {
-    report,
-    loading,
-    error,
-    pdfStatus,
-    pdfProgress,
-    formatDate: (date) => new Date(date).toLocaleDateString()
-  };
-};
+1. Moved the `useReportData` hook to the centralized `/src/hooks` directory:
+   - Handles data fetching, state management, and PDF status polling 
+   - Encapsulates all API interactions in a reusable hook
+   - Provides a clean interface for the component to use
 
-// 2. Update the component to use the hook
-// frontend/src/components/ViewReport/ViewReportComponent.js
-const ViewReportComponent = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { report, loading, error, pdfStatus, pdfProgress, formatDate } = useReportData(id);
-  
-  const handleNavigateBack = () => {
-    navigate('/dashboard');
-  };
-  
-  return (
-    <ViewReportComponentTemplate
-      loading={loading}
-      error={error}
-      report={report}
-      pdfStatus={pdfStatus}
-      pdfProgress={pdfProgress}
-      formatDate={formatDate}
-      handleNavigateBack={handleNavigateBack}
-    />
-  );
-};
-```
+2. Updated imports to use the hooks directory:
+   - Component imports `useReportData` from the centralized hooks folder
+   - Maintains consistency with the established pattern
 
-### ✅ CreateReportModal Refactor (COMPLETED)
+### ✅ ViewCommitsModal Refactor (COMPLETED)
 
-The CreateReportModal component has been refactored to improve separation of concerns:
+Created a specialized hook for managing commit selection in the ViewCommitsModal:
 
-1. Created specialized hooks:
-   - `useRepositorySearch`: Manages repository search with debouncing
-   - `useAuthorSelection`: Handles author fetching with caching
-   - `useDateRange`: Manages date range constraints and validation
-   - `useReportForm`: Main form logic using the specialized hooks
+1. Created `useCommitSelection` hook in the centralized hooks directory:
+   - Manages selected commits state 
+   - Handles user stats fetching
+   - Controls commit expansion for diff viewing
+   - Implements report generation logic
 
-2. Moved all hooks to a centralized `/src/hooks` directory:
-   - Improves discoverability and maintainability
-   - Allows for easier reuse across components
-   - Provides a clean export interface through `hooks/index.js`
+2. Simplified the ViewCommitsModal component:
+   - Reduced from ~100 lines to ~30 lines of code
+   - Focused on rendering the template with props
+   - Improved maintainability and testability
 
-3. Each hook has a single responsibility:
-   - Data fetching
-   - State management
-   - Validation
-   - API interaction
+### ✅ DashboardComponent Refactor (COMPLETED)
 
-This refactoring pattern should be applied to other complex components in the application to ensure consistent code organization and maintainability.
+Extracted business logic from the Dashboard component into a dedicated hook:
 
-### Backend Service Refactoring
+1. Created `useDashboard` hook in the centralized hooks directory:
+   - Handles report fetching and state
+   - Manages deletion flow with confirmation 
+   - Provides formatted dates and navigation
 
-Refactor OpenAIService to separate concerns:
+2. Simplified the Dashboard component:
+   - Reduced to a thin wrapper around the template
+   - Only passes props from hook to template
+   - Consistent with the established pattern
 
-```javascript
-// Split into API client and business logic
+All hooks are now centralized in a dedicated `/src/hooks` directory with:
+- Clear namings and exports
+- Comprehensive documentation
+- Focused responsibilities
+- Centralized index.js for easy imports
 
-// backend/services/OpenAI/OpenAIClient.js
-const { OpenAI } = require('openai');
-
-class OpenAIClient {
-  constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
-  }
-  
-  async createChatCompletion(messages, options = {}) {
-    try {
-      const response = await this.client.chat.completions.create({
-        model: options.model || process.env.OPENAI_MODEL || 'gpt-4o',
-        messages,
-        maxTokens: options.maxTokens,
-        temperature: options.temperature || 0.7
-      });
-      
-      return {
-        content: response.choices[0].message.content,
-        usage: response.usage,
-        model: response.model
-      };
-    } catch (error) {
-      console.error('OpenAI API error:', error);
-      throw new Error(`OpenAI API error: ${error.message}`);
-    }
-  }
-}
-
-module.exports = new OpenAIClient();
-
-// backend/services/OpenAI/CommitAnalysisService.js
-const openAIClient = require('./OpenAIClient');
-const { getCommitSummaryPrompt } = require('../../templates/commitSummaryPrompt');
-const CommitSummary = require('../../models/CommitSummary');
-
-class CommitAnalysisService {
-  async analyzeCommit(commit, repository, trackTokens = true) {
-    // Implementation...
-  }
-  
-  async getOrCreateCommitSummary(commit, repository, trackTokens = true) {
-    // Implementation...
-  }
-}
-
-module.exports = new CommitAnalysisService();
-
-// backend/services/OpenAI/ReportGenerationService.js
-const openAIClient = require('./OpenAIClient');
-const { getReportPrompt } = require('../../templates/reportPrompt');
-
-class ReportGenerationService {
-  async generateReportFromCommits(options) {
-    // Implementation...
-  }
-}
-
-module.exports = new ReportGenerationService();
-
-// backend/services/OpenAI/index.js
-const OpenAIClient = require('./OpenAIClient');
-const CommitAnalysisService = require('./CommitAnalysisService');
-const ReportGenerationService = require('./ReportGenerationService');
-
-module.exports = {
-  OpenAIClient,
-  CommitAnalysisService,
-  ReportGenerationService
-};
-```
+This refactoring significantly improves the maintainability and organization of the codebase by consistently applying the separation of concerns pattern across all major components.
 
 ## Technical Debt
 
