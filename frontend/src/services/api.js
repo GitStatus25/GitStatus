@@ -13,7 +13,14 @@ axios.interceptors.request.use(
     const stateChangingMethods = ['post', 'put', 'delete', 'patch'];
     
     if (stateChangingMethods.includes(config.method)) {
-      // Add CSRF token to headers
+      console.log(`Adding CSRF token to ${config.method.toUpperCase()} request: ${config.url}`);
+      
+      // Always fetch a fresh token for state-changing requests
+      const { fetchCsrfToken } = await import('../utils/csrf');
+      await fetchCsrfToken();
+      
+      // Add CSRF token to headers with force refresh
+      const { addCsrfToken } = await import('../utils/csrf');
       const headers = await addCsrfToken(config.headers);
       config.headers = headers;
     }

@@ -5,6 +5,8 @@
 
 // Store token in memory
 let csrfToken = null;
+let tokenTimestamp = 0;
+const TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 /**
  * Fetch a CSRF token from the server
@@ -12,8 +14,10 @@ let csrfToken = null;
  */
 export const fetchCsrfToken = async () => {
   try {
+    console.log('Fetching fresh CSRF token');
     const response = await fetch('/api/csrf-token', {
       credentials: 'include', // Important: include cookies
+      cache: 'no-store', // Prevent caching
     });
     
     if (!response.ok) {
@@ -22,6 +26,8 @@ export const fetchCsrfToken = async () => {
     
     const data = await response.json();
     csrfToken = data.csrfToken;
+    tokenTimestamp = Date.now();
+    console.log('New CSRF token received');
     return csrfToken;
   } catch (error) {
     console.error('Error fetching CSRF token:', error);
@@ -31,22 +37,31 @@ export const fetchCsrfToken = async () => {
 
 /**
  * Get the current CSRF token, fetching a new one if necessary
+ * @param {boolean} forceRefresh - Force a token refresh
  * @returns {Promise<string>} The CSRF token
  */
-export const getCsrfToken = async () => {
-  if (!csrfToken) {
+export const getCsrfToken = async (forceRefresh = false) => {
+  const tokenAge = Date.now() - tokenTimestamp;
+  
+  // Fetch a new token if any of these conditions are true:
+  // 1. No token exists
+  // 2. Token is expired
+  // 3. Force refresh is requested
+  if (!csrfToken || tokenAge > TOKEN_EXPIRY || forceRefresh) {
     return fetchCsrfToken();
   }
+  
   return csrfToken;
 };
 
 /**
  * Add CSRF token to the provided headers object
  * @param {Object} headers - Headers object to add the token to
+ * @param {boolean} forceRefresh - Force a token refresh
  * @returns {Promise<Object>} Headers object with CSRF token
  */
-export const addCsrfToken = async (headers = {}) => {
-  const token = await getCsrfToken();
+export const addCsrfToken = async (headers = {}, forceRefresh = false) => {
+  const token = await getCsrfToken(forceRefresh);
   return {
     ...headers,
     'csrf-token': token,
@@ -68,7 +83,8 @@ export const fetchWithCsrf = async (url, options = {}) => {
   
   let requestHeaders = headers;
   if (stateChangingMethods.includes(method.toUpperCase())) {
-    requestHeaders = await addCsrfToken(headers);
+    // Always get a fresh token for state-changing methods
+    requestHeaders = await addCsrfToken(headers, true);
   }
   
   return fetch(url, {
