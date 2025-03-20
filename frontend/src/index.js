@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { setup } from 'goober';
+import './suppressWarnings';
 
 // Setup goober for React
 setup(React.createElement);

@@ -3,10 +3,14 @@
  * 
  * Handles background job processing using Bull queue
  */
-const Bull = require('bull');
-const { _generatePDF } = require('./pdf/PDFJobProcessor');
+const Bull = require('bull'); 
 const S3Service = require('./S3Service');
 const Report = require('../models/Report');
+// Import PDFService dynamically to avoid circular dependency
+let PDFService; 
+setTimeout(() => {
+  PDFService = require('./PDFService');
+}, 0);
 
 // Create Redis connection configuration
 const redisConfig = {
@@ -30,7 +34,7 @@ pdfQueue.process(async (job) => {
     await job.progress(10);
     
     // Generate PDF
-    const pdfBuffer = await _generatePDF(options);
+    const pdfBuffer = await PDFService._generatePDF(options);
     
     await job.progress(50);
     
