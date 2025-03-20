@@ -114,10 +114,18 @@ const getCommitInfoValidation = [
   body('commitIds')
     .notEmpty().withMessage('Commit IDs are required')
     .isArray().withMessage('Commit IDs must be an array')
-    .custom(value => {
+    .custom(async (value, { req }) => {
       if (value.length === 0) {
         throw new Error('At least one commit ID is required');
       }
+      
+      // This validation is just a preliminary check
+      // The actual enforcement of user-specific limits is handled in rateLimiter middleware
+      // which will have access to the user's plan and limits
+      if (value.length > 10000) { // Set an absolute upper limit for safety
+        throw new Error('Request exceeds maximum allowed commits');
+      }
+      
       return true;
     }),
   

@@ -17,6 +17,7 @@ const {
   cleanupReportsCacheValidation,
   cleanupInvalidReportsValidation
 } = require('../middleware/validationMiddleware');
+const rateLimiter = require('../middleware/rateLimiter');
 
 // Get reports for a user
 router.get('/', isAuthenticated, getReportsValidation, ReportViewController.getReports);
@@ -25,7 +26,7 @@ router.get('/', isAuthenticated, getReportsValidation, ReportViewController.getR
 router.post('/', isAuthenticated, generateReportValidation, ReportGenerationController.generateReport);
 
 // Get commit info with branch details
-router.post('/commit-info', isAuthenticated, getCommitInfoValidation, ReportGenerationController.getCommitInfo);
+router.post('/commit-info', isAuthenticated, getCommitInfoValidation, rateLimiter.checkCommitLimit, ReportGenerationController.getCommitInfo);
 
 // Cleanup invalid reports
 router.post('/cleanup', isAuthenticated, cleanupInvalidReportsValidation, ReportManagementController.cleanupInvalidReports);
