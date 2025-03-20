@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UsageStatsController = require('../controllers/UsageStatsController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, isAdmin } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
 router.use(authenticate);
@@ -13,6 +13,6 @@ router.get('/user', UsageStatsController.getUserStats);
 router.get('/check-limit', UsageStatsController.checkReportLimit);
 
 // Get admin analytics dashboard data (admin only)
-router.get('/admin', UsageStatsController.getAdminStats);
+router.get('/admin', isAdmin, UsageStatsController.getAdminStats);
 
 module.exports = router;

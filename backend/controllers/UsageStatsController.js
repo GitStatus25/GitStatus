@@ -50,14 +50,7 @@ class UsageStatsController {
    */
   static async getAdminStats(req, res, next) {
     try {
-      // Check if user is admin
-      const userId = req.user.id;
-      const user = await User.findById(userId);
-      
-      if (!user || user.role !== 'admin') {
-        throw new AuthorizationError('Access denied. Admin privileges required.');
-      }
-      
+      // Admin check is now handled by isAdmin middleware
       const stats = await UsageAnalyticsService.getAdminAnalytics();
       
       res.status(200).json({
