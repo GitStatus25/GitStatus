@@ -6,6 +6,7 @@
 const Bull = require('bull'); 
 const S3Service = require('./S3Service');
 const Report = require('../models/Report');
+const fs = require('fs').promises;
 // Import PDFService dynamically to avoid circular dependency
 let PDFService; 
 setTimeout(() => {
@@ -38,10 +39,14 @@ pdfQueue.process(async (job) => {
     
     await job.progress(50);
     
+    // Write the PDF buffer to a temporary file
+    const tempFilePath = `/tmp/report-${reportId}.pdf`;
+    await fs.writeFile(tempFilePath, pdfBuffer);
+    
     // Upload PDF to S3
     const pdfUrl = await S3Service.uploadFile({
-      fileName: `report-${reportId}.pdf`,
-      fileContent: pdfBuffer,
+      filePath: tempFilePath,
+      key: `reports/${reportId}.pdf`,
       contentType: 'application/pdf'
     }).then(res => res.key);
     
