@@ -22,6 +22,35 @@ const useCommitSelection = () => {
   const [expandedFiles, setExpandedFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [commitsData, setCommitsData] = useState(null);
+  const [loadingCommits, setLoadingCommits] = useState(true);
+
+  // Fetch commits when component mounts
+  useEffect(() => {
+    const fetchFilteredCommits = async () => {
+      try {
+        const response = await api.getCommitsByFilters({
+          repository: reportData.repository,
+          branches: reportData.branches.map(branch => 
+            typeof branch === 'object' ? branch.name : branch
+          ),
+          authors: reportData.authors,
+          startDate: reportData.startDate ? reportData.startDate.toISOString() : null,
+          endDate: reportData.endDate ? reportData.endDate.toISOString() : null
+        });
+        setCommitsData(response.data);
+      } catch (err) {
+        console.error('Error fetching commits:', err);
+        setError('Failed to load commits. Please try again.');
+      } finally {
+        setLoadingCommits(false);
+      }
+    };
+
+    if (viewCommitsOpen) {
+      fetchFilteredCommits();
+    }
+  }, [viewCommitsOpen]);
 
   // Toggle a commit's selection status
   const toggleCommitSelection = (commitSha) => {
@@ -119,6 +148,8 @@ const useCommitSelection = () => {
     expandedFiles,
     loading,
     error,
+    commitsData,
+    loadingCommits,
     
     // Handlers
     toggleCommitSelection,
