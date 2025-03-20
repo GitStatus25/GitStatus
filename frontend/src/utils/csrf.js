@@ -64,7 +64,9 @@ export const addCsrfToken = async (headers = {}, forceRefresh = false) => {
   const token = await getCsrfToken(forceRefresh);
   return {
     ...headers,
-    'csrf-token': token,
+    // Try both header formats to ensure compatibility
+    'x-csrf-token': token,
+    'csrf-token': token
   };
 };
 
