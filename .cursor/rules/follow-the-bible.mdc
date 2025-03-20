@@ -3,8 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-[BIBLE.md](mdc:BIBLE.md) is your BIBLE.
-Follow every rule in the BIBLE to maintain a clean code base.
-
-[APP_DOCS.md](mdc:APP_DOCS.md) contain a general documentation structure for the application. Use this doc as your guide. Also keep this doc updated AT ALL TIMES.
-If you add documentation elsewhere (like in {backend,frontend}/docs), REFERENCE THE DOCS IN [APP_DOCS.md](mdc:APP_DOCS.md)
+Whenever we're making changes always follow the rules outlining whichever section we're making changes in.
+Frontend changes follow the [frontend_rules.md](mdc:frontend/frontend_rules.md)
+Backend changes follow the [backend_rules.md](mdc:backend/backend_rules.md)
+If there is a route mismatch between frontend and backend always try to make the frontend match the route expected by back end, NOT the other way around.

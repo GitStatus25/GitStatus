@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const UsageStats = require('./UsageStats');
 
 const UserSchema = new mongoose.Schema({
   githubId: {
