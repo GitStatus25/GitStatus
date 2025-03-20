@@ -93,15 +93,24 @@ export const useReportData = (reportId) => {
 
   // PDF status polling function
   const checkPdfStatus = useCallback(async () => {
-    if (!reportId || !report || (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed')) {
-      // If we have a complete PDF URL, no need to poll
+    if (!reportId || !report) {
+      clearInterval(pdfPollInterval);
+      setPdfPollInterval(null);
+      return;
+    }
+
+    // If we already have a completed PDF URL, stop polling
+    if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
+      console.log('PDF already completed, stopping polling');
       clearInterval(pdfPollInterval);
       setPdfPollInterval(null);
       return;
     }
 
     try {
+      console.log('Checking PDF status for report:', reportId);
       const statusResponse = await api.getPdfStatus(reportId);
+      console.log('PDF status response:', statusResponse);
       
       setPdfStatus(statusResponse.status);
       if (statusResponse.progress) {
@@ -110,6 +119,7 @@ export const useReportData = (reportId) => {
       
       // If complete or failed, stop polling
       if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
+        console.log(`PDF generation ${statusResponse.status}, stopping polling`);
         clearInterval(pdfPollInterval);
         setPdfPollInterval(null);
         
@@ -117,8 +127,17 @@ export const useReportData = (reportId) => {
         if (statusResponse.status === 'completed' && statusResponse.viewUrl && statusResponse.downloadUrl) {
           setReport(prev => ({
             ...prev,
+            pdfUrl: statusResponse.pdfUrl || prev.pdfUrl,
             viewUrl: statusResponse.viewUrl,
             downloadUrl: statusResponse.downloadUrl
+          }));
+        }
+        
+        // Update the report's PDF URL if it's completed but not reflected in report yet
+        if (statusResponse.status === 'completed' && statusResponse.pdfUrl && report.pdfUrl === 'pending') {
+          setReport(prev => ({
+            ...prev,
+            pdfUrl: statusResponse.pdfUrl
           }));
         }
       }
@@ -131,12 +150,21 @@ export const useReportData = (reportId) => {
   useEffect(() => {
     // Start polling when component mounts and we have an ID
     if (reportId && report && !pdfPollInterval && (report.pdfUrl === 'pending' || report.pdfJobId)) {
+      console.log('Starting PDF status polling for report:', reportId);
+      
       // Check immediately
       checkPdfStatus();
       
       // Then set up interval (every 3 seconds)
       const interval = setInterval(checkPdfStatus, 3000);
       setPdfPollInterval(interval);
+    } else if (reportId && report && report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
+      // If we already have a completed PDF URL, make sure we're not polling
+      console.log('PDF already completed, no polling needed');
+      if (pdfPollInterval) {
+        clearInterval(pdfPollInterval);
+        setPdfPollInterval(null);
+      }
     }
 
     // Clean up interval on unmount
