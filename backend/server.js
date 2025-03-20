@@ -67,9 +67,8 @@ app.use(helmet());
 // Rate limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  // TODO: Re-enable proper rate limiting before deployment.
-  // Temporarily increased for development to avoid network errors.
-  max: 1000, // Increased from 100 to 1000 for development
+  // Use environment variable with fallback values based on environment
+  max: process.env.RATE_LIMIT_MAX || (process.env.NODE_ENV === 'production' ? 100 : 1000),
   message: 'Too many requests from this IP, please try again later',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
