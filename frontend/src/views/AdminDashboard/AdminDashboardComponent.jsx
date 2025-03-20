@@ -132,7 +132,7 @@ const AdminDashboardComponent = ({
                 System Overview
               </Typography>
               <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -144,7 +144,7 @@ const AdminDashboardComponent = ({
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
@@ -156,14 +156,26 @@ const AdminDashboardComponent = ({
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        API Requests (24h)
+                        Reports (24h)
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.apiRequests24h}
+                        {analytics.reports24h || 0}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Commits (24h)
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.commits24h?.[0]?.totalCommits || 0}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -186,38 +198,86 @@ const AdminDashboardComponent = ({
                 Token Usage
               </Typography>
               <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Input Tokens
+                        Input Tokens (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.inputTokens || 0}
+                        {analytics.inputTokens?.toLocaleString() || 0}
                       </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Output Tokens
+                        Output Tokens (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.outputTokens || 0}
+                        {analytics.outputTokens?.toLocaleString() || 0}
                       </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={4}>
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Estimated Cost
+                        Monthly Tokens (Current Month)
                       </Typography>
                       <Typography variant="h4">
-                        ${analytics.estimatedCost || 0}
+                        {analytics.monthlyTokens?.toLocaleString() || 0}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              <Typography variant="h5" component="h2" gutterBottom>
+                Cost Analysis
+              </Typography>
+              <Grid container spacing={3} sx={{ mb: 4 }}>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Input Cost
+                      </Typography>
+                      <Typography variant="h4">
+                        ${analytics.inputCost?.toFixed(2) || '0.00'}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        ${(analytics.inputTokens / 1000 * 0.01).toFixed(4)}/1K tokens
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Output Cost
+                      </Typography>
+                      <Typography variant="h4">
+                        ${analytics.outputCost?.toFixed(2) || '0.00'}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        ${(analytics.outputTokens / 1000 * 0.03).toFixed(4)}/1K tokens
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Total Cost
+                      </Typography>
+                      <Typography variant="h4">
+                        ${analytics.estimatedCost || '0.00'}
                       </Typography>
                     </CardContent>
                   </Card>
