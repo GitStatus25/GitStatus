@@ -484,8 +484,8 @@ const api = {
 
   /**
    * Update user role (admin only)
-   * @param {string} userId - The user ID
-   * @param {string} role - The new role ('user' or 'admin')
+   * @param {string} userId - User ID
+   * @param {string} role - New role (user/admin)
    * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
    */
   updateUserRole: async (userId, role, signal) => {
@@ -503,7 +503,7 @@ const api = {
   },
 
   /**
-   * Get admin analytics (admin only)
+   * Get admin analytics data
    * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
    */
   getAdminAnalytics: async (signal) => {
@@ -576,9 +576,78 @@ const api = {
   },
 
   // Plan management
-  getPlans: (signal) => axios.get('/api/plans', { signal }).then(response => response.data),
-  updatePlanLimits: (planId, limits, signal) => 
-    axios.put(`/api/plans/${planId}/limits`, { limits }, { signal }).then(response => response.data),
+  getPlans: async (signal) => {
+    try {
+      const response = await axios.get('/api/admin/plans', { signal });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        return { canceled: true };
+      }
+      console.error('Error fetching plans:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user plan (admin only)
+   * @param {string} userId - User ID
+   * @param {string} plan - New plan (free/professional/enterprise)
+   * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
+   */
+  updateUserPlan: async (userId, plan, signal) => {
+    try {
+      const response = await axios.put(`/api/admin/users/${userId}/plan`, { plan }, { signal });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        return { canceled: true };
+      }
+      console.error('Error updating user plan:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a new plan (admin only)
+   * @param {Object} planData - Plan data 
+   * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
+   */
+  createPlan: async (planData, signal) => {
+    try {
+      const response = await axios.post('/api/admin/plans', planData, { signal });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        return { canceled: true };
+      }
+      console.error('Error creating plan:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update an existing plan (admin only)
+   * @param {string} planId - Plan ID
+   * @param {Object} planData - Updated plan data
+   * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
+   */
+  updatePlan: async (planId, planData, signal) => {
+    try {
+      const response = await axios.put(`/api/admin/plans/${planId}`, planData, { signal });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        return { canceled: true };
+      }
+      console.error('Error updating plan:', error);
+      throw error;
+    }
+  },
 
   /**
    * Get PDF generation status
