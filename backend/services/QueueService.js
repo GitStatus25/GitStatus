@@ -7,11 +7,8 @@ const Bull = require('bull');
 const S3Service = require('./S3Service');
 const Report = require('../models/Report');
 const fs = require('fs').promises;
-// Import PDFService dynamically to avoid circular dependency
-let PDFService; 
-setTimeout(() => {
-  PDFService = require('./PDFService');
-}, 0);
+// Will be loaded lazily to avoid circular dependency
+let PDFService;
 
 // Create Redis connection configuration
 const redisConfig = {
@@ -33,6 +30,11 @@ pdfQueue.process(async (job) => {
     
     // Update job progress
     await job.progress(10);
+    
+    // Lazy load PDFService to avoid circular dependency
+    if (!PDFService) {
+      PDFService = require('./PDFService');
+    }
     
     // Generate PDF
     const pdfBuffer = await PDFService._generatePDF(options);
