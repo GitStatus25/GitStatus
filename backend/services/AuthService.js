@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const PlanService = require('./planService');
+const PlanService = require('./PlanService');
 
 class AuthService {
   /**

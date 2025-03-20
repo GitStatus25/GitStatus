@@ -1,7 +1,7 @@
 const Report = require('../../models/Report');
-const s3Service = require('../../services/s3');
-const reportService = require('../../services/reportService');
-const { NotFoundError, ValidationError } = require('../../utils/errors');
+const S3Service = require('../../services/S3Service');
+const ReportService = require('../../services/ReportService');
+const { ValidationError } = require('../../utils/errors');
 
 /**
  * Delete a report
@@ -12,7 +12,7 @@ exports.deleteReport = async (req, res, next) => {
     const { confirmationName } = req.body;
     
     // Find the report
-    const report = await reportService.getReportById(id, req.user.id);
+    const report = await ReportService.getReportById(id, req.user.id);
     
     // Verify confirmation name matches
     if (!confirmationName || confirmationName !== report.name) {
@@ -22,7 +22,7 @@ exports.deleteReport = async (req, res, next) => {
     // Delete PDF from S3 if it exists
     if (report.pdfUrl && report.pdfUrl !== 'pending') {
       try {
-        await s3Service.deleteObject(report.pdfUrl);
+        await S3Service.deleteObject(report.pdfUrl);
         console.log(`Deleted PDF from S3: ${report.pdfUrl}`);
       } catch (s3Error) {
         console.error(`Error deleting PDF from S3: ${report.pdfUrl}`, s3Error);
@@ -78,7 +78,7 @@ exports.cleanupInvalidReports = async (req, res, next) => {
           console.log(`Deleted pending report ${report.id}`);
         } else {
           // Check if PDF file exists in S3
-          const exists = await s3Service.objectExists(report.pdfUrl);
+          const exists = await S3Service.objectExists(report.pdfUrl);
           
           if (!exists) {
             stats.invalid++;

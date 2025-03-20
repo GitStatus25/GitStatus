@@ -1,8 +1,8 @@
 import React from 'react';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
-import './AuthCallbackPage.css';
+import './AuthCallbackComponent.css';
 
-const AuthCallbackPageTemplate = ({ error }) => {
+const AuthCallbackComponentTemplate = ({ error }) => {
   return (
     <Box
       className="auth-callback-container"
@@ -31,4 +31,4 @@ const AuthCallbackPageTemplate = ({ error }) => {
   );
 };
 
-export default AuthCallbackPageTemplate;
+export default AuthCallbackComponentTemplate;

@@ -1,1 +1,1 @@
-export { default } from './ViewCommitsModalComponent';
+export { default } from './ViewCommitsModal';

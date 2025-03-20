@@ -1,8 +1,8 @@
 import React from 'react';
 import { CircularProgress, Box } from '@mui/material';
-import './CreateReportPage.css';
+import './CreateReportComponent.css';
 
-const CreateReportPageTemplate = () => {
+const CreateReportComponentTemplate = () => {
   return (
     <Box className="loading-container">
       <CircularProgress />
@@ -10,4 +10,4 @@ const CreateReportPageTemplate = () => {
   );
 };
 
-export default CreateReportPageTemplate;
+export default CreateReportComponentTemplate;

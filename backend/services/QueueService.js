@@ -4,8 +4,8 @@
  * Handles background job processing using Bull queue
  */
 const Bull = require('bull');
-const { _generatePDF } = require('./pdf');
-const s3Service = require('./s3');
+const { _generatePDF } = require('./pdf/PDFJobProcessor');
+const S3Service = require('./S3Service');
 const Report = require('../models/Report');
 
 // Create Redis connection configuration
@@ -35,7 +35,7 @@ pdfQueue.process(async (job) => {
     await job.progress(50);
     
     // Upload PDF to S3
-    const pdfUrl = await s3Service.uploadFile({
+    const pdfUrl = await S3Service.uploadFile({
       fileName: `report-${reportId}.pdf`,
       fileContent: pdfBuffer,
       contentType: 'application/pdf'

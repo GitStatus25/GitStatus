@@ -104,12 +104,6 @@ const useCommitSelection = () => {
       setLoading(true);
       setError(null);
 
-      // First get detailed commit info including branch details
-      const commitsWithInfo = await api.getCommitInfo({
-        repository: reportData.repository,
-        commitIds: selectedCommits
-      });
-
       // Generate report with selected commits
       const reportParams = {
         repository: reportData.repository,

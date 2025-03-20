@@ -1,5 +1,5 @@
 const Report = require('../../models/Report');
-const reportService = require('../../services/reportService');
+const ReportService = require('../../services/ReportService');
 const { NotFoundError } = require('../../utils/errors');
 
 /**
@@ -16,13 +16,13 @@ exports.getReports = async (req, res) => {
         
         if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
           try {
-            downloadUrl = await reportService.generateReportUrls(report);
+            downloadUrl = await ReportService.generateReportUrls(report);
           } catch (error) {
             console.error(`Error getting download URL for report ${report.id}:`, error);
           }
         }
         
-        return reportService.formatReportResponse(report, { downloadUrl });
+        return ReportService.formatReportResponse(report, { downloadUrl });
       })
     );
     
@@ -38,16 +38,16 @@ exports.getReports = async (req, res) => {
  */
 exports.getReportById = async (req, res) => {
   try {
-    const report = await reportService.getReportById(req.params.id, req.user.id);
+    const report = await ReportService.getReportById(req.params.id, req.user.id);
     
     // Update access stats
-    await reportService.updateReportAccessStats(report);
+    await ReportService.updateReportAccessStats(report);
     
     // Generate pre-signed URLs for viewing and downloading
-    const urls = await reportService.generateReportUrls(report);
+    const urls = await ReportService.generateReportUrls(report);
     
     // Return formatted report
-    res.json(reportService.formatReportResponse(report, urls));
+    res.json(ReportService.formatReportResponse(report, urls));
   } catch (error) {
     console.error('Error fetching report:', error);
     if (error instanceof NotFoundError) {

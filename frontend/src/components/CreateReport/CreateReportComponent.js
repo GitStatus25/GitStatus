@@ -1,23 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useModal } from '../../contexts/ModalContext.js';
-import CreateReportPageTemplate from './CreateReportPage.jsx';
+import useModalStore from '../../store/modalStore';
+import CreateReportComponentTemplate from './CreateReportComponent.jsx';
 
 /**
  * CreateReport page - Redirects to dashboard and opens the CreateReport modal
  */
-const CreateReportPage = () => {
+const CreateReportComponent = () => {
   const navigate = useNavigate();
-  const { openCreateReportModal } = useModal();
+  const { openModal } = useModalStore();
 
   useEffect(() => {
     // Open the modal and redirect to dashboard
-    openCreateReportModal();
+    openModal('createReport');
     navigate('/dashboard');
-  }, [navigate, openCreateReportModal]);
+  }, [navigate, openModal]);
 
   // Show loading spinner while redirecting
-  return <CreateReportPageTemplate />;
+  return <CreateReportComponentTemplate />;
 };
 
-export default CreateReportPage;
+export default CreateReportComponent;

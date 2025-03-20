@@ -1,8 +1,7 @@
 const Report = require('../models/Report');
-const s3Service = require('./s3');
+const S3Service = require('./S3Service');
 const crypto = require('crypto');
 const { NotFoundError } = require('../utils/errors');
-const pdfJobProcessor = require('./pdf/PDFJobProcessor');
 
 /**
  * Generate a hash from an array of commit IDs
@@ -90,8 +89,8 @@ const generateReportUrls = async (report) => {
   }
 
   const [viewUrl, downloadUrl] = await Promise.all([
-    s3Service.getSignedUrl(report.pdfUrl),
-    s3Service.getDownloadUrl(
+    S3Service.getSignedUrl(report.pdfUrl),
+    S3Service.getDownloadUrl(
       report.pdfUrl,
       `${report.name.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.pdf`
     )

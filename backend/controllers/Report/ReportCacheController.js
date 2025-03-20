@@ -1,5 +1,5 @@
 const Report = require('../../models/Report');
-const s3Service = require('../../services/s3');
+const S3Service = require('../../services/S3Service');
 
 /**
  * Get report cache statistics
@@ -68,7 +68,7 @@ exports.cleanupReportsCache = async (req, res) => {
       try {
         // Delete from S3 if it's not 'pending'
         if (report.pdfUrl && report.pdfUrl !== 'pending') {
-          await s3Service.deleteObject(report.pdfUrl);
+          await S3Service.deleteObject(report.pdfUrl);
           s3DeletedCount++;
         }
         

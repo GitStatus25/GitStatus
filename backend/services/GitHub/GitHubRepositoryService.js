@@ -7,7 +7,7 @@ const {
   ExternalServiceError, 
   AuthenticationError,
   ValidationError
-} = require('../utils/errors');
+} = require('../../utils/errors');
 
 /**
  * Service for repository-related GitHub API operations

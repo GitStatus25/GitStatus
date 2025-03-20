@@ -15,7 +15,7 @@ const usageStatsRoutes = require('./routes/UsageStatsRoutes');
 const adminRoutes = require('./routes/AdminRoutes');
 const planRoutes = require('./routes/PlanRoutes');
 const commitSummaryRoutes = require('./routes/CommitSummaryRoutes');
-const PlanService = require('./services/planService');
+const PlanService = require('./services/PlanService');
 const dbService = require('./services/database/mongoConnection');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('./config/passport');
@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 5000;
     console.log('Plan initialization complete');
     
     // Run scheduled queue cleanup (once a day)
-    const queueService = require('./services/queue');
+    const queueService = require('./services/QueueService');
     setInterval(async () => {
       try {
         await queueService.cleanupJobs();

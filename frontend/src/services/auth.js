@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { AuthContext } from '../contexts/AuthContext';
 
 /**
  * Auth service to handle authentication related operations

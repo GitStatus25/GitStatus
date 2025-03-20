@@ -1,13 +1,10 @@
 const Report = require('../../models/Report');
-const githubService = require('../../services/github');
-const openaiService = require('../../services/openai');
-const pdfService = require('../../services/pdf');
-const s3Service = require('../../services/s3');
-const reportService = require('../../services/reportService');
+const { GitHubCommitService, GitHubBranchService } = require('../../services/GitHub');
+const OpenAIService = require('../../services/OpenAIService');
+const S3Service = require('../../services/S3Service');
 const { ReportUsageTrackerService, CommitUsageTrackerService, TokenUsageTrackerService } = require('../../services/UsageStats');
 const User = require('../../models/User');
-const { NotFoundError, ValidationError } = require('../../utils/errors');
-const pdfJobProcessor = require('../../services/pdf/PDFJobProcessor');
+const { NotFoundError } = require('../../utils/errors');
 
 /**
  * Generate a report based on selected commit IDs
@@ -37,7 +34,7 @@ exports.generateReport = async (req, res) => {
     }
     
     // Fetch commit details
-    const commits = await githubService.getCommitsByIds({
+    const commits = await GitHubCommitService.getCommitsByIds({
       accessToken,
       repository,
       commitIds
@@ -91,7 +88,7 @@ exports.generateReport = async (req, res) => {
     let modelName = 'gpt-4';
     
     // Generate report content
-    const reportContent = await openaiService.generateReportFromCommits({
+    const reportContent = await OpenAIService.generateReportFromCommits({
       repository,
       commits,
       title,
@@ -187,7 +184,7 @@ exports.getCommitInfo = async (req, res) => {
     }
 
     const accessToken = req.user.accessToken;
-    const commits = await githubService.getCommitsByIds({
+    const commits = await GitHubCommitService.getCommitsByIds({
       accessToken,
       repository,
       commitIds
@@ -196,7 +193,7 @@ exports.getCommitInfo = async (req, res) => {
     // Get branch information for each commit
     const commitsWithBranches = await Promise.all(commits.map(async (commit) => {
       try {
-        const branches = await githubService.getBranchesForCommit({
+        const branches = await GitHubBranchService.getBranchesForCommit({
           accessToken,
           repository,
           commitSha: commit.sha
@@ -345,7 +342,7 @@ async function handleReportGenerationError(error, report) {
         if (existingReport.pdfUrl === 'pending') {
           await Report.findByIdAndDelete(report.id);
         } else {
-          const pdfExists = await s3Service.objectExists(existingReport.pdfUrl);
+          const pdfExists = await S3Service.objectExists(existingReport.pdfUrl);
           if (!pdfExists) {
             await Report.findByIdAndDelete(report.id);
           }

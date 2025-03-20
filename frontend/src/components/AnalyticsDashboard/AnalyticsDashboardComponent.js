@@ -3,14 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
 import AnalyticsDashboardComponentTemplate from './AnalyticsDashboardComponent.jsx';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuthStore from '../../store/authStore';
 import api from '../../services/api';
 
 const AnalyticsDashboardComponent = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuthStore((state) => ({
+    user: state.user,
+    isAuthenticated: state.isAuthenticated, 
+    loading: state.loading
+  }));
   
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);

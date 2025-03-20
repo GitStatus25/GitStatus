@@ -4,7 +4,7 @@ const axios = require('axios');
 const { 
   NotFoundError, 
   ExternalServiceError
-} = require('../utils/errors');
+} = require('../../utils/errors');
 
 /**
  * Service for branch-related GitHub API operations
