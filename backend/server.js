@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
@@ -17,6 +16,7 @@ const adminRoutes = require('./routes/AdminRoutes');
 const planRoutes = require('./routes/PlanRoutes');
 const commitSummaryRoutes = require('./routes/CommitSummaryRoutes');
 const PlanService = require('./services/planService');
+const dbService = require('./services/database/mongoConnection');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('./config/passport');
 
@@ -26,6 +26,9 @@ const PORT = process.env.PORT || 5000;
 // Initialize services that need to be started with the app
 (async () => {
   try {
+    // Connect to MongoDB with our robust connection service
+    await dbService.connect();
+
     // Initialize default plan
     await PlanService.initializeDefaultPlan();
     console.log('Plan initialization complete');
@@ -42,6 +45,16 @@ const PORT = process.env.PORT || 5000;
     }, 24 * 60 * 60 * 1000); // Once a day
     
     console.log('Queue service initialized');
+    
+    // Schedule periodic database connection health checks
+    setInterval(async () => {
+      try {
+        await dbService.checkConnection();
+      } catch (error) {
+        console.error('Error checking database connection:', error);
+      }
+    }, 5 * 60 * 1000); // Every 5 minutes
+    
   } catch (error) {
     console.error('Error initializing services:', error);
     process.exit(1);
@@ -118,11 +131,6 @@ const csrfProtection = selectiveCsrfProtection(doubleCsrfProtection);
 app.get('/api/csrf-token', (req, res) => {
   res.json({ csrfToken: generateToken(req, res) });
 });
-
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gitstatus')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
 
 // Apply CSRF protection to all API routes that might have state-changing operations
 app.use('/api/auth', csrfProtection, authRoutes);
