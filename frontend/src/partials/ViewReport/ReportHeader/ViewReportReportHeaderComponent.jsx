@@ -3,14 +3,11 @@ import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Button,
-  Fade,
-  Zoom,
   useTheme,
   Typography
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  Download as DownloadIcon,
   Description as DescriptionIcon
 } from '@mui/icons-material';
 import './ViewReportReportHeaderComponent.css';

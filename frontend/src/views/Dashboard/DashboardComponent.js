@@ -1,7 +1,6 @@
 import React from 'react';
 import { useDashboard } from '../../hooks';
 import DashboardComponentTemplate from './DashboardComponent.jsx';
-import useAuthStore from '../../store/authStore';
 
 /**
  * Dashboard component - contains only business logic
@@ -23,8 +22,6 @@ const DashboardComponent = () => {
     setConfirmationName,
     openCreateReportModal
   } = useDashboard();
-
-  const { user, isAuthenticated, loading: authLoading } = useAuthStore();
 
   return (
     <DashboardComponentTemplate

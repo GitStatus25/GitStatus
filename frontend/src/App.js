@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -20,7 +20,7 @@ import useAuthStore from './store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 function App() {
   // Initialize auth store on app startup
-  const { initialize } = useAuthStore(useShallow(state => ({intialize: state.initialize})));
+  const { initialize } = useAuthStore(useShallow(state => ({initialize: state.initialize})));
   initialize();
 
   return (

@@ -5,14 +5,13 @@ import { useSnackbar } from 'notistack';
 import AnalyticsDashboardComponentTemplate from './AnalyticsDashboardComponent.jsx';
 import useAuthStore from '../../store/authStore';
 import useUserStats from '../../hooks/useUserStats';
-import api from '../../services/api';
 import { useShallow } from 'zustand/react/shallow';
 
 const AnalyticsDashboardComponent = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { user, isAuthenticated, loading: authLoading } = useAuthStore(useShallow(state => ({
+  const { isAuthenticated, loading: authLoading } = useAuthStore(useShallow(state => ({
     user: state.user,
     isAuthenticated: state.isAuthenticated, 
     loading: state.loading

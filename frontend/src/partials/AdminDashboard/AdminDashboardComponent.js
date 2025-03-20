@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext.js';
-import api from '../../../services/api.js';
+import api from '../../services/api.js';
 import AdminDashboardComponentTemplate from './AdminDashboardComponent.jsx';
 
 /**

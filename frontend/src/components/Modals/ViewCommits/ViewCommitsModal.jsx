@@ -25,7 +25,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CodeIcon from '@mui/icons-material/Code';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import DiffViewer from '../../PagePartials/DiffViewer';
+import DiffViewer from '../../../partials/DiffViewer';
 import './ViewCommitsModal.css';
 
 const ViewCommitsModalComponent = ({
@@ -82,7 +82,7 @@ const ViewCommitsModalComponent = ({
     if (!userStats?.plan?.limits || !userStats?.currentUsage) return null;
 
     const commitCount = selectedCommits.length;
-    const { commitsPerStandardReport, commitsPerLargeReport } = userStats.plan.limits;
+    const { commitsPerStandardReport } = userStats.plan.limits;
     const { reportsGenerated } = userStats.currentUsage;
 
     if (commitCount === 0) return null;

@@ -8,7 +8,8 @@ import { useShallow } from 'zustand/react/shallow';
 const PrivateRouteComponent = ({ children }) => {
   const { isAuthenticated, loading } = useAuthStore(useShallow(state => ({
     isAuthenticated: state.isAuthenticated,
-    loading: state.loading
+    loading: state.loading,
+    user: state.user
   })));
   
   // Show nothing while checking authentication status

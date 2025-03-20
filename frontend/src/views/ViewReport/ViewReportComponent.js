@@ -10,7 +10,7 @@ import ViewReportComponentTemplate from './ViewReportComponent.jsx';
 const ViewReportComponent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { report, loading, error, pdfStatus, pdfProgress, formatDate } = useReportData(id);
+  const { report, loading, error, pdfStatus, pdfProgress } = useReportData(id);
 
   const handleNavigateBack = () => {
     navigate('/dashboard');

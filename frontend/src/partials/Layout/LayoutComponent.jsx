@@ -3,7 +3,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import {
   AppBar,
   Box,
-  Button,
   Container,
   Drawer,
   IconButton,
@@ -17,7 +16,6 @@ import {
   Avatar,
   Tooltip,
   Fade,
-  Badge,
   Divider
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';

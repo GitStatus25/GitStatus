@@ -6,18 +6,16 @@ import {
   Button,
   CircularProgress,
   Fade,
-  Grid,
-  Typography,
-  Divider
+  Grid
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import Layout from '../PagePartials/Layout';
+import Layout from '../../partials/Layout';
 import {
   ViewReportReportHeaderComponent,
   ViewReportReportMetadataComponent,
   ViewReportCommitListComponent,
   ViewReportPDFPreviewComponent
-} from '../PagePartials/ViewReport';
+} from '../../partials/ViewReport';
 import './ViewReportComponent.css';
 
 const ViewReportComponentTemplate = ({
@@ -25,9 +23,7 @@ const ViewReportComponentTemplate = ({
   error,
   report,
   pdfStatus,
-  pdfProgress,
-  handleNavigateBack,
-  formatDate
+  pdfProgress
 }) => {
   if (loading) {
     return (

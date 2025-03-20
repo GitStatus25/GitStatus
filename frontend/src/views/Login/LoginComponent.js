@@ -10,7 +10,7 @@ import LoginComponentTemplate from './LoginComponent.jsx';
 const LoginComponent = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   // If already authenticated, redirect to dashboard
   React.useEffect(() => {

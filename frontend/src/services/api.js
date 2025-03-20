@@ -59,83 +59,6 @@ axios.interceptors.response.use(
   }
 );
 
-/**
- * Generic API request handler with standardized error handling
- * 
- * @param {Function} apiCall - The API call function to execute
- * @param {AbortController} [abortController] - Optional AbortController to handle request cancellation
- * @param {Function} [onProgress] - Optional callback for tracking request progress
- * @param {Function} [finallyCallback] - Optional callback that will always be called in the finally block
- * @returns {Promise} - Resolved with data or rejected with standardized error
- */
-const handleApiRequest = async (apiCall, abortController, onProgress, finallyCallback) => {
-  const requestState = {
-    startTime: Date.now(),
-    inProgress: true,
-    completed: false,
-    aborted: false
-  };
-  
-  if (onProgress) {
-    onProgress({ type: 'start', ...requestState });
-  }
-  
-  try {
-    const result = await apiCall(abortController?.signal);
-    requestState.completed = true;
-    requestState.result = result;
-    
-    if (onProgress) {
-      onProgress({ type: 'complete', ...requestState });
-    }
-    
-    return result;
-  } catch (error) {
-    requestState.error = error;
-    
-    // Don't throw error if it was caused by an aborted request
-    if (axios.isCancel(error)) {
-      requestState.aborted = true;
-      console.log('Request canceled:', error.message);
-      
-      if (onProgress) {
-        onProgress({ type: 'abort', ...requestState });
-      }
-      
-      return { canceled: true };
-    }
-    
-    console.error('API request failed:', error);
-    
-    if (onProgress) {
-      onProgress({ type: 'error', ...requestState });
-    }
-    
-    // If the error was already parsed by the interceptor, use that
-    if (error.parsedError) {
-      throw error.parsedError;
-    }
-    
-    // Otherwise parse it now and throw the parsed version
-    throw errorHandler.parseApiError(error);
-  } finally {
-    // Always update the final state
-    requestState.inProgress = false;
-    requestState.endTime = Date.now();
-    requestState.duration = requestState.endTime - requestState.startTime;
-    
-    // Execute the finally callback if provided
-    if (finallyCallback) {
-      finallyCallback(requestState);
-    }
-    
-    // Final progress update
-    if (onProgress && !requestState.aborted) {
-      onProgress({ type: 'finally', ...requestState });
-    }
-  }
-};
-
 // Create a helper function to create AbortController and wrap API calls
 export const createApiRequestWithAbortController = (apiMethod) => {
   const controller = new AbortController();
@@ -150,49 +73,6 @@ export const createApiRequestWithAbortController = (apiMethod) => {
   
   return wrappedMethod;
 };
-
-/**
- * Example of how to use AbortController in a React component
- * 
- * function MyComponent() {
- *   const [data, setData] = useState(null);
- *   const [loading, setLoading] = useState(false);
- *   
- *   useEffect(() => {
- *     // Create a new controller for this effect instance
- *     const controller = new AbortController();
- *     const signal = controller.signal;
- *     
- *     async function fetchData() {
- *       setLoading(true);
- *       try {
- *         const response = await api.getRepositoryInfo('owner/repo', signal);
- *         if (!signal.aborted) {
- *           setData(response);
- *         }
- *       } catch (error) {
- *         if (!signal.aborted) {
- *           console.error('Error fetching data:', error);
- *         }
- *       } finally {
- *         // Use finally to ensure loading state is updated even if request is aborted
- *         if (!signal.aborted) {
- *           setLoading(false);
- *         }
- *       }
- *     }
- *     
- *     fetchData();
- *     
- *     // Cleanup function to abort the request when component unmounts
- *     return () => {
- *       controller.abort();
- *     };
- *   }, []);
- *   
- *   // ... render component
- * }
- */
 
 const api = {
   /**
@@ -254,7 +134,6 @@ const api = {
    * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
    */
   getBranches: async (repository, signal) => {
-    let isLoading = true;
     try {
       const repoParam = api._formatRepository(repository);
       const response = await axios.get('/api/commits/branches', { 
@@ -269,10 +148,6 @@ const api = {
       }
       console.error('Error fetching branches:', error);
       throw error;
-    } finally {
-      // Example of using finally for cleanup operations
-      isLoading = false;
-      // In a real component, you might update loading state here
     }
   },
 
@@ -282,7 +157,6 @@ const api = {
    * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
    */
   getContributors: async (repository, signal) => {
-    let requestMetrics = { startTime: Date.now() };
     try {
       const repoParam = api._formatRepository(repository);
       const response = await axios.get('/api/commits/contributors', { 
@@ -297,15 +171,6 @@ const api = {
       }
       console.error('Error fetching contributors:', error);
       throw error;
-    } finally {
-      // Example of using finally for request metrics
-      requestMetrics.endTime = Date.now();
-      requestMetrics.duration = requestMetrics.endTime - requestMetrics.startTime;
-      
-      // Only log metrics if the request wasn't aborted
-      if (!signal?.aborted) {
-        console.log('Request metrics:', requestMetrics);
-      }
     }
   },
 

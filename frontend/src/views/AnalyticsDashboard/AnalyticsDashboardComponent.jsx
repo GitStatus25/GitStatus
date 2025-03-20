@@ -17,17 +17,14 @@ import {
 import {
   Description as DescriptionIcon,
   Code as CodeIcon,
-  Speed as SpeedIcon,
   Warning as WarningIcon,
   Info as InfoIcon,
-  TrendingUp as TrendingUpIcon,
   Storage as StorageIcon,
-  AccountCircle as AccountCircleIcon,
-  GitHub as GitHubIcon
+  AccountCircle as AccountCircleIcon
 } from '@mui/icons-material';
-import Layout from '../PagePartials/Layout';
+import Layout from '../../partials/Layout';
+import ComingSoonFeatureComponent from '../../partials/ComingSoonFeature/ComingSoonFeatureComponent';
 import './AnalyticsDashboardComponent.css';
-import ComingSoonFeatureComponent from '../PagePartials/ComingSoonFeature/ComingSoonFeatureComponent';
 
 // Stat Card Component
 const StatCard = ({ title, value, icon, color, subtitle, tooltip }) => {

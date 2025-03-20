@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme, useMediaQuery } from '@mui/material';
-import useAuthStore from '../../../store/authStore';
+import useAuthStore from '../../store/authStore.js';
 import LayoutComponentTemplate from './LayoutComponent.jsx';
 import { useShallow } from 'zustand/react/shallow';
 /**
