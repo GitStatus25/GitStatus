@@ -1,7 +1,7 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material';
-import { AuthContext } from '../contexts/AuthContext';
+import useAuthStore from '../store/authStore';
 import api from '../services/api';
 import toast from '../services/toast';
 import useModalStore from '../store/modalStore';
@@ -11,7 +11,7 @@ import useModalStore from '../store/modalStore';
  * Handles report fetching, deletion, and navigation
  */
 const useDashboard = () => {
-  const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
+  const { isAuthenticated, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
   const theme = useTheme();
   const { openModal } = useModalStore();

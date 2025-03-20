@@ -11,7 +11,8 @@ import useDateRange from './useDateRange.js';
  * and form validation
  */
 const useReportForm = () => {
-  const { openModal } = useModalStore();
+  const { openModal, modalData } = useModalStore();
+  const reportData = modalData['createReport'] || {};
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ const useReportForm = () => {
     includeCode: true
   });
 
-  // Initialize form data from context if available
+  // Initialize form data from modal data if available
   useEffect(() => {
     if (reportData) {
       setFormData(prevData => ({ ...prevData, ...reportData }));
@@ -185,12 +186,11 @@ const useReportForm = () => {
       setLoadingViewCommits(true);
       setError(null);
       
-      // Store report data in context
-      updateReportData(formData);
+      // Store report data in modal store
+      openModal('createReport', formData);
       
-      // Close this modal and open the ViewCommits modal
-      closeModals();
-      openViewCommitsModal();
+      // Open the ViewCommits modal with the form data
+      openViewCommitsModal(formData);
     } catch (err) {
       console.error('Error preparing report:', err);
       setError(`Error preparing report: ${err.message || 'Unknown error'}`);
@@ -201,9 +201,7 @@ const useReportForm = () => {
   
   // Handle closing the modal
   const handleClose = () => {
-    closeModals();
-    
-    // Reset form state
+    // This would be handled by the modal component directly
     setFormSubmitted(false);
     setError(null);
   };
@@ -227,9 +225,6 @@ const useReportForm = () => {
     error,
     formSubmitted,
     loadingViewCommits,
-    
-    // Modal state
-    open: createReportOpen,
     
     // Handlers
     handleInputChange,
