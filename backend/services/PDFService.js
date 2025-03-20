@@ -10,6 +10,12 @@ const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
 const QueueService = require('./QueueService');
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
+// Setup DOMPurify
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
 
 // Configure marked for GFM (GitHub Flavored Markdown)
 marked.setOptions({
@@ -175,10 +181,13 @@ const _generatePDF = async (options) => {
   // Convert markdown to HTML
   const htmlContent = marked.parse(contentStr);
   
+  // Sanitize HTML content
+  const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
+  
   // Create full HTML document
   const htmlTemplate = getHtmlTemplate({
     title,
-    content: htmlContent,
+    content: sanitizedHtmlContent,
     repository,
     date: new Date(),
     startDate,
