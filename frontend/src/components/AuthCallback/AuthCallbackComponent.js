@@ -1,15 +1,14 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../contexts/AuthContext.js';
+import useAuthStore from '../../store/authStore';
 import axios from 'axios';
-import AuthCallbackPageTemplate from './AuthCallbackPage.jsx';
+import AuthCallbackComponentTemplate from './AuthCallbackComponent.jsx';
 
 /**
- * Auth callback page component - handles OAuth callback and redirections
+ * Auth callback component - handles OAuth callback and redirections
  */
-const AuthCallbackPage = () => {
+const AuthCallbackComponent = () => {
   const navigate = useNavigate();
-  const { checkAuth } = useContext(AuthContext);
   const [error, setError] = useState(null);
   
   useEffect(() => {
@@ -19,6 +18,9 @@ const AuthCallbackPage = () => {
         const response = await axios.get('/api/auth/me');
         
         if (response.data.isAuthenticated) {
+          // Update auth store with the new user data
+          useAuthStore.getState().initialize();
+          
           // Get the redirect path from sessionStorage or default to dashboard
           const redirectPath = sessionStorage.getItem('redirectPath') || '/dashboard';
           
@@ -44,7 +46,7 @@ const AuthCallbackPage = () => {
     handleAuthentication();
   }, [navigate]);
   
-  return <AuthCallbackPageTemplate error={error} />;
+  return <AuthCallbackComponentTemplate error={error} />;
 };
 
-export default AuthCallbackPage;
+export default AuthCallbackComponent;
