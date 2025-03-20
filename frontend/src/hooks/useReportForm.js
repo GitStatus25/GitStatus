@@ -81,13 +81,16 @@ const useReportForm = () => {
   
   // Update dates when date range changes
   useEffect(() => {
+    // Only run this effect when dateRange has been loaded
+    if (!dateRange || isLoadingDateRange) return;
+    
     // Get adjusted dates based on date range
     const { startDate, endDate } = getAdjustedDates(formData.startDate, formData.endDate);
     
-    // Update form if dates have changed
+    // Update form if dates have changed and they're not already equal
     if (
-      startDate !== formData.startDate || 
-      endDate !== formData.endDate
+      (startDate !== formData.startDate || endDate !== formData.endDate) &&
+      (startDate !== null && endDate !== null) // Ensure we have valid dates
     ) {
       setFormData(prev => ({
         ...prev,
@@ -95,7 +98,7 @@ const useReportForm = () => {
         endDate
       }));
     }
-  }, [dateRange, formData.startDate, formData.endDate, getAdjustedDates]);
+  }, [dateRange, formData.startDate, formData.endDate, getAdjustedDates, isLoadingDateRange]);
 
   // Handle repository selection
   const handleRepositorySelect = async (repo) => {
