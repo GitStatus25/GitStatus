@@ -56,7 +56,6 @@ const ViewCommitsModalComponent = ({
   
   // Determine report type and button state based on selected commits
   const getReportTypeInfo = () => {
-    console.log('User stats:', userStats);
     if (!userStats?.plan?.limits) return { disabled: true, message: 'Loading plan limits...' };
 
     const commitCount = selectedCommits.length;
@@ -188,10 +187,10 @@ const ViewCommitsModalComponent = ({
                     }
                     secondary={
                       <Box sx={{ mt: 0.5 }}>
-                        <Typography variant="body2" component="div">
+                        <Typography variant="body2" component="span" sx={{ display: 'block' }}>
                           {commit.author?.name || "Unknown"} • {formatDate(commit.date)}
                         </Typography>
-                        <Typography variant="body2" component="div" color="text.secondary" sx={{ mt: 0.5 }}>
+                        <Typography variant="body2" component="span" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                           <Button
                             size="small"
                             startIcon={<CodeIcon />}
