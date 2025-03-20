@@ -55,7 +55,7 @@ const CreateReportModalComponentTemplate = ({
       fullWidth
     >
       <DialogTitle className="modal-title">
-        <Typography variant="h6" className="modal-title-text">
+        <Typography variant="h6" component="div" className="modal-title-text">
           Create New Report
         </Typography>
         <IconButton 
