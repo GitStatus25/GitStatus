@@ -1,5 +1,5 @@
 import React from 'react';
-import useReportForm from './useReportForm';
+import useReportForm from '../../../hooks/useReportForm.js';
 import RepositorySelector from './RepositorySelector';
 import BranchSelector from './BranchSelector';
 import DateRangeSelector from './DateRangeSelector';

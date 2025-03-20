@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../../../services/api.js';
-import { useModal } from '../../../contexts/ModalContext.js';
+import api from '../services/api.js';
+import { useModal } from '../contexts/ModalContext.js';
 import useRepositorySearch from './useRepositorySearch.js';
 import useAuthorSelection from './useAuthorSelection.js';
 import useDateRange from './useDateRange.js';
@@ -248,4 +248,4 @@ const useReportForm = () => {
   };
 };
 
-export default useReportForm;
+export default useReportForm; 
