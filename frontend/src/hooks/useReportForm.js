@@ -11,8 +11,9 @@ import useDateRange from './useDateRange.js';
  * and form validation
  */
 const useReportForm = () => {
-  const { openModal, modalData } = useModalStore();
+  const { openModal, modalData, openModals, closeModal } = useModalStore();
   const reportData = modalData['createReport'] || {};
+  const open = openModals['createReport'] || false;
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -25,9 +26,17 @@ const useReportForm = () => {
     includeCode: true
   });
 
+  // Track if initial data has been loaded
+  const initializedRef = useRef(false);
+  
   // Initialize form data from modal data if available
   useEffect(() => {
-    if (reportData) {
+    // Only run this when reportData changes and has content
+    // Skip empty objects or subsequent updates to the same data
+    if (reportData && 
+        Object.keys(reportData).length > 0 && 
+        !initializedRef.current) {
+      initializedRef.current = true;
       setFormData(prevData => ({ ...prevData, ...reportData }));
     }
   }, [reportData]);
@@ -88,10 +97,15 @@ const useReportForm = () => {
     const { startDate, endDate } = getAdjustedDates(formData.startDate, formData.endDate);
     
     // Update form if dates have changed and they're not already equal
-    if (
-      (startDate !== formData.startDate || endDate !== formData.endDate) &&
-      (startDate !== null && endDate !== null) // Ensure we have valid dates
-    ) {
+    // Deep equality check to avoid unnecessary updates
+    const datesChanged = 
+      (startDate !== null && endDate !== null) && // Ensure we have valid dates
+      ((startDate === null && formData.startDate !== null) ||
+       (endDate === null && formData.endDate !== null) ||
+       (startDate !== null && startDate.getTime() !== (formData.startDate && formData.startDate.getTime())) ||
+       (endDate !== null && endDate.getTime() !== (formData.endDate && formData.endDate.getTime())));
+       
+    if (datesChanged) {
       setFormData(prev => ({
         ...prev,
         startDate,
@@ -205,6 +219,7 @@ const useReportForm = () => {
   // Handle closing the modal
   const handleClose = () => {
     // This would be handled by the modal component directly
+    closeModal('createReport');
     setFormSubmitted(false);
     setError(null);
   };
@@ -228,6 +243,7 @@ const useReportForm = () => {
     error,
     formSubmitted,
     loadingViewCommits,
+    open,
     
     // Handlers
     handleInputChange,
