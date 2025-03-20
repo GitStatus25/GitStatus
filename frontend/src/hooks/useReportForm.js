@@ -12,7 +12,6 @@ import useDateRange from './useDateRange.js';
  */
 const useReportForm = () => {
   const { openModal, modalData, openModals, closeModal } = useModalStore();
-  const reportData = modalData['createReport'] || {};
   const open = openModals['createReport'] || false;
 
   // Form data state
@@ -31,6 +30,7 @@ const useReportForm = () => {
   
   // Initialize form data from modal data if available
   useEffect(() => {
+    const reportData = modalData['createReport'] || {};
     // Only run this when reportData changes and has content
     // Skip empty objects or subsequent updates to the same data
     if (reportData && 
@@ -39,7 +39,7 @@ const useReportForm = () => {
       initializedRef.current = true;
       setFormData(prevData => ({ ...prevData, ...reportData }));
     }
-  }, [reportData]);
+  }, [modalData]);
 
   // Repository data state
   const [repositoryInfo, setRepositoryInfo] = useState(null);
