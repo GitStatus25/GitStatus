@@ -1,6 +1,5 @@
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
@@ -80,55 +79,6 @@ class S3Service {
       
       throw new ExternalServiceError(
         `Failed to upload file to S3: ${error.message}`,
-        's3'
-      );
-    }
-  }
-
-  /**
-   * Upload a buffer to S3
-   * @param {Object} options - Upload options
-   * @param {Buffer} options.buffer - File buffer
-   * @param {string} options.key - S3 key (path)
-   * @param {string} options.contentType - MIME type
-   * @returns {Promise<Object>} - S3 upload result
-   */
-  async uploadBuffer({ buffer, key, contentType }) {
-    try {
-      if (!buffer) {
-        throw new ValidationError('Buffer is required');
-      }
-
-      if (!key) {
-        throw new ValidationError('S3 key is required');
-      }
-
-      // Upload parameters
-      const params = {
-        Bucket: this.bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: contentType || 'application/octet-stream',
-        ContentDisposition: 'inline'
-      };
-
-      // Upload to S3
-      const upload = await this.s3.upload(params).promise();
-
-      return {
-        key: upload.Key,
-        url: upload.Location,
-        bucket: upload.Bucket
-      };
-    } catch (error) {
-      console.error('Error uploading buffer to S3:', error);
-      
-      if (error instanceof ValidationError) {
-        throw error;
-      }
-      
-      throw new ExternalServiceError(
-        `Failed to upload buffer to S3: ${error.message}`,
         's3'
       );
     }
@@ -280,6 +230,15 @@ class S3Service {
         's3'
       );
     }
+  }
+
+  /**
+   * Alias for fileExists for backward compatibility
+   * @param {string} key - S3 key
+   * @returns {Promise<boolean>} - Whether the object exists
+   */
+  async objectExists(key) {
+    return this.fileExists({ key });
   }
 }
 
