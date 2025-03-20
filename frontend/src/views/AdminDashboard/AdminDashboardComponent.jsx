@@ -139,7 +139,31 @@ const AdminDashboardComponent = ({
                         Total Users
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.totalUsers}
+                        {analytics.allTimeStats.numUniqueUsers}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Standard Reports
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.allTimeStats.reportsStandard}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Large Reports
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.allTimeStats.reportsLarge}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -151,31 +175,7 @@ const AdminDashboardComponent = ({
                         Total Reports
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.totalReports}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Card>
-                    <CardContent>
-                      <Typography color="textSecondary" gutterBottom>
-                        Reports (24h)
-                      </Typography>
-                      <Typography variant="h4">
-                        {analytics.reports24h || 0}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Card>
-                    <CardContent>
-                      <Typography color="textSecondary" gutterBottom>
-                        Commits (24h)
-                      </Typography>
-                      <Typography variant="h4">
-                        {analytics.commits24h?.[0]?.totalCommits || 0}
+                        {analytics.allTimeStats.reportsStandard + analytics.allTimeStats.reportsLarge}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -187,7 +187,34 @@ const AdminDashboardComponent = ({
                         Total Commits
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.totalCommits || 0}
+                        {analytics.allTimeStats.commitsTotal}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Reports
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.monthlyStats.reportsStandard + analytics.monthlyStats.reportsLarge}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {analytics.monthlyStats.reportsStandard} standard / {analytics.monthlyStats.reportsLarge} large
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Commits
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.monthlyStats.commitsTotal}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -205,7 +232,10 @@ const AdminDashboardComponent = ({
                         Input Tokens (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.inputTokens?.toLocaleString() || 0}
+                        {analytics.allTimeStats.inputTokens?.toLocaleString() || 0}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {((analytics.allTimeStats.inputTokens / analytics.allTimeStats.totalTokens) * 100).toFixed(1)}% of total
                       </Typography>
                     </CardContent>
                   </Card>
@@ -217,7 +247,10 @@ const AdminDashboardComponent = ({
                         Output Tokens (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.outputTokens?.toLocaleString() || 0}
+                        {analytics.allTimeStats.outputTokens?.toLocaleString() || 0}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {((analytics.allTimeStats.outputTokens / analytics.allTimeStats.totalTokens) * 100).toFixed(1)}% of total
                       </Typography>
                     </CardContent>
                   </Card>
@@ -226,10 +259,40 @@ const AdminDashboardComponent = ({
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Monthly Tokens (Current Month)
+                        Total Tokens (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        {analytics.monthlyTokens?.toLocaleString() || 0}
+                        {analytics.allTimeStats.totalTokens?.toLocaleString() || 0}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Input Tokens
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.monthlyStats.inputTokens?.toLocaleString() || 0}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {((analytics.monthlyStats.inputTokens / analytics.monthlyStats.totalTokens) * 100).toFixed(1)}% of monthly total
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Output Tokens
+                      </Typography>
+                      <Typography variant="h4">
+                        {analytics.monthlyStats.outputTokens?.toLocaleString() || 0}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {((analytics.monthlyStats.outputTokens / analytics.monthlyStats.totalTokens) * 100).toFixed(1)}% of monthly total
                       </Typography>
                     </CardContent>
                   </Card>
@@ -244,13 +307,13 @@ const AdminDashboardComponent = ({
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Input Cost
+                        Input Cost (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        ${analytics.inputCost?.toFixed(2) || '0.00'}
+                        ${analytics.allTimeStats.inputCost?.toFixed(2) || '0.00'}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
-                        ${(analytics.inputTokens / 1000 * 0.01).toFixed(4)}/1K tokens
+                        ${(analytics.allTimeStats.inputTokens / 1000 * 0.01).toFixed(4)}/1K tokens
                       </Typography>
                     </CardContent>
                   </Card>
@@ -259,13 +322,13 @@ const AdminDashboardComponent = ({
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Output Cost
+                        Output Cost (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        ${analytics.outputCost?.toFixed(2) || '0.00'}
+                        ${analytics.allTimeStats.outputCost?.toFixed(2) || '0.00'}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
-                        ${(analytics.outputTokens / 1000 * 0.03).toFixed(4)}/1K tokens
+                        ${(analytics.allTimeStats.outputTokens / 1000 * 0.03).toFixed(4)}/1K tokens
                       </Typography>
                     </CardContent>
                   </Card>
@@ -274,10 +337,46 @@ const AdminDashboardComponent = ({
                   <Card>
                     <CardContent>
                       <Typography color="textSecondary" gutterBottom>
-                        Total Cost
+                        Total Cost (All Time)
                       </Typography>
                       <Typography variant="h4">
-                        ${analytics.estimatedCost || '0.00'}
+                        ${analytics.allTimeStats.totalCost?.toFixed(2) || '0.00'}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Input Cost
+                      </Typography>
+                      <Typography variant="h4">
+                        ${analytics.monthlyStats.inputCost?.toFixed(2) || '0.00'}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Output Cost
+                      </Typography>
+                      <Typography variant="h4">
+                        ${analytics.monthlyStats.outputCost?.toFixed(2) || '0.00'}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography color="textSecondary" gutterBottom>
+                        Monthly Total Cost
+                      </Typography>
+                      <Typography variant="h4">
+                        ${analytics.monthlyStats.totalCost?.toFixed(2) || '0.00'}
                       </Typography>
                     </CardContent>
                   </Card>
