@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
 /**
@@ -10,24 +10,24 @@ const useUserStats = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchUserStats = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.getUserStats();
+      setUserStats(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching user stats:', err);
+      setError('Failed to load user limits. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch user stats on hook initialization
   useEffect(() => {
-    const fetchUserStats = async () => {
-      try {
-        setLoading(true);
-        const response = await api.getUserStats();
-        setUserStats(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching user stats:', err);
-        setError('Failed to load user limits. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserStats();
-  }, []);
+  }, [fetchUserStats]);
 
   // Helper to check if user is within plan limits
   const isWithinLimits = (limitType, value) => {
@@ -53,7 +53,8 @@ const useUserStats = () => {
     userStats,
     loading,
     error,
-    isWithinLimits
+    isWithinLimits,
+    refetch: fetchUserStats
   };
 };
 

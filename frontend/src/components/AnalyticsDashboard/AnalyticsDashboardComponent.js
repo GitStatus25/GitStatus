@@ -1,59 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
 import AnalyticsDashboardComponentTemplate from './AnalyticsDashboardComponent.jsx';
 import useAuthStore from '../../store/authStore';
+import useUserStats from '../../hooks/useUserStats';
 import api from '../../services/api';
+import { useShallow } from 'zustand/react/shallow';
 
 const AnalyticsDashboardComponent = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
-  const { user, isAuthenticated, loading: authLoading } = useAuthStore((state) => ({
+  const { user, isAuthenticated, loading: authLoading } = useAuthStore(useShallow(state => ({
     user: state.user,
     isAuthenticated: state.isAuthenticated, 
     loading: state.loading
-  }));
+  })));
   
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { userStats: stats, loading, error, refetch } = useUserStats();
 
   useEffect(() => {
     // If authentication is complete and user is not authenticated, redirect to login
     if (!authLoading && !isAuthenticated) {
       navigate('/login', { state: { from: '/analytics' } });
-      return;
     }
-
-    // Fetch user stats if authenticated
-    if (isAuthenticated && user) {
-      fetchUserStats();
-    }
-  }, [isAuthenticated, authLoading, user, navigate]);
-
-  const fetchUserStats = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/users/stats');
-      setStats(response.data);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching user stats:', err);
-      setError(
-        err.response?.data?.message || 
-        'Failed to load analytics data. Please try again later.'
-      );
-      enqueueSnackbar('Failed to load analytics data', { variant: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [isAuthenticated, authLoading, navigate]);
 
   // Handle refresh button click
   const handleRefresh = () => {
-    fetchUserStats();
+    refetch();
     enqueueSnackbar('Refreshing analytics data...', { variant: 'info' });
   };
 
