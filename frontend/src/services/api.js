@@ -1,6 +1,5 @@
 import axios from 'axios';
 import errorHandler from '../utils/errorHandler';
-import { addCsrfToken } from '../utils/csrf';
 
 // Set up axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';

@@ -3,26 +3,25 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
-import PrivateRouteComponent from './components/PrivateRoute';
-import AdminRouteComponent from './components/AdminRoute';
-import LoginComponent from './components/Login';
-import DashboardComponent from './components/Dashboard';
-import CreateReportComponent from './components/CreateReport';
-import ViewReportComponent from './components/ViewReport';
-import NotFoundComponent from './components/NotFound';
-import AdminDashboardComponent from './components/AdminDashboard';
-import AnalyticsDashboardComponent from './components/AnalyticsDashboard';
+import PrivateRouteComponent from './routes/PrivateRoute';
+import AdminRouteComponent from './routes/AdminRoute';
+import LoginComponent from './views/Login';
+import DashboardComponent from './views/Dashboard';
+import CreateReportComponent from './views/CreateReport';
+import ViewReportComponent from './views/ViewReport';
+import NotFoundComponent from './views/NotFound';
+import AdminDashboardComponent from './views/AdminDashboard';
+import AnalyticsDashboardComponent from './views/AnalyticsDashboard';
 import CreateReportModal from './components/Modals/CreateReport';
 import ViewCommitsModal from './components/Modals/ViewCommits';
-import AuthCallbackComponent from './components/AuthCallback';
+import AuthCallbackComponent from './views/AuthCallback';
 import theme from './styles/theme';
 import useAuthStore from './store/authStore';
-
+import { useShallow } from 'zustand/react/shallow';
 function App() {
   // Initialize auth store on app startup
-  useEffect(() => {
-    useAuthStore.getState().initialize();
-  }, []);
+  const { initialize } = useAuthStore(useShallow(state => ({intialize: state.initialize})));
+  initialize();
 
   return (
     <ThemeProvider theme={theme}>

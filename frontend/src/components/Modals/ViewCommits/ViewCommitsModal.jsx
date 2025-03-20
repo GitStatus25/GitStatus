@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -50,9 +50,7 @@ const ViewCommitsModalComponent = ({
   const allCommitsSelected = commits.length > 0 && selectedCommits.length === commits.length;
   
   // Format date for display
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
+  const formatDate = useMemo(() => (dateString) => new Date(dateString).toLocaleString(), []);
   
   // Determine report type and button state based on selected commits
   const getReportTypeInfo = () => {
