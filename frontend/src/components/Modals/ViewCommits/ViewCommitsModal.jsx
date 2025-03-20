@@ -176,17 +176,17 @@ const ViewCommitsModalComponent = ({
                   
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
                         <Typography variant="body1" component="span" fontWeight="500" sx={{ mr: 1 }}>
                           {commit.message.split('\n')[0]}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" component="span">
                           {commit.sha.substring(0, 7)}
                         </Typography>
-                      </Box>
+                      </div>
                     }
                     secondary={
-                      <Box sx={{ mt: 0.5 }}>
+                      <div style={{ marginTop: '4px' }}>
                         <Typography variant="body2" component="span" sx={{ display: 'block' }}>
                           {commit.author?.name || "Unknown"} • {formatDate(commit.date)}
                         </Typography>
@@ -207,7 +207,7 @@ const ViewCommitsModalComponent = ({
                             />
                           </Button>
                         </Typography>
-                      </Box>
+                      </div>
                     }
                   />
                 </ListItem>
@@ -229,7 +229,7 @@ const ViewCommitsModalComponent = ({
                                 expandIcon={<ExpandMoreIcon />}
                                 sx={{ p: 0 }}
                               >
-                                <Typography variant="body2">
+                                <Typography variant="body2" component="div">
                                   {file.filename} {' '}
                                   <Typography component="span" color="text.secondary" variant="body2">
                                     ({file.additions} additions, {file.deletions} deletions)
@@ -266,7 +266,7 @@ const ViewCommitsModalComponent = ({
               <ListItem>
                 <ListItemText
                   primary={
-                    <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" component="div" sx={{ textAlign: 'center', py: 4 }}>
                       No commits found that match your criteria.
                     </Typography>
                   }
