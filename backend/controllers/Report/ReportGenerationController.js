@@ -5,7 +5,9 @@ const S3Service = require('../../services/S3Service');
 const { ReportUsageTrackerService, CommitUsageTrackerService, TokenUsageTrackerService } = require('../../services/UsageStats');
 const User = require('../../models/User');
 const { NotFoundError } = require('../../utils/errors');
-
+const ReportService = require('../../services/ReportService');
+const PDFService = require('../../services/PDFService');
+const QueueService = require('../../services/QueueService');
 /**
  * Generate a report based on selected commit IDs
  */
@@ -66,14 +68,14 @@ exports.generateReport = async (req, res) => {
     }
     
     // Generate a hash to uniquely identify this set of commits
-    const commitsHash = reportService.generateCommitsHash(commits);
+    const commitsHash = ReportService.generateCommitsHash(commits);
     
     // Check if a report with this exact set of commits already exists
-    const existingReport = await reportService.findReportByCommitsHash(commitsHash);
+    const existingReport = await ReportService.findReportByCommitsHash(commitsHash);
     
     if (existingReport) {
       // Update the access stats and return existing report
-      await reportService.updateReportAccessStats(existingReport);
+      await ReportService.updateReportAccessStats(existingReport);
       isCachedReport = true;
       return res.json({
         message: 'Existing report found with identical commits',
@@ -134,7 +136,7 @@ exports.generateReport = async (req, res) => {
       };
       
       // Add job to the queue
-      const jobInfo = await pdfJobProcessor.addJob(report.id, options);
+      const jobInfo = await PDFService.generatePDF(options, report.id);
       
       // Update report with job ID
       report.pdfJobId = jobInfo.id;
@@ -221,11 +223,11 @@ exports.getCommitInfo = async (req, res) => {
  */
 exports.getPdfStatus = async (req, res) => {
   try {
-    const report = await reportService.getReportById(req.params.id, req.user.id);
+    const report = await ReportService.getReportById(req.params.id, req.user.id);
     
     // If PDF is ready
     if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
-      const urls = await reportService.generateReportUrls(report);
+      const urls = await ReportService.generateReportUrls(report);
       return res.json({
         status: 'completed',
         progress: 100,
@@ -244,7 +246,7 @@ exports.getPdfStatus = async (req, res) => {
     
     // If job is in progress
     if (report.pdfJobId) {
-      const jobStatus = await pdfJobProcessor.getJobStatus(report.pdfJobId);
+      const jobStatus = await QueueService.getPdfJobStatus(report.pdfJobId);
       return res.json({
         status: jobStatus.status,
         progress: jobStatus.progress,

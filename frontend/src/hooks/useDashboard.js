@@ -1,31 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material';
 import useAuthStore from '../store/authStore';
 import api from '../services/api';
 import toast from '../services/toast';
 import useModalStore from '../store/modalStore';
-import { shallow } from 'zustand/shallow';
 
 /**
  * Custom hook for managing dashboard state and functionality
  * Handles report fetching, deletion, and navigation
  */
 const useDashboard = () => {
-  // Use stable selectors with shallow equality check
-  const { isAuthenticated, loading: authLoading } = useAuthStore(
-    (state) => ({
-      isAuthenticated: state.isAuthenticated,
-      loading: state.loading
-    }),
-    shallow // Use shallow equality to prevent unnecessary rerenders
-  );
-  
-  // Use openModal directly to avoid selector issues
-  const openModal = useModalStore((state) => state.openModal);
-  
+  const { isAuthenticated, loading: authLoading } = useAuthStore();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { openModal } = useModalStore();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,7 +30,7 @@ const useDashboard = () => {
   }, [isAuthenticated, authLoading, navigate]);
 
   // Function to fetch user's reports
-  const fetchReports = useCallback(async () => {
+  const fetchReports = async () => {
     try {
       setLoading(true);
       const fetchedReports = await api.getReports();
@@ -53,37 +42,37 @@ const useDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   // Fetch reports on component mount
   useEffect(() => {
     if (isAuthenticated) {
       fetchReports();
     }
-  }, [isAuthenticated, fetchReports]);
+  }, [isAuthenticated]);
 
   // Format date for display
-  const formatDate = useCallback((dateString) => {
+  const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  }, []);
+  };
 
-  const handleOpenDeleteDialog = useCallback((report, event) => {
+  const handleOpenDeleteDialog = (report, event) => {
     event.preventDefault();
     event.stopPropagation();
     setDeleteDialog({ open: true, report });
     setConfirmationName('');
-  }, []);
+  };
 
-  const handleCloseDeleteDialog = useCallback(() => {
+  const handleCloseDeleteDialog = () => {
     setDeleteDialog({ open: false, report: null });
     setConfirmationName('');
-  }, []);
+  };
 
-  const handleDeleteReport = useCallback(async () => {
+  const handleDeleteReport = async () => {
     const { report } = deleteDialog;
     if (!report) return;
     
@@ -95,7 +84,7 @@ const useDashboard = () => {
     
     try {
       setIsDeleting(true);
-      await api.deleteReport(report.id);
+      await api.deleteReport(report.id, confirmationName);
       setReports(prev => prev.filter(r => r.id !== report.id));
       toast.success('Report deleted successfully');
       handleCloseDeleteDialog();
@@ -105,15 +94,15 @@ const useDashboard = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [confirmationName, deleteDialog, handleCloseDeleteDialog]);
+  };
 
-  const handleViewReport = useCallback((reportId) => {
+  const handleViewReport = (reportId) => {
     navigate(`/reports/${reportId}`);
-  }, [navigate]);
+  };
 
-  const openCreateReportModal = useCallback(() => {
+  const openCreateReportModal = () => {
     openModal('createReport');
-  }, [openModal]);
+  };
 
   return {
     // State

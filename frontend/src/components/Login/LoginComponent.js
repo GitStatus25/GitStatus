@@ -20,7 +20,7 @@ const LoginComponent = () => {
   }, [isAuthenticated, navigate]);
 
   const handleGitHubLogin = () => {
-    window.location.href = `${process.env.REACT_APP_API_URL}/auth/github`;
+    window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/github`;
   };
 
   return (

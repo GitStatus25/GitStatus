@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import Layout from '../PagePartials/Layout';
 import './AnalyticsDashboardComponent.css';
+import ComingSoonFeatureComponent from '../PagePartials/ComingSoonFeature/ComingSoonFeatureComponent';
 
 // Stat Card Component
 const StatCard = ({ title, value, icon, color, subtitle, tooltip }) => {
@@ -168,11 +169,11 @@ const AnalyticsDashboardComponentTemplate = ({ loading, error, stats, theme }) =
           </Grid>
           <Grid item xs={12} md={4}>
             <StatCard 
-              title="Average Commit Size" 
-              value={stats?.averageStats?.commitSize ? `${stats.averageStats.commitSize} lines` : 'N/A'} 
+              title="Tokens Spent" 
+              value={stats?.allTimeStats?.tokenUsage ? `${(stats.allTimeStats.tokenUsage)}` : 'N/A'} 
               icon={<StorageIcon sx={{ color: theme?.palette?.info?.main }} />}
               color={theme?.palette?.info?.main}
-              subtitle="Average per report"
+              subtitle="All-time total"
             />
           </Grid>
 
@@ -209,13 +210,13 @@ const AnalyticsDashboardComponentTemplate = ({ loading, error, stats, theme }) =
                     Monthly Usage
                   </Typography>
                   <UsageProgress 
-                    current={stats?.currentUsage?.reportsGenerated?.standard || 0} 
+                    current={stats?.currentMonthStats?.reports?.standard || 0} 
                     limit={stats?.plan?.limits?.reportsPerMonth || 10}
                     label="Standard Reports"
                     color={theme?.palette?.primary?.main}
                   />
                   <UsageProgress 
-                    current={stats?.currentUsage?.reportsGenerated?.large || 0} 
+                    current={stats?.currentMonthStats?.reports?.large || 0} 
                     limit={Math.floor((stats?.plan?.limits?.reportsPerMonth || 10) * 0.1)}
                     label="Large Reports"
                     color={theme?.palette?.secondary?.main}
@@ -235,72 +236,14 @@ const AnalyticsDashboardComponentTemplate = ({ loading, error, stats, theme }) =
                   </Box>
                 </Grid>
               </Grid>
-
-              {stats?.plan?.name === 'basic' && (
-                <Box sx={{ mt: 3 }}>
-                  <Button 
-                    variant="contained" 
-                    color="primary"
-                    className="upgrade-button"
-                  >
-                    Upgrade to Pro for more reports
-                  </Button>
-                </Box>
-              )}
             </Paper>
           </Grid>
 
-          {/* Recent Activity */}
+          {/* Commit Analysis */}
           <Grid item xs={12}>
-            <Paper 
-              className="chart-container"
-              sx={{ 
-                background: theme?.palette?.background?.cardGradient,
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-              }}
-            >
-              <Typography variant="h6" className="section-title">
-                Recent Activity
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              
-              {stats?.recentActivity?.length === 0 ? (
-                <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography color="text.secondary">
-                    No recent activity to display. Generate a report to see your activity here.
-                  </Typography>
-                </Box>
-              ) : (
-                <Box>
-                  {stats?.recentActivity?.map((activity, index) => (
-                    <Box key={index} sx={{ mb: 2 }}>
-                      <Typography variant="body1">
-                        {activity.type === 'report' ? (
-                          <>
-                            <DescriptionIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 1 }} />
-                            Generated a report: <strong>{activity.title}</strong>
-                          </>
-                        ) : activity.type === 'commit' ? (
-                          <>
-                            <CodeIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 1 }} />
-                            Analyzed commit: <strong>{activity.sha.substring(0, 7)}</strong>
-                          </>
-                        ) : (
-                          <>
-                            <InfoIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 1 }} />
-                            {activity.description}
-                          </>
-                        )}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(activity.timestamp).toLocaleString()}
-                      </Typography>
-                      {index < stats.recentActivity.length - 1 && <Divider sx={{ my: 1 }} />}
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Paper>
+              <ComingSoonFeatureComponent 
+                title="Commit Analysis" 
+              />
           </Grid>
         </Grid>
       </Box>

@@ -138,24 +138,6 @@ const CreateReportModalComponentTemplate = ({
             </FormControl>
           </Grid>
 
-          {/* Include Code Option */}
-          <Grid item xs={12}>
-            <Box className="include-code-option">
-              <Checkbox
-                checked={formData.includeCode}
-                onChange={(e) => handleCheckboxChange('includeCode', e.target.checked)}
-                name="includeCode"
-                color="primary"
-              />
-              <Typography>
-                Include code snippets in the report
-              </Typography>
-            </Box>
-            <Typography variant="caption" className="info-text">
-              When enabled, the report will include relevant code snippets from commits
-            </Typography>
-          </Grid>
-
           {/* Error Display */}
           {error && (
             <Grid item xs={12}>

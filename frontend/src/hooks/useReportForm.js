@@ -225,7 +225,6 @@ const useReportForm = () => {
   };
   
   const openViewCommitsModal = (data) => {
-    console.log('Opening ViewCommits modal with data:', data);
     // Explicitly structure the data with reportData property
     openModal('viewCommits', { 
       reportData: data 

@@ -73,7 +73,7 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
           { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
           { role: 'user', content: prompt }
         ],
-        maxTokens: 300
+        max_tokens: 300
       });
 
       // Extract the summary from the response
@@ -179,7 +179,7 @@ const openaiService = {
           { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
           { role: 'user', content: prompt }
         ],
-        maxTokens: 150,
+        max_tokens: 150,
         temperature: 0.7
       });
 
@@ -294,7 +294,7 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
           },
           { role: 'user', content: prompt }
         ],
-        maxTokens: 2500,
+        max_tokens: 2500,
         temperature: 0.7
       });
 

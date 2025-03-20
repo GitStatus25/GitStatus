@@ -13,7 +13,6 @@ axios.interceptors.request.use(
     const stateChangingMethods = ['post', 'put', 'delete', 'patch'];
     
     if (stateChangingMethods.includes(config.method)) {
-      console.log(`Adding CSRF token to ${config.method.toUpperCase()} request: ${config.url}`);
       
       // Always fetch a fresh token for state-changing requests
       const { fetchCsrfToken } = await import('../utils/csrf');

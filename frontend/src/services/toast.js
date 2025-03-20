@@ -53,8 +53,6 @@ const getIcon = (severity) => {
 
 // Show a toast notification
 const showNotification = (message, severity, duration = 5000) => {
-  // Log message to console
-  console.log(`[${severity.toUpperCase()}]`, message);
   
   // Initialize container
   const container = initContainer();

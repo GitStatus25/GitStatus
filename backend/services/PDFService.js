@@ -9,7 +9,7 @@ const marked = require('marked');
 const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
-const queueService = require('./queue');
+const QueueService = require('./QueueService');
 
 // Configure marked for GFM (GitHub Flavored Markdown)
 marked.setOptions({
@@ -155,7 +155,7 @@ const getHtmlTemplate = (options) => {
 
 /**
  * Generate a PDF file from Markdown content
- * This implementation is used directly by the PDF job queue processor
+ * This implementation is used directly by the Queue Service
  * 
  * @param {object} options - PDF generation options
  * @returns {Buffer} - PDF file buffer
@@ -295,7 +295,7 @@ const generatePDF = async (options, reportId) => {
   }
   
   // Add job to the queue
-  const jobInfo = await queueService.addPdfGenerationJob(options, reportId);
+  const jobInfo = await QueueService.addPdfGenerationJob(options, reportId);
   
   return jobInfo;
 };
@@ -307,7 +307,7 @@ const generatePDF = async (options, reportId) => {
  * @returns {Promise<Object>} - Job status information
  */
 const getPdfJobStatus = async (jobId) => {
-  return await queueService.getPdfJobStatus(jobId);
+  return await QueueService.getPdfJobStatus(jobId);
 };
 
 module.exports = {

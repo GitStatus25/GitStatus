@@ -18,13 +18,8 @@ const AuthCallbackComponent = () => {
         const response = await axios.get('/api/auth/me');
         
         if (response.data.isAuthenticated) {
-          // Update auth store directly instead of re-initializing
-          useAuthStore.setState({
-            user: response.data.user,
-            isAuthenticated: true,
-            error: null,
-            loading: false
-          });
+          // Update auth store with the new user data
+          useAuthStore.getState().initialize();
           
           // Get the redirect path from sessionStorage or default to dashboard
           const redirectPath = sessionStorage.getItem('redirectPath') || '/dashboard';

@@ -30,7 +30,6 @@ const useCommitSelection = () => {
   useEffect(() => {
     const fetchFilteredCommits = async () => {
       try {
-        console.log('Report data before API call:', reportData);
         
         // Check if reportData has necessary properties
         if (!reportData || !reportData.repository) {
@@ -59,7 +58,6 @@ const useCommitSelection = () => {
     };
 
     if (viewCommitsOpen && reportData?.repository) {
-      console.log('Fetching commits...');
       fetchFilteredCommits();
     }
   }, [viewCommitsOpen, reportData?.repository]);

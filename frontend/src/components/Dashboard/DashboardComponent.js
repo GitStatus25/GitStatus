@@ -2,7 +2,6 @@ import React from 'react';
 import { useDashboard } from '../../hooks';
 import DashboardComponentTemplate from './DashboardComponent.jsx';
 import useAuthStore from '../../store/authStore';
-import { shallow } from 'zustand/shallow';
 
 /**
  * Dashboard component - contains only business logic
@@ -25,13 +24,7 @@ const DashboardComponent = () => {
     openCreateReportModal
   } = useDashboard();
 
-  // Use shallow equality for stable selection
-  const { user } = useAuthStore(
-    (state) => ({
-      user: state.user
-    }),
-    shallow
-  );
+  const { user, isAuthenticated, loading: authLoading } = useAuthStore();
 
   return (
     <DashboardComponentTemplate
@@ -48,7 +41,6 @@ const DashboardComponent = () => {
       formatDate={formatDate}
       openCreateReportModal={openCreateReportModal}
       theme={theme}
-      user={user}
     />
   );
 };

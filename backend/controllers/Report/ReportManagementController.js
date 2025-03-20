@@ -22,7 +22,7 @@ exports.deleteReport = async (req, res, next) => {
     // Delete PDF from S3 if it exists
     if (report.pdfUrl && report.pdfUrl !== 'pending') {
       try {
-        await S3Service.deleteObject(report.pdfUrl);
+        await S3Service.deleteFile({ key: report.pdfUrl });
         console.log(`Deleted PDF from S3: ${report.pdfUrl}`);
       } catch (s3Error) {
         console.error(`Error deleting PDF from S3: ${report.pdfUrl}`, s3Error);

@@ -1,5 +1,4 @@
 const axios = require('axios');
-const { Octokit } = require('@octokit/core');
 
 // Import the custom error classes
 const { 
@@ -26,34 +25,14 @@ class GitHubRepositoryService {
     }
 
     try {
-      // Create an Octokit instance
-      const octokit = new Octokit({
-        auth: accessToken
-      });
-
-      // Handle repository parameter that could be a string "owner/repo" or an object with owner and name properties
-      let owner, repo;
+      const url = `https://api.github.com/repos/${repository}`;
       
-      if (typeof repository === 'string') {
-        // Extract owner and repo from repository string
-        [owner, repo] = repository.split('/');
-      } else if (typeof repository === 'object' && repository.owner && repository.name) {
-        // Extract from object
-        owner = repository.owner;
-        repo = repository.name;
-      } else {
-        throw new ValidationError('Invalid repository format. Must be owner/repo string or object with owner and name properties');
-      }
-
-      if (!owner || !repo) {
-        throw new ValidationError('Invalid repository format. Must be owner/repo');
-      }
-
-      // Get repository information
-      const response = await octokit.rest.repos.get({
-        owner,
-        repo,
-      });
+      const headers = {
+        Authorization: `token ${accessToken}`,
+        Accept: 'application/vnd.github.v3+json'
+      };
+      
+      const response = await axios.get(url, { headers });
 
       return {
         name: response.data.name,

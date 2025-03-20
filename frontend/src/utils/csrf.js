@@ -14,7 +14,6 @@ const TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes in milliseconds
  */
 export const fetchCsrfToken = async () => {
   try {
-    console.log('Fetching fresh CSRF token');
     const response = await fetch('/api/csrf-token', {
       credentials: 'include', // Important: include cookies
       cache: 'no-store', // Prevent caching
@@ -27,7 +26,6 @@ export const fetchCsrfToken = async () => {
     const data = await response.json();
     csrfToken = data.csrfToken;
     tokenTimestamp = Date.now();
-    console.log('New CSRF token received');
     return csrfToken;
   } catch (error) {
     console.error('Error fetching CSRF token:', error);

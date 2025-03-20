@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme, useMediaQuery } from '@mui/material';
 import useAuthStore from '../../../store/authStore';
-import { shallow } from 'zustand/shallow';
 import LayoutComponentTemplate from './LayoutComponent.jsx';
-
+import { useShallow } from 'zustand/react/shallow';
 /**
  * Layout component - Contains the main application layout with navigation
  * @param {Object} props - Component props
@@ -12,15 +11,10 @@ import LayoutComponentTemplate from './LayoutComponent.jsx';
  * @param {string} props.title - Page title to display in the header
  */
 const LayoutComponent = ({ children, title }) => {
-  // Use shallow equality for stable selection
-  const { user, logout } = useAuthStore(
-    (state) => ({
-      user: state.user,
-      logout: state.logout
-    }),
-    shallow
-  );
-  
+  const { user, logout } = useAuthStore(useShallow(state => ({
+    user: state.user,
+    logout: state.logout
+  })));
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -38,8 +32,7 @@ const LayoutComponent = ({ children, title }) => {
     setAnimate(true);
   }, [location]);
 
-  // Memoize the toggleDrawer function to prevent unnecessary re-renders
-  const toggleDrawer = useCallback((open) => (event) => {
+  const toggleDrawer = (open) => (event) => {
     if (
       event.type === 'keydown' &&
       (event.key === 'Tab' || event.key === 'Shift')
@@ -47,13 +40,12 @@ const LayoutComponent = ({ children, title }) => {
       return;
     }
     setDrawerOpen(open);
-  }, []);
+  };
 
-  // Memoize the logout handler
-  const handleLogout = useCallback(async () => {
+  const handleLogout = async () => {
     await logout();
     navigate('/login');
-  }, [logout, navigate]);
+  };
 
   return (
     <LayoutComponentTemplate
