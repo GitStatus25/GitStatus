@@ -132,19 +132,17 @@ app.get('/api/csrf-token', (req, res) => {
   res.json({ csrfToken: generateToken(req, res) });
 });
 
-// Apply CSRF protection to all API routes that might have state-changing operations
-app.use('/api/auth', csrfProtection, authRoutes);
+// Register all routes with appropriate middleware
+// Auth routes need to be accessible without CSRF for login flow
+app.use('/api/auth', authRoutes);
+
+// These routes need CSRF protection for state-changing operations
 app.use('/api/commits', csrfProtection, commitRoutes);
 app.use('/api/reports', csrfProtection, reportRoutes);
 app.use('/api/usage-stats', csrfProtection, usageStatsRoutes);
 app.use('/api/admin', csrfProtection, adminRoutes);
 app.use('/api/plans', csrfProtection, planRoutes);
 app.use('/api/commit-summary', csrfProtection, commitSummaryRoutes);
-
-// Routes without CSRF protection (read-only operations, OAuth flow)
-app.use('/api/auth', authRoutes);
-app.use('/api/commits', commitRoutes);
-app.use('/api/usage-stats', usageStatsRoutes);
 
 // Base route
 app.get('/', (req, res) => {
