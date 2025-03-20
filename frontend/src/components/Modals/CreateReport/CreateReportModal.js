@@ -1,15 +1,12 @@
 import React from 'react';
 import useReportForm from '../../../hooks/useReportForm.js';
-import RepositorySelector from './RepositorySelector';
-import BranchSelector from './BranchSelector';
-import DateRangeSelector from './DateRangeSelector';
-import CreateReportModalComponentTemplate from './CreateReportModal.jsx';
+import CreateReportModalComponent from './CreateReportModal.jsx';
 
 /**
  * CreateReportModal component - Modal for selecting repository and parameters for report creation
- * Using custom hooks and specialized selector components for better separation of concerns
+ * Using custom hooks for better separation of concerns
  */
-const CreateReportModalComponent = () => {
+const CreateReportModal = () => {
   const {
     // Form state
     formData,
@@ -44,7 +41,7 @@ const CreateReportModalComponent = () => {
 
   // To maintain compatibility with the JSX template
   return (
-    <CreateReportModalComponentTemplate
+    <CreateReportModalComponent
       open={open}
       onClose={handleClose}
       formData={formData}
@@ -73,4 +70,4 @@ const CreateReportModalComponent = () => {
   );
 };
 
-export default CreateReportModalComponent;
+export default CreateReportModal;

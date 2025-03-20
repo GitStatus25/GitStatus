@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCommitSelection } from '../../../hooks';
-import ViewCommitsModalComponent from './ViewCommitsModal';
+import ViewCommitsModalComponent from './ViewCommitsModal.jsx';
 
 /**
  * ViewCommitsModal component - Modal for viewing and selecting commits for a report

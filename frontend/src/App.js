@@ -11,8 +11,8 @@ import ViewReportComponent from './components/ViewReport';
 import NotFoundComponent from './components/NotFound';
 import AdminDashboardComponent from './components/AdminDashboard';
 import AnalyticsDashboardComponent from './components/AnalyticsDashboard';
-import CreateReportModalComponent from './components/Modals/CreateReport';
-import ViewCommitsModalComponent from './components/Modals/ViewCommits';
+import CreateReportModal from './components/Modals/CreateReport';
+import ViewCommitsModal from './components/Modals/ViewCommits';
 import AuthCallbackComponent from './components/AuthCallback';
 import theme from './styles/theme';
 import useAuthStore from './store/authStore';
@@ -81,8 +81,8 @@ function App() {
         </Routes>
         
         {/* Global Modals */}
-        <CreateReportModalComponent />
-        <ViewCommitsModalComponent />
+        <CreateReportModal />
+        <ViewCommitsModal />
       </Router>
     </ThemeProvider>
   );
