@@ -6,21 +6,25 @@ import useAuthStore from '../../store/authStore';
  * Admin route component that redirects to dashboard if not admin
  */
 const AdminRouteComponent = ({ children }) => {
-  const { user, isAuthenticated, loading } = useAuthStore();
+  const { isAuthenticated, isAdmin, isLoading } = useAuthStore(state => ({
+    isAuthenticated: state.isAuthenticated,
+    isAdmin: state.user?.role === 'admin',
+    isLoading: state.isLoading
+  }));
   
-  // Show loading while auth status is being determined
-  if (loading) {
-    return <div>Loading...</div>;
+  // Show nothing while checking authentication status
+  if (isLoading) {
+    return null;
   }
   
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   // Redirect to dashboard if authenticated but not admin
-  if (!user?.isAdmin) {
-    return <Navigate to="/dashboard" />;
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
   
   // Render children if authenticated and admin

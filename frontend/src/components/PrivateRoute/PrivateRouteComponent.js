@@ -6,16 +6,19 @@ import useAuthStore from '../../store/authStore';
  * Private route component that redirects to login if not authenticated
  */
 const PrivateRouteComponent = ({ children }) => {
-  const { isAuthenticated, loading } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore(state => ({
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading
+  }));
   
-  // Show loading while auth status is being determined
-  if (loading) {
-    return <div>Loading...</div>;
+  // Show nothing while checking authentication status
+  if (isLoading) {
+    return null;
   }
   
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   // Render children if authenticated
