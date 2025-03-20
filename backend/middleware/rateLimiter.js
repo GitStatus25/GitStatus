@@ -43,10 +43,10 @@ const rateLimiter = {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const { reportType } = req.body; // 'small' or 'big'
-      const commitsPerReport = reportType === 'big' 
-        ? user.plan.limits.commitsPerBigReport 
-        : user.plan.limits.commitsPerSmallReport;
+      const { reportType } = req.body; // 'standard' or 'large'
+      const commitsPerReport = reportType === 'large' 
+        ? user.plan.limits.commitsPerLargeReport 
+        : user.plan.limits.commitsPerStandardReport;
 
       const { commitCount } = req.body;
       if (commitCount > commitsPerReport) {
