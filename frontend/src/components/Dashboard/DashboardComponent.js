@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useDashboard } from '../../hooks';
 import DashboardComponentTemplate from './DashboardComponent.jsx';
 import useAuthStore from '../../store/authStore';
+import { shallow } from 'zustand/shallow';
 
 /**
  * Dashboard component - contains only business logic
@@ -24,17 +25,13 @@ const DashboardComponent = () => {
     openCreateReportModal
   } = useDashboard();
 
-  // Memoize the auth selector
-  const authSelector = useMemo(() => 
+  // Use shallow equality for stable selection
+  const { user } = useAuthStore(
     (state) => ({
-      user: state.user,
-      isAuthenticated: state.isAuthenticated,
-      loading: state.loading
+      user: state.user
     }),
-    []
+    shallow
   );
-  
-  const { user, isAuthenticated, loading: authLoading } = useAuthStore(authSelector);
 
   return (
     <DashboardComponentTemplate
@@ -51,6 +48,7 @@ const DashboardComponent = () => {
       formatDate={formatDate}
       openCreateReportModal={openCreateReportModal}
       theme={theme}
+      user={user}
     />
   );
 };

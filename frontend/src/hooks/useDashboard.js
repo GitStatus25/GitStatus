@@ -1,36 +1,28 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material';
 import useAuthStore from '../store/authStore';
 import api from '../services/api';
 import toast from '../services/toast';
 import useModalStore from '../store/modalStore';
+import { shallow } from 'zustand/shallow';
 
 /**
  * Custom hook for managing dashboard state and functionality
  * Handles report fetching, deletion, and navigation
  */
 const useDashboard = () => {
-  // Memoize the auth store selector
-  const authSelector = useMemo(() => 
+  // Use stable selectors with shallow equality check
+  const { isAuthenticated, loading: authLoading } = useAuthStore(
     (state) => ({
       isAuthenticated: state.isAuthenticated,
       loading: state.loading
     }),
-    []
+    shallow // Use shallow equality to prevent unnecessary rerenders
   );
   
-  const { isAuthenticated, loading: authLoading } = useAuthStore(authSelector);
-  
-  // Memoize the modal store selector
-  const modalSelector = useMemo(() => 
-    (state) => ({
-      openModal: state.openModal
-    }),
-    []
-  );
-  
-  const { openModal } = useModalStore(modalSelector);
+  // Use openModal directly to avoid selector issues
+  const openModal = useModalStore((state) => state.openModal);
   
   const navigate = useNavigate();
   const theme = useTheme();
@@ -49,7 +41,7 @@ const useDashboard = () => {
   }, [isAuthenticated, authLoading, navigate]);
 
   // Function to fetch user's reports
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       const fetchedReports = await api.getReports();
@@ -61,37 +53,37 @@ const useDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch reports on component mount
   useEffect(() => {
     if (isAuthenticated) {
       fetchReports();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchReports]);
 
   // Format date for display
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  };
+  }, []);
 
-  const handleOpenDeleteDialog = (report, event) => {
+  const handleOpenDeleteDialog = useCallback((report, event) => {
     event.preventDefault();
     event.stopPropagation();
     setDeleteDialog({ open: true, report });
     setConfirmationName('');
-  };
+  }, []);
 
-  const handleCloseDeleteDialog = () => {
+  const handleCloseDeleteDialog = useCallback(() => {
     setDeleteDialog({ open: false, report: null });
     setConfirmationName('');
-  };
+  }, []);
 
-  const handleDeleteReport = async () => {
+  const handleDeleteReport = useCallback(async () => {
     const { report } = deleteDialog;
     if (!report) return;
     
@@ -113,15 +105,15 @@ const useDashboard = () => {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [confirmationName, deleteDialog, handleCloseDeleteDialog]);
 
-  const handleViewReport = (reportId) => {
+  const handleViewReport = useCallback((reportId) => {
     navigate(`/reports/${reportId}`);
-  };
+  }, [navigate]);
 
-  const openCreateReportModal = () => {
+  const openCreateReportModal = useCallback(() => {
     openModal('createReport');
-  };
+  }, [openModal]);
 
   return {
     // State

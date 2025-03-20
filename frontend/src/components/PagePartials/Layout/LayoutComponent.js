@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme, useMediaQuery } from '@mui/material';
 import useAuthStore from '../../../store/authStore';
+import { shallow } from 'zustand/shallow';
 import LayoutComponentTemplate from './LayoutComponent.jsx';
 
 /**
@@ -11,17 +12,14 @@ import LayoutComponentTemplate from './LayoutComponent.jsx';
  * @param {string} props.title - Page title to display in the header
  */
 const LayoutComponent = ({ children, title }) => {
-  // Use useMemo to cache the selector function
-  const authSelector = useMemo(() => 
+  // Use shallow equality for stable selection
+  const { user, logout } = useAuthStore(
     (state) => ({
       user: state.user,
       logout: state.logout
-    }), 
-    []
+    }),
+    shallow
   );
-  
-  // Use the memoized selector with useAuthStore
-  const { user, logout } = useAuthStore(authSelector);
   
   const navigate = useNavigate();
   const location = useLocation();
