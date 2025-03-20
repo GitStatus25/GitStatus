@@ -1,8 +1,20 @@
 // Export all hooks from a central location for easier imports
-export { default as useRepositorySearch } from './useRepositorySearch.js';
-export { default as useAuthorSelection } from './useAuthorSelection.js';
-export { default as useDateRange } from './useDateRange.js';
-export { default as useReportForm } from './useReportForm.js';
-export { default as useReportData } from './useReportData.js';
-export { default as useCommitSelection } from './useCommitSelection.js';
-export { default as useDashboard } from './useDashboard.js'; 
+import useCommitSelection from './useCommitSelection';
+import useDashboard from './useDashboard';
+import useReportForm from './useReportForm';
+import useReportData from './useReportData';
+import useRepositorySearch from './useRepositorySearch';
+import useAuthorSelection from './useAuthorSelection';
+import useDateRange from './useDateRange';
+import useUserStats from './useUserStats';
+
+export {
+  useCommitSelection,
+  useDashboard,
+  useReportForm,
+  useReportData,
+  useRepositorySearch,
+  useAuthorSelection,
+  useDateRange,
+  useUserStats
+}; 

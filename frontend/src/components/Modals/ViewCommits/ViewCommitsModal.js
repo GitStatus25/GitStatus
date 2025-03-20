@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCommitSelection } from '../../../hooks';
+import { useCommitSelection, useUserStats } from '../../../hooks';
 import ViewCommitsModalComponent from './ViewCommitsModal.jsx';
 
 /**
@@ -7,6 +7,7 @@ import ViewCommitsModalComponent from './ViewCommitsModal.jsx';
  * Using custom hooks for better separation of concerns
  */
 const ViewCommitsModal = () => {
+  // Get commit selection functionality
   const {
     modalOpen,
     commits,
@@ -15,8 +16,7 @@ const ViewCommitsModal = () => {
     expandedFiles,
     loading,
     error,
-    userStats,
-    loadingStats,
+    loadingCommits,
     toggleCommitSelection,
     toggleSelectAllCommits,
     toggleExpandCommit,
@@ -26,6 +26,16 @@ const ViewCommitsModal = () => {
     generateReport
   } = useCommitSelection();
 
+  // Get user stats from dedicated hook
+  const {
+    userStats,
+    loading: loadingStats,
+    error: statsError
+  } = useUserStats();
+
+  // Combine errors if needed
+  const combinedError = error || statsError;
+
   return (
     <ViewCommitsModalComponent
       open={modalOpen}
@@ -34,7 +44,7 @@ const ViewCommitsModal = () => {
       expandedCommit={expandedCommit}
       expandedFiles={expandedFiles}
       loading={loading}
-      error={error}
+      error={combinedError}
       userStats={userStats}
       loadingStats={loadingStats}
       onClose={handleClose}
