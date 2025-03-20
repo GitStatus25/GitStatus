@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { useAuth } from '../../contexts/AuthContext';
+import useAuthStore from '../../store/authStore';
 import LoginComponentTemplate from './LoginComponent.jsx';
 
 /**
@@ -10,7 +10,7 @@ import LoginComponentTemplate from './LoginComponent.jsx';
 const LoginComponent = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuthStore();
 
   // If already authenticated, redirect to dashboard
   React.useEffect(() => {

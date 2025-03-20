@@ -1,10 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material';
-import { useModal } from '../contexts/ModalContext';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from '../services/toast';
+import useModalStore from '../store/modalStore';
 
 /**
  * Custom hook for managing dashboard state and functionality
@@ -14,7 +14,7 @@ const useDashboard = () => {
   const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
   const navigate = useNavigate();
   const theme = useTheme();
-  const { openCreateReportModal } = useModal();
+  const { openModal } = useModalStore();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,6 +98,10 @@ const useDashboard = () => {
 
   const handleViewReport = (reportId) => {
     navigate(`/reports/${reportId}`);
+  };
+
+  const openCreateReportModal = () => {
+    openModal('createReport');
   };
 
   return {

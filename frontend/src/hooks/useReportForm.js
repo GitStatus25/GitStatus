@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api.js';
-import { useModal } from '../contexts/ModalContext.js';
+import useModalStore from '../store/modalStore';
 import useRepositorySearch from './useRepositorySearch.js';
 import useAuthorSelection from './useAuthorSelection.js';
 import useDateRange from './useDateRange.js';
@@ -11,14 +11,7 @@ import useDateRange from './useDateRange.js';
  * and form validation
  */
 const useReportForm = () => {
-  const { 
-    modalState, 
-    closeModals, 
-    updateReportData, 
-    openViewCommitsModal 
-  } = useModal();
-
-  const { createReportOpen, reportData } = modalState;
+  const { openModal } = useModalStore();
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -213,6 +206,10 @@ const useReportForm = () => {
     // Reset form state
     setFormSubmitted(false);
     setError(null);
+  };
+  
+  const openViewCommitsModal = (data) => {
+    openModal('viewCommits', data);
   };
   
   return {
