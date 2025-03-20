@@ -250,13 +250,19 @@ module.exports = {
    * @returns {Promise<Object>} - Job information
    */
   addJob: async (reportId, options) => {
+    // Add job to the queue
     const job = await pdfQueue.add({ reportId, options });
     
-    // Update report status
-    await Report.findByIdAndUpdate(reportId, {
-      pdfStatus: 'pending',
-      pdfError: null
-    });
+    // Update report status directly (this is redundant if called from reportService,
+    // but ensures it works when called directly from controllers)
+    try {
+      await Report.findByIdAndUpdate(reportId, {
+        pdfStatus: 'pending',
+        pdfError: null
+      });
+    } catch (error) {
+      console.error(`Error updating report ${reportId} status:`, error);
+    }
     
     return { id: job.id };
   },

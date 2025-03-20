@@ -7,6 +7,7 @@ const reportService = require('../../services/reportService');
 const { ReportUsageTrackerService, CommitUsageTrackerService, TokenUsageTrackerService } = require('../../services/UsageStats');
 const User = require('../../models/User');
 const { NotFoundError, ValidationError } = require('../../utils/errors');
+const pdfJobProcessor = require('../../services/pdf/PDFJobProcessor');
 
 /**
  * Generate a report based on selected commit IDs
@@ -104,7 +105,7 @@ exports.generateReport = async (req, res) => {
     if (reportContent.usage) {
       inputTokenCount = reportContent.usage.promptTokens || 0;
       outputTokenCount = reportContent.usage.completionTokens || 0;
-      modelName = reportContent.model || 'gpt-4';
+      modelName = reportContent.model || 'gpt-4o-mini';
     }
     
     // Determine content for PDF
@@ -126,14 +127,17 @@ exports.generateReport = async (req, res) => {
     });
     
     try {
-      // Generate PDF in background
-      const jobInfo = await pdfService.generatePDF({
+      // Generate PDF in background using our robust processor
+      const options = {
         title: report.name,
         content: reportContentText,
         repository: report.repository,
         startDate: report.startDate,
         endDate: report.endDate
-      }, report.id);
+      };
+      
+      // Add job to the queue
+      const jobInfo = await pdfJobProcessor.addJob(report.id, options);
       
       // Update report with job ID
       report.pdfJobId = jobInfo.id;
@@ -243,7 +247,7 @@ exports.getPdfStatus = async (req, res) => {
     
     // If job is in progress
     if (report.pdfJobId) {
-      const jobStatus = await pdfService.getPdfJobStatus(report.pdfJobId);
+      const jobStatus = await pdfJobProcessor.getJobStatus(report.pdfJobId);
       return res.json({
         status: jobStatus.status,
         progress: jobStatus.progress,
