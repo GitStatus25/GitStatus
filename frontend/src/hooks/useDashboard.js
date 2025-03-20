@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material';
 import useAuthStore from '../store/authStore';
@@ -11,10 +11,29 @@ import useModalStore from '../store/modalStore';
  * Handles report fetching, deletion, and navigation
  */
 const useDashboard = () => {
-  const { isAuthenticated, loading: authLoading } = useAuthStore();
+  // Memoize the auth store selector
+  const authSelector = useMemo(() => 
+    (state) => ({
+      isAuthenticated: state.isAuthenticated,
+      loading: state.loading
+    }),
+    []
+  );
+  
+  const { isAuthenticated, loading: authLoading } = useAuthStore(authSelector);
+  
+  // Memoize the modal store selector
+  const modalSelector = useMemo(() => 
+    (state) => ({
+      openModal: state.openModal
+    }),
+    []
+  );
+  
+  const { openModal } = useModalStore(modalSelector);
+  
   const navigate = useNavigate();
   const theme = useTheme();
-  const { openModal } = useModalStore();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
