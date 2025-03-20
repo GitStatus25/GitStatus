@@ -35,11 +35,21 @@ class GitHubCommitService {
       Accept: 'application/vnd.github.v3+json'
     };
     
-    // Make the request to the GitHub API
-    const response = await axios.get(url, { params, headers });
+    // Make the request to the GitHub API with pagination
+    let allCommits = [];
+    let page = 1;
+    while (true) {
+      const response = await axios.get(url, { 
+        params: { ...params, page }, 
+        headers 
+      });
+      allCommits = [...allCommits, ...response.data];
+      if (response.data.length < 100) break;
+      page++;
+    }
     
     // Filter commits by date if needed
-    let commits = response.data;
+    let commits = allCommits;
     
     if (startDate) {
       const startDateTime = new Date(startDate).getTime();
