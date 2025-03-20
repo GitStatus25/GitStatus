@@ -1,7 +1,7 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme, useMediaQuery } from '@mui/material';
-import { AuthContext } from '../../../contexts/AuthContext.js';
+import useAuthStore from '../../../store/authStore';
 import LayoutComponentTemplate from './LayoutComponent.jsx';
 
 /**
@@ -11,7 +11,10 @@ import LayoutComponentTemplate from './LayoutComponent.jsx';
  * @param {string} props.title - Page title to display in the header
  */
 const LayoutComponent = ({ children, title }) => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useAuthStore(state => ({
+    user: state.user,
+    logout: state.logout
+  }));
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
