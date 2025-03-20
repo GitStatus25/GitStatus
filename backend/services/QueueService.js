@@ -44,11 +44,16 @@ pdfQueue.process(async (job) => {
     await fs.writeFile(tempFilePath, pdfBuffer);
     
     // Upload PDF to S3
-    const pdfUrl = await S3Service.uploadFile({
+    const uploadResult = await S3Service.uploadFile({
       filePath: tempFilePath,
       key: `reports/${reportId}.pdf`,
       contentType: 'application/pdf'
-    }).then(res => res.key);
+    });
+    
+    console.log('S3 upload result:', uploadResult);
+    const pdfUrl = uploadResult.key;
+    
+    console.log(`Setting pdfUrl for report ${reportId} to: "${pdfUrl}"`);
     
     await job.progress(80);
     

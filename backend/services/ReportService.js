@@ -84,19 +84,28 @@ const getReportById = async (reportId, userId) => {
  * @returns {Promise<Object>} - Object with viewUrl and downloadUrl
  */
 const generateReportUrls = async (report) => {
-  if (!report.pdfUrl || report.pdfUrl === 'pending' || report.pdfUrl === 'failed') {
+  if (!report) {
+    console.error('Report object is null or undefined');
     return { viewUrl: null, downloadUrl: null };
   }
 
-  const [viewUrl, downloadUrl] = await Promise.all([
-    S3Service.getSignedUrl(report.pdfUrl),
-    S3Service.getDownloadUrl(
-      report.pdfUrl,
-      `${report.name.replace(/[^a-z0-9-]/gi, '-').toLowerCase()}.pdf`
-    )
-  ]);
-  
-  return { viewUrl, downloadUrl };
+  if (!report.pdfUrl || report.pdfUrl === 'pending' || report.pdfUrl === 'failed') {
+    console.log(`Report ${report._id}: PDF URL not available (${report.pdfUrl || 'undefined'})`);
+    return { viewUrl: null, downloadUrl: null };
+  }
+
+  console.log(`Generating signed URL for report ${report._id} with PDF URL: "${report.pdfUrl}"`);
+
+  try {
+    const signedUrl = await S3Service.getSignedUrl({ key: report.pdfUrl });
+    const viewUrl = signedUrl;
+    const downloadUrl = signedUrl;
+    
+    return { viewUrl, downloadUrl };
+  } catch (error) {
+    console.error(`Error generating signed URL for report ${report._id}:`, error.message);
+    return { viewUrl: null, downloadUrl: null };
+  }
 };
 
 /**
