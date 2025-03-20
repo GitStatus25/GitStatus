@@ -29,7 +29,10 @@ const RepositorySelectorTemplate = ({
         inputValue={searchQuery}
         onInputChange={(event, newInputValue) => onSearchQueryChange(newInputValue)}
         options={searchResults}
-        getOptionLabel={(option) => option}
+        getOptionLabel={(option) => option && typeof option === 'object' ? `${option.owner}/${option.name}` : ''}
+        isOptionEqualToValue={(option, value) => 
+          option && value && option.id === value.id
+        }
         filterOptions={(x) => x} // Disable built-in filtering
         renderInput={(params) => (
           <TextField
