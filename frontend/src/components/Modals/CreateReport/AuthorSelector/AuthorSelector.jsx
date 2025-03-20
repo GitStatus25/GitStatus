@@ -41,14 +41,19 @@ const AuthorSelectorTemplate = ({
           />
         )}
         renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              avatar={option.avatarUrl ? <Avatar src={option.avatarUrl} /> : null}
-              label={typeof option === 'object' ? option.login || option.name : option}
-              {...getTagProps({ index })}
-              className="author-chip"
-            />
-          ))
+          value.map((option, index) => {
+            const tagProps = getTagProps({ index });
+            const { key, ...otherTagProps } = tagProps;
+            return (
+              <Chip
+                key={key}
+                avatar={option.avatarUrl ? <Avatar src={option.avatarUrl} /> : null}
+                label={typeof option === 'object' ? option.login || option.name : option}
+                {...otherTagProps}
+                className="author-chip"
+              />
+            );
+          })
         }
         disabled={disabled}
       />

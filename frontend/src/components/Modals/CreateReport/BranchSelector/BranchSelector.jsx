@@ -40,13 +40,18 @@ const BranchSelectorTemplate = ({
           />
         )}
         renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={typeof option === 'object' ? option.name : option}
-              {...getTagProps({ index })}
-              className="branch-chip"
-            />
-          ))
+          value.map((option, index) => {
+            const tagProps = getTagProps({ index });
+            const { key, ...otherTagProps } = tagProps;
+            return (
+              <Chip
+                key={key}
+                label={typeof option === 'object' ? option.name : option}
+                {...otherTagProps}
+                className="branch-chip"
+              />
+            );
+          })
         }
         disabled={disabled}
       />
