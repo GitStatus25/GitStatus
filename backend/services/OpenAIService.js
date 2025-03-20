@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const CommitSummary = require('../models/CommitSummary');
 const { getReportPrompt } = require('../templates/reportPrompt');
 const { getCommitSummaryPrompt } = require('../templates/commitSummaryPrompt');
+const openaiConfig = require('../config/openai');
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -68,12 +69,12 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
 
       // Call the OpenAI API
       const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o',
+        model: openaiConfig.models.commitAnalysis,
         messages: [
           { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 300
+        max_tokens: openaiConfig.tokenLimits.commitAnalysisMaxTokens
       });
 
       // Extract the summary from the response
@@ -86,7 +87,7 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
           completionTokens: response.usage.completion_tokens,
           totalTokens: response.usage.total_tokens
         };
-        model = response.model || process.env.OPENAI_MODEL || 'gpt-4o';
+        model = response.model || openaiConfig.models.commitAnalysis;
       }
       
       if (!summary || summary.length === 0) {
@@ -174,13 +175,13 @@ const openaiService = {
 
       // Call the OpenAI API
       const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o',
+        model: openaiConfig.models.commitAnalysis,
         messages: [
           { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 150,
-        temperature: 0.7
+        max_tokens: openaiConfig.tokenLimits.commitAnalysisMaxTokens,
+        temperature: openaiConfig.temperature.commitAnalysis
       });
 
       // Return the generated summary
@@ -286,7 +287,7 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
       
       // Call the OpenAI API for report generation
       const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        model: openaiConfig.models.reportGeneration,
         messages: [
           { 
             role: 'system', 
@@ -294,8 +295,8 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
           },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 2500,
-        temperature: 0.7
+        max_tokens: openaiConfig.tokenLimits.reportGenerationMaxTokens,
+        temperature: openaiConfig.temperature.reportGeneration
       });
 
       // Create the result object
@@ -314,7 +315,7 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
           completionTokens: response.usage.completion_tokens,
           totalTokens: response.usage.total_tokens
         };
-        result.model = response.model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+        result.model = response.model || openaiConfig.models.reportGeneration;
       }
       
       console.log('OpenAI report generated:', {
