@@ -90,14 +90,31 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
         model = response.model || openaiConfig.models.commitAnalysis;
       }
       
-      if (!summary || summary.length === 0) {
+      if (!summary || summary.length === 0 || summary === fallbackSummary) {
         console.log(`No summary generated for commit ${commit.sha.substring(0, 7)}, using fallback`);
-        summary = fallbackSummary;
+        return { 
+          sha: commit.sha,
+          message: commit.message || 'No message',
+          author: commit.author?.name || commit.author?.login || 'Unknown',
+          date: commit.date || new Date(),
+          summary: fallbackSummary,
+          filesChanged: commit.filesChanged || 0,
+          fromCache: false
+        }; // Don't cache
       }
     } catch (error) {
       console.error(`Error generating summary for commit ${commit.sha.substring(0, 7)}:`, error);
-      // Use the fallback summary if OpenAI fails
+      // Use the fallback summary if OpenAI fails but don't cache it
       console.log(`Using fallback summary for commit ${commit.sha.substring(0, 7)}`);
+      return { 
+        sha: commit.sha,
+        message: commit.message || 'No message',
+        author: commit.author?.name || commit.author?.login || 'Unknown',
+        date: commit.date || new Date(),
+        summary: fallbackSummary,
+        filesChanged: commit.filesChanged || 0,
+        fromCache: false
+      }; // Don't cache on error
     }
 
     // Save the summary to the database
