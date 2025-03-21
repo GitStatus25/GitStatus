@@ -50,9 +50,8 @@ const AdminDashboardComponent = ({
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
   const [newPlan, setNewPlan] = useState({ 
     name: '', 
-    rateLimit: '', 
-    price: '', 
-    features: '',
+    displayName: '', 
+    description: '',
     limits: {
       reportsPerMonth: 100,
       commitsPerMonth: 1000,
@@ -75,9 +74,8 @@ const AdminDashboardComponent = ({
     setPlanDialogOpen(false);
     setNewPlan({ 
       name: '', 
-      rateLimit: '', 
-      price: '', 
-      features: '',
+      displayName: '', 
+      description: '',
       limits: {
         reportsPerMonth: 100,
         commitsPerMonth: 1000,
@@ -122,8 +120,8 @@ const AdminDashboardComponent = ({
     setEditingPlan(plan._id);
     setNewPlan({
       name: plan.name,
-      rateLimit: plan.rateLimit,
-      price: plan.price,
+      displayName: plan.displayName,
+      description: plan.description,
       features: plan.features || '',
       limits: {
         reportsPerMonth: plan.limits?.reportsPerMonth || 100,
@@ -518,9 +516,8 @@ const AdminDashboardComponent = ({
               <TableHead>
                 <TableRow>
                   <TableCell>Plan Name</TableCell>
-                  <TableCell>Rate Limit</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Features</TableCell>
+                  <TableCell>Display Name</TableCell>
+                  <TableCell>Description</TableCell>
                   <TableCell>Reports/Month</TableCell>
                   <TableCell>Commits/Month</TableCell>
                   <TableCell>Tokens/Month</TableCell>
@@ -533,9 +530,8 @@ const AdminDashboardComponent = ({
                 {availablePlans.map((plan) => (
                   <TableRow key={plan._id}>
                     <TableCell>{plan.name}</TableCell>
-                    <TableCell>{plan.rateLimit}</TableCell>
-                    <TableCell>{plan.price}</TableCell>
-                    <TableCell>{plan.features}</TableCell>
+                    <TableCell>{plan.displayName}</TableCell>
+                    <TableCell>{plan.description}</TableCell>
                     <TableCell>{plan.limits?.reportsPerMonth || 100}</TableCell>
                     <TableCell>{plan.limits?.commitsPerMonth || 1000}</TableCell>
                     <TableCell>{plan.limits?.tokensPerMonth || 10000}</TableCell>
@@ -589,29 +585,20 @@ const AdminDashboardComponent = ({
           />
           <TextField
             margin="dense"
-            label="Rate Limit"
+            label="Display Name"
             fullWidth
             variant="standard"
-            value={newPlan.rateLimit}
-            onChange={handleNewPlanChange('rateLimit')}
+            value={newPlan.displayName}
+            onChange={handleNewPlanChange('displayName')}
             sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
-            label="Price"
+            label="Description"
             fullWidth
             variant="standard"
-            value={newPlan.price}
-            onChange={handleNewPlanChange('price')}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="Features"
-            fullWidth
-            variant="standard"
-            value={newPlan.features}
-            onChange={handleNewPlanChange('features')}
+            value={newPlan.description}
+            onChange={handleNewPlanChange('description')}
             sx={{ mb: 3 }}
           />
           
