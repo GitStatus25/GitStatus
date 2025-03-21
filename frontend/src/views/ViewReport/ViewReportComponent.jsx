@@ -136,46 +136,53 @@ const ViewReportComponentTemplate = ({
             </Box>
             
             <ViewReportReportHeaderComponent report={report} />
-            <ViewReportReportMetadataComponent report={report} formatDate={formatDate} />
             
-            <Box className="view-report-sections" mt={4}>
-              <ViewReportCommitListComponent 
-                commits={report.commits || []} 
-                formatDate={formatDate}
-                summaryStatus={summaryStatus}
-                summaryProgress={summaryProgress}
-              />
+            <Grid container spacing={4} className="view-report-grid">
+              <Grid item xs={12}>
+                <ViewReportReportMetadataComponent report={report} formatDate={formatDate} />
+              </Grid>
               
-              {/* Only show report content if it exists and summaries are complete */}
-              {report.content && summaryStatus === 'completed' && (
-                <Paper className="report-content" sx={{ mt: 3, p: 3, bgcolor: 'background.paper' }}>
-                  <Typography variant="h5" component="h2" gutterBottom>
-                    Report Content
-                  </Typography>
-                  <Typography variant="body1" component="div" className="report-text">
-                    {report.content.split('\n').map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </Typography>
-                </Paper>
-              )}
-              
-              {reportStatus !== 'completed' && summaryStatus === 'completed' && (
-                <Alert severity="info" sx={{ mt: 3 }}>
-                  Report content is being generated. Progress: {reportProgress}%
-                </Alert>
-              )}
-              
-              <ViewReportPDFPreviewComponent
-                report={report}
-                pdfStatus={pdfStatus}
-                pdfProgress={pdfProgress}
-                pdfPreviewFailed={pdfPreviewFailed}
-                iframeRef={iframeRef}
-                handleIframeLoad={handleIframeLoad}
-                handleIframeError={handleIframeError}
-              />
-            </Box>
+              <Grid item xs={12}>
+                <Box className="view-report-sections">
+                  <ViewReportCommitListComponent 
+                    commits={report.commits || []} 
+                    formatDate={formatDate}
+                    summaryStatus={summaryStatus}
+                    summaryProgress={summaryProgress}
+                  />
+                  
+                  {/* Only show report content if it exists and summaries are complete */}
+                  {report.content && summaryStatus === 'completed' && (
+                    <Paper className="report-content" sx={{ mt: 3, p: 3, bgcolor: 'background.paper' }}>
+                      <Typography variant="h5" component="h2" gutterBottom>
+                        Report Content
+                      </Typography>
+                      <Typography variant="body1" component="div" className="report-text">
+                        {report.content.split('\n').map((paragraph, index) => (
+                          <p key={index}>{paragraph}</p>
+                        ))}
+                      </Typography>
+                    </Paper>
+                  )}
+                  
+                  {reportStatus !== 'completed' && summaryStatus === 'completed' && (
+                    <Alert severity="info" sx={{ mt: 3 }}>
+                      Report content is being generated. Progress: {reportProgress}%
+                    </Alert>
+                  )}
+                  
+                  <ViewReportPDFPreviewComponent
+                    report={report}
+                    pdfStatus={pdfStatus}
+                    pdfProgress={pdfProgress}
+                    pdfPreviewFailed={pdfPreviewFailed}
+                    iframeRef={iframeRef}
+                    handleIframeLoad={handleIframeLoad}
+                    handleIframeError={handleIframeError}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
           </Box>
         )}
       </Paper>
