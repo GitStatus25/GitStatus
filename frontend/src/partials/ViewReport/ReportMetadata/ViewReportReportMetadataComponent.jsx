@@ -50,7 +50,7 @@ const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
         <Box className="metadata-container">
           <Grid container spacing={2}>
             {/* Repository Card */}
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Paper
                 className="metadata-item"
                 elevation={0}
@@ -65,7 +65,7 @@ const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
             
             {/* Authors Card */}
             {report?.allAuthors && report.allAuthors.length > 0 && (
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <Paper
                   className="metadata-item"
                   elevation={0}
@@ -95,7 +95,7 @@ const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
             )}
 
             {/* Date Range Card */}
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Paper
                 className="metadata-item"
                 elevation={0}
@@ -129,7 +129,7 @@ const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
             </Grid>
             
             {/* Branch Card */} 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Paper
                 className="metadata-item"
                 elevation={0}
@@ -147,7 +147,7 @@ const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
             </Grid>
             
             {/* Created Card */}
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <Paper
                 className="metadata-item"
                 elevation={0}
@@ -162,7 +162,7 @@ const ViewReportReportMetadataComponentTemplate = ({ report, formatDate }) => {
             
             {/* Access Count Card */}
             {report?.accessCount && (
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <Paper
                   className="metadata-item"
                   elevation={0}
