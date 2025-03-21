@@ -22,13 +22,16 @@ const BranchSelectorTemplate = ({
   helperText = "Select branches to include in the report",
   isRequired = true,
 }) => {
+  // Ensure branches is always an array
+  const branchesArray = Array.isArray(branches) ? branches : [];
+  
   return (
     <FormControl fullWidth className="form-field">
       <Autocomplete
         multiple
         value={selectedBranches}
         onChange={(event, newValue) => onBranchesChange(newValue)}
-        options={branches}
+        options={branchesArray}
         getOptionLabel={(option) => typeof option === 'object' ? option.name : option}
         renderInput={(params) => (
           <TextField

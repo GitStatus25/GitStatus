@@ -23,13 +23,16 @@ const AuthorSelectorTemplate = ({
   helperText = "Select authors to include in the report (optional)",
   isRequired = false,
 }) => {
+  // Ensure authors is always an array
+  const authorsArray = Array.isArray(authors) ? authors : [];
+  
   return (
     <FormControl fullWidth className="form-field">
       <Autocomplete
         multiple
         value={selectedAuthors}
         onChange={(event, newValue) => onAuthorsChange(newValue)}
-        options={authors}
+        options={authorsArray}
         getOptionLabel={(option) => typeof option === 'object' ? option.login || option.name : option}
         renderInput={(params) => (
           <TextField
