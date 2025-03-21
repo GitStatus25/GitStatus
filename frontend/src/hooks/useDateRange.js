@@ -18,8 +18,20 @@ export const useDateRange = (repository, branches, authors, repositoryValid) => 
     dateRanges: {}
   });
   
+  // Track component mount state
+  const isMountedRef = useRef(true);
+  
   // Debounce timer
   const dateRangeDebounceTimer = useRef(null);
+  
+  // Set mounted flag
+  useEffect(() => {
+    isMountedRef.current = true;
+    
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   
   // Update date range when branches or authors change
   useEffect(() => {
@@ -41,18 +53,29 @@ export const useDateRange = (repository, branches, authors, repositoryValid) => 
         if (apiCache.current.dateRanges[cacheKey]) {
           newDateRange = apiCache.current.dateRanges[cacheKey];
         } else {
-          // Fetch from API if not cached
+          // Fetch from API if not cached - don't use abort signal
+          // to ensure request completes even after unmount
           newDateRange = await api.getDateRange(repository, branchNames, authors);
           
           // Cache the results
           apiCache.current.dateRanges[cacheKey] = newDateRange;
         }
         
-        setDateRange(newDateRange);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setDateRange(newDateRange);
+        }
       } catch (err) {
         console.error('Error fetching date range:', err);
+        // Don't update state if aborted or unmounted
+        if (err.name !== 'AbortError' && !err.canceled && isMountedRef.current) {
+          // Error state handling can go here if needed
+        }
       } finally {
-        setIsLoadingDateRange(false);
+        // Only update loading state if still mounted
+        if (isMountedRef.current) {
+          setIsLoadingDateRange(false);
+        }
       }
     };
     

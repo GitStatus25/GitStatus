@@ -51,6 +51,7 @@ const useReportForm = () => {
   const [loadingViewCommits, setLoadingViewCommits] = useState(false);
 
   // Add AbortController to abort pending API requests when component unmounts
+  // But NOT requests related to repository, branch, and author selection
   const abortControllerRef = useRef(new AbortController());
   
   useEffect(() => {
@@ -58,7 +59,8 @@ const useReportForm = () => {
     const controller = abortControllerRef.current;
     
     return () => {
-      controller.abort();
+      // Only abort certain requests on unmount - preserve selection-related requests
+      controller.abort('abortNonSelectionRequests');
     };
   }, []);
 
@@ -137,18 +139,14 @@ const useReportForm = () => {
     try {
       setError(null);
       
-      // Fetch repository branches
-      const branches = await api.getBranches(repo, abortControllerRef.current.signal);
+      // Fetch repository branches without using the abortable signal
+      // This ensures the request completes even if component unmounts
+      const branches = await api.getBranches(repo);
       
       setBranches(branches);
       setRepositoryValid(true);
     } catch (err) {
-      // Don't update state if request was aborted
-      if (err.name === 'AbortError' || err.canceled) {
-        console.log('Repository data request was aborted');
-        return;
-      }
-      
+      // Skip abort error handling since we're not using abortable requests for selections
       console.error('Error fetching repository data:', err);
       setFormData(prev => ({ ...prev, repository: '', branches: [] }));
       setRepositoryValid(false);

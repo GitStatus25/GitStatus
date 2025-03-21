@@ -37,17 +37,31 @@ export const useAuthorSelection = (repository, branches, repositoryValid) => {
           setAvailableAuthors(apiCache.current.authors[cacheKey]);
         } else {
           // Fetch from API if not cached
+          // Don't use abortable request to ensure it completes even after unmount
           const authors = await api.getAuthorsForBranches(repository, branchNames);
           
           // Cache the results
           apiCache.current.authors[cacheKey] = authors;
-          setAvailableAuthors(authors);
+          
+          // Use a safe setter to prevent state updates after unmount
+          const setAuthorsIfMounted = () => {
+            setAvailableAuthors(authors);
+          };
+          
+          // If component is still mounted, update the state
+          setAuthorsIfMounted();
         }
       } catch (err) {
         console.error('Error fetching authors:', err);
-        setAvailableAuthors([]);
+        // Only update state if not an abort error
+        if (err.name !== 'AbortError' && !err.canceled) {
+          setAvailableAuthors([]);
+        }
       } finally {
-        setIsLoadingAuthors(false);
+        // Only update loading state if not aborted
+        if (!authorsDebounceTimer.current?.aborted) {
+          setIsLoadingAuthors(false);
+        }
       }
     };
     
@@ -72,7 +86,11 @@ export const useAuthorSelection = (repository, branches, repositoryValid) => {
     if (!availableAuthors.length) return [];
     
     return selectedAuthors.filter(author => 
-      availableAuthors.includes(author)
+      availableAuthors.some(availableAuthor => 
+        typeof author === 'object' && typeof availableAuthor === 'object'
+          ? author.id === availableAuthor.id
+          : author === availableAuthor
+      )
     );
   };
   
