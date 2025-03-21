@@ -80,7 +80,7 @@ pdfQueue.process(async (job) => {
 summaryQueue.process(async (job) => {
   try {
     console.log(`Processing summary generation job ${job.id}`);
-    const { commit, repository, trackTokens } = job.data;
+    const { commit, repository, trackTokens, reportId } = job.data;
     
     // Update job progress
     await job.progress(10);
@@ -133,7 +133,8 @@ summaryQueue.process(async (job) => {
     return { 
       sha: commit.sha, 
       summary,
-      fromCache: false
+      fromCache: false,
+      reportId
     };
   } catch (error) {
     console.error('Error processing summary generation job:', error);
@@ -227,8 +228,91 @@ pdfQueue.on('completed', (job, result) => {
   console.log(`PDF job ${job.id} completed with result:`, result);
 });
 
-summaryQueue.on('completed', (job, result) => {
-  console.log(`Summary job ${job.id} completed for commit ${result.sha.substring(0, 7)}`);
+summaryQueue.on('completed', async (job, result) => {
+  try {
+    console.log(`Summary job ${job.id} completed for commit ${result.sha.substring(0, 7)}`);
+    
+    // Check if this summary is part of a report
+    const { reportId } = job.data;
+    
+    if (reportId) {
+      // Update the report to mark this commit summary as completed
+      const report = await Report.findById(reportId);
+      
+      if (report && report.pendingCommitJobs && report.pendingCommitJobs.length > 0) {
+        // Find the job in the pendingCommitJobs array
+        const commitJobIndex = report.pendingCommitJobs.findIndex(
+          cj => cj.commitId === result.sha
+        );
+        
+        if (commitJobIndex !== -1) {
+          // Update the job status
+          report.pendingCommitJobs[commitJobIndex].status = 'completed';
+          await report.save();
+          
+          // Check if all commit summaries are now completed
+          const allCompleted = report.pendingCommitJobs.every(
+            cj => cj.status === 'completed'
+          );
+          
+          if (allCompleted) {
+            console.log(`All commit summaries completed for report ${reportId}, queueing report generation`);
+            
+            // Update report status
+            report.summaryStatus = 'completed';
+            await report.save();
+            
+            // Lazy load dependencies
+            if (!OpenAIService) {
+              OpenAIService = require('./OpenAIService');
+            }
+            
+            // Get all commits with their fresh summaries
+            const commitSummaries = await Promise.all(
+              report.commits.map(async (commit) => {
+                const summary = await CommitSummary.findOne({
+                  repository: report.repository,
+                  commitId: commit.commitId
+                });
+                
+                return {
+                  sha: commit.commitId,
+                  message: commit.message,
+                  author: commit.author,
+                  date: commit.date,
+                  summary: summary ? summary.summary : commit.summary,
+                  filesChanged: summary ? summary.filesChanged : 0,
+                  fromCache: true
+                };
+              })
+            );
+            
+            // Queue report generation
+            const reportOptions = {
+              repository: report.repository,
+              commits: commitSummaries,
+              title: report.name,
+              includeCode: false, // Default to false, could be stored in the report if needed
+              branchInfo: report.branch,
+              authorInfo: report.author,
+              trackTokens: true,
+              reportId: report.id
+            };
+            
+            // Add report generation job to queue
+            const reportJobInfo = await OpenAIService.generateReportFromCommits(reportOptions, report.id);
+            
+            // Update report with report job ID
+            report.reportJobId = reportJobInfo.id;
+            report.reportStatus = 'pending';
+            await report.save();
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error in summary completion handler:', error);
+  }
 });
 
 reportQueue.on('completed', (job, result) => {
@@ -304,13 +388,15 @@ const queueService = {
    * @param {Object} commit - The commit object
    * @param {string} repository - Repository name
    * @param {boolean} trackTokens - Whether to track token usage
+   * @param {string} reportId - Optional report ID to associate with this summary
    * @returns {Promise<Object>} - Job information with id
    */
-  async addSummaryGenerationJob(commit, repository, trackTokens = true) {
+  async addSummaryGenerationJob(commit, repository, trackTokens = true, reportId = null) {
     const job = await summaryQueue.add({
       commit,
       repository,
-      trackTokens
+      trackTokens,
+      reportId
     }, {
       attempts: 3,
       backoff: {

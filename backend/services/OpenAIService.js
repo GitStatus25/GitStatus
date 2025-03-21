@@ -98,6 +98,35 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
  */
 const openaiService = {
   /**
+   * Queue a commit for summary generation
+   * 
+   * @param {Object} commit - Commit data
+   * @param {string} repository - Repository name
+   * @param {boolean} trackTokens - Whether to track token usage
+   * @param {string} reportId - Optional report ID to associate with this summary
+   * @returns {Promise<Object>} - Job information with id
+   */
+  async queueCommitSummary(commit, repository, trackTokens = true, reportId = null) {
+    try {
+      // Lazy load QueueService to avoid circular dependency
+      if (!QueueService) {
+        QueueService = require('./QueueService');
+      }
+      
+      // Add job to the queue
+      const jobInfo = await QueueService.addSummaryGenerationJob(commit, repository, trackTokens, reportId);
+      
+      return {
+        id: jobInfo.id,
+        status: 'pending'
+      };
+    } catch (error) {
+      console.error('Error queueing commit summary:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Analyze a commit using OpenAI
    */
   async analyzeCommit({ commitMessage, diff, repository, commitSha, authorName }) {

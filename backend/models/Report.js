@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const CommitJobSchema = new mongoose.Schema({
+  commitId: {
+    type: String,
+    required: true
+  },
+  jobId: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending'
+  }
+}, { _id: false }); // Don't create _id for subdocuments
+
 const ReportSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -50,6 +66,14 @@ const ReportSchema = new mongoose.Schema({
       type: String
     }
   }],
+  // Track pending commit summary jobs
+  pendingCommitJobs: [CommitJobSchema],
+  // Summary generation status
+  summaryStatus: {
+    type: String,
+    enum: ['pending', 'completed', 'failed', null],
+    default: null
+  },
   content: {
     type: String,
     default: null

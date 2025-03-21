@@ -8,6 +8,7 @@ const { NotFoundError } = require('../../utils/errors');
 const ReportService = require('../../services/ReportService');
 const PDFService = require('../../services/PDFService');
 const QueueService = require('../../services/QueueService');
+const CommitSummary = require('../../models/CommitSummary');
 /**
  * Generate a report based on selected commit IDs
  */
@@ -112,30 +113,90 @@ exports.generateReport = async (req, res) => {
     });
     
     try {
-      // Queue report generation in background
-      const reportOptions = {
-        repository, 
-        commits, 
-        title, 
-        includeCode, 
-        branchInfo: branches?.join(', ') || 'All branches',
-        authorInfo: authors?.join(', ') || 'All authors',
-        trackTokens: true,
-        reportId: report.id
-      };
+      // First, queue summary generation for all commits that don't have summaries yet
+      const commitSummaryJobs = [];
       
-      // Add report generation job to queue
-      const reportJobInfo = await OpenAIService.generateReportFromCommits(reportOptions, report.id);
+      // Keep track of which commits already have summaries
+      const commitSummaries = await Promise.all(
+        commits.map(async (commit) => {
+          // Check if this commit already has a summary in the database
+          const existingSummary = await CommitSummary.findOne({
+            repository,
+            commitId: commit.sha
+          });
+          
+          if (existingSummary) {
+            // If summary exists, return it directly
+            return {
+              sha: existingSummary.commitId,
+              message: existingSummary.message,
+              author: existingSummary.author,
+              date: existingSummary.date,
+              summary: existingSummary.summary,
+              filesChanged: existingSummary.filesChanged || 0,
+              fromCache: true
+            };
+          } else {
+            // Queue this commit for summary generation
+            const jobInfo = await OpenAIService.queueCommitSummary(commit, repository, true, report.id);
+            
+            // Track the job
+            commitSummaryJobs.push({
+              sha: commit.sha,
+              jobId: jobInfo.id
+            });
+            
+            // Return a placeholder
+            return {
+              sha: commit.sha,
+              message: commit.message || 'No message',
+              author: commit.author?.name || commit.author?.login || 'Unknown',
+              date: commit.date || new Date(),
+              summary: commit.message ? commit.message.split('\n')[0].substring(0, 100) : 'No summary available',
+              filesChanged: commit.filesChanged || 0,
+              fromCache: false,
+              pendingJobId: jobInfo.id
+            };
+          }
+        })
+      );
       
-      // Update report with report job ID
-      report.reportJobId = reportJobInfo.id;
+      // Update report with commitSummaryJobs info
+      if (commitSummaryJobs.length > 0) {
+        report.pendingCommitJobs = commitSummaryJobs.map(job => ({
+          commitId: job.sha,
+          jobId: job.jobId
+        }));
+        report.summaryStatus = 'pending';
+      } else {
+        // All summaries are already cached, we can queue the report immediately
+        report.summaryStatus = 'completed';
+      }
+      
       await report.save();
       
-      // Generate PDF in background using our robust processor (this is already queued)
-      // Will be triggered after report generation completes with real content
-      // For now, we'll set it to pending
-      report.pdfStatus = 'pending';
-      await report.save();
+      // If there are no pending commit jobs, queue the report generation immediately
+      if (commitSummaryJobs.length === 0) {
+        // Queue report generation
+        const reportOptions = {
+          repository, 
+          commits: commitSummaries, // Use the cached summaries
+          title, 
+          includeCode, 
+          branchInfo: branches?.join(', ') || 'All branches',
+          authorInfo: authors?.join(', ') || 'All authors',
+          trackTokens: true,
+          reportId: report.id
+        };
+        
+        // Add report generation job to queue
+        const reportJobInfo = await OpenAIService.generateReportFromCommits(reportOptions, report.id);
+        
+        // Update report with report job ID
+        report.reportJobId = reportJobInfo.id;
+        report.reportStatus = 'pending';
+        await report.save();
+      }
       
       // Track usage statistics if not cached
       if (!isCachedReport) {
@@ -155,8 +216,10 @@ exports.generateReport = async (req, res) => {
         repository,
         createdAt: report.createdAt,
         pdfUrl: 'pending',
-        reportJobId: report.reportJobId,
-        reportStatus: 'pending'
+        reportJobId: report.reportJobId || null,
+        reportStatus: report.reportStatus || 'pending',
+        summaryStatus: report.summaryStatus,
+        pendingCommitJobs: commitSummaryJobs.length
       });
       
     } catch (error) {
@@ -308,6 +371,65 @@ exports.getReportStatus = async (req, res) => {
       return res.status(404).json({ message: 'Report not found' });
     }
     res.status(500).json({ message: 'Error getting report status', error: error.message });
+  }
+};
+
+/**
+ * Get commit summary status
+ */
+exports.getCommitSummaryStatus = async (req, res) => {
+  try {
+    const report = await ReportService.getReportById(req.params.id, req.user.id);
+    
+    // If all summaries are completed
+    if (report.summaryStatus === 'completed') {
+      return res.json({
+        status: 'completed',
+        progress: 100,
+        pendingJobs: 0,
+        completedJobs: report.commits.length
+      });
+    }
+    
+    // If summary generation failed
+    if (report.summaryStatus === 'failed') {
+      return res.json({
+        status: 'failed',
+        error: 'Failed to generate commit summaries'
+      });
+    }
+    
+    // If jobs are in progress
+    if (report.pendingCommitJobs && report.pendingCommitJobs.length > 0) {
+      // Count completed jobs
+      const completedJobs = report.pendingCommitJobs.filter(job => job.status === 'completed').length;
+      const totalJobs = report.pendingCommitJobs.length;
+      
+      // Calculate progress
+      const progress = Math.round((completedJobs / totalJobs) * 100);
+      
+      return res.json({
+        status: 'pending',
+        progress,
+        pendingJobs: totalJobs - completedJobs,
+        completedJobs,
+        totalJobs
+      });
+    }
+    
+    // Default response if no pending jobs but status isn't completed
+    return res.json({
+      status: report.summaryStatus || 'pending',
+      progress: 0,
+      pendingJobs: 0,
+      completedJobs: 0
+    });
+  } catch (error) {
+    console.error('Error getting commit summary status:', error);
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+    res.status(500).json({ message: 'Error getting commit summary status', error: error.message });
   }
 };
 

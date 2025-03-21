@@ -49,4 +49,7 @@ router.get('/:id/pdf-status', isAuthenticated, getReportByIdValidation, ReportGe
 // Get report generation status
 router.get('/:id/report-status', isAuthenticated, getReportByIdValidation, ReportGenerationController.getReportStatus);
 
+// Get commit summary status
+router.get('/:id/summary-status', isAuthenticated, getReportByIdValidation, ReportGenerationController.getCommitSummaryStatus);
+
 module.exports = router;
