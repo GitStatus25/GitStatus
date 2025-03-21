@@ -31,7 +31,7 @@ marked.setOptions({
  * @returns {string} - Complete HTML template
  */
 const getHtmlTemplate = (options) => {
-  const { content, title, repository, startDate, endDate } = options;
+  const { content, title, repository, startDate, endDate, watermark = true } = options;
   
   return `
   <!DOCTYPE html>
@@ -47,6 +47,7 @@ const getHtmlTemplate = (options) => {
         margin: 0;
         padding: 0;
         background-color: white;
+        position: relative;
       }
       
       .container {
@@ -148,9 +149,25 @@ const getHtmlTemplate = (options) => {
       .page-break {
         page-break-after: always;
       }
+
+      ${watermark ? `
+      /* Watermark style */
+      .watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 96px;
+        color: rgba(200, 200, 200, 0.3);
+        pointer-events: none;
+        z-index: 1000;
+        user-select: none;
+      }
+      ` : ''}
     </style>
   </head>
   <body>
+    ${watermark ? `<div class="watermark">GitStatus</div>` : ''}
     <div class="container">
       ${content}
     </div>
@@ -167,7 +184,7 @@ const getHtmlTemplate = (options) => {
  * @returns {Buffer} - PDF file buffer
  */
 const _generatePDF = async (options) => {
-  const { title, content, repository, startDate, endDate } = options;
+  const { title, content, repository, startDate, endDate, watermark = true } = options;
   
   if (!content) {
     throw new Error('No content provided for PDF generation');
@@ -191,7 +208,8 @@ const _generatePDF = async (options) => {
     repository,
     date: new Date(),
     startDate,
-    endDate
+    endDate,
+    watermark
   });
   
   // Create a temporary file for the HTML
@@ -301,6 +319,11 @@ const _generatePDF = async (options) => {
 const generatePDF = async (options, reportId) => {
   if (!reportId) {
     throw new Error('Report ID is required for background PDF generation');
+  }
+  
+  // Ensure watermark option is set with default to true
+  if (options.watermark === undefined) {
+    options.watermark = true;
   }
   
   // Add job to the queue
