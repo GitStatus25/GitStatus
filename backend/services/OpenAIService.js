@@ -11,6 +11,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Lazy load QueueService to avoid circular dependency
+let QueueService;
+
 /**
  * Get or create a commit summary
  * @param {Object} commit - Commit data
@@ -53,104 +56,28 @@ const getOrCreateCommitSummary = async (commit, repository, trackTokens = true) 
       commit.message.split('\n')[0].substring(0, 100) : 
       'No summary available';
     
-    let summary = fallbackSummary;
-    let usage = null;
-    let model = null;
-    
-    try {
-      // Use the new template for the OpenAI analysis
-      const prompt = getCommitSummaryPrompt({
-        repository,
-        commitSha: commit.sha,
-        authorName: commit.author?.name || commit.author?.login || 'Unknown',
-        message: commit.message,
-        diff: commit.diff
-      });
-
-      // Call the OpenAI API
-      const response = await openai.chat.completions.create({
-        model: openaiConfig.models.commitAnalysis,
-        messages: [
-          { role: 'system', content: 'You are a technical expert analyzing code changes. Provide clear, accurate, and concise summaries of what work was accomplished in a commit.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: openaiConfig.tokenLimits.commitAnalysisMaxTokens
-      });
-
-      // Extract the summary from the response
-      summary = response.choices[0].message.content.trim();
-      
-      // Track token usage if requested
-      if (trackTokens && response.usage) {
-        usage = {
-          promptTokens: response.usage.prompt_tokens,
-          completionTokens: response.usage.completion_tokens,
-          totalTokens: response.usage.total_tokens
-        };
-        model = response.model || openaiConfig.models.commitAnalysis;
-      }
-      
-      if (!summary || summary.length === 0 || summary === fallbackSummary) {
-        console.log(`No summary generated for commit ${commit.sha.substring(0, 7)}, using fallback`);
-        return { 
-          sha: commit.sha,
-          message: commit.message || 'No message',
-          author: commit.author?.name || commit.author?.login || 'Unknown',
-          date: commit.date || new Date(),
-          summary: fallbackSummary,
-          filesChanged: commit.filesChanged || 0,
-          fromCache: false
-        }; // Don't cache
-      }
-    } catch (error) {
-      console.error(`Error generating summary for commit ${commit.sha.substring(0, 7)}:`, error);
-      // Use the fallback summary if OpenAI fails but don't cache it
-      console.log(`Using fallback summary for commit ${commit.sha.substring(0, 7)}`);
-      return { 
-        sha: commit.sha,
-        message: commit.message || 'No message',
-        author: commit.author?.name || commit.author?.login || 'Unknown',
-        date: commit.date || new Date(),
-        summary: fallbackSummary,
-        filesChanged: commit.filesChanged || 0,
-        fromCache: false
-      }; // Don't cache on error
+    // Lazy load QueueService to avoid circular dependency
+    if (!QueueService) {
+      QueueService = require('./QueueService');
     }
-
-    // Save the summary to the database
-    const newSummary = new CommitSummary({
-      commitId: commit.sha,
-      repository,
-      message: commit.message || 'No message',
-      author: commit.author?.name || commit.author?.login || 'Unknown',
-      date: commit.date || new Date(),
-      summary,
-      filesChanged: commit.filesChanged || 0,
-      lastAccessed: new Date(),
-      createdAt: new Date()
-    });
-
-    await newSummary.save();
-    console.log(`Saved new summary for commit ${commit.sha.substring(0, 7)}`);
-
-    // Return the analyzed commit data with usage info if available
-    const result = {
+    
+    // Add job to the queue
+    const jobInfo = await QueueService.addSummaryGenerationJob(commit, repository, trackTokens);
+    
+    // Return a placeholder with the fallback summary
+    // The real summary will be generated in the background
+    return {
       sha: commit.sha,
       message: commit.message || 'No message',
       author: commit.author?.name || commit.author?.login || 'Unknown',
       date: commit.date || new Date(),
-      summary,
+      summary: fallbackSummary,
       filesChanged: commit.filesChanged || 0,
-      fromCache: false
+      fromCache: false,
+      jobId: jobInfo.id,
+      status: 'pending'
     };
     
-    // Add token usage if tracked
-    if (trackTokens && usage) {
-      result.usage = usage;
-      result.model = model;
-    }
-    
-    return result;
   } catch (error) {
     console.error(`Error in commit summary cache for ${commit.sha}:`, error);
     // If caching fails, still return the commit with a default summary
@@ -249,17 +176,14 @@ const openaiService = {
   
   /**
    * Generate a comprehensive report from a list of commits
+   * This implementation is used directly by the Queue Service
+   * 
    * @param {Object} options - Report generation options
-   * @param {string} options.repository - Repository name
-   * @param {Array} options.commits - List of commits
-   * @param {string} options.title - Report title
-   * @param {boolean} options.includeCode - Whether to include code snippets
-   * @param {string} options.branchInfo - Branch information
-   * @param {string} options.authorInfo - Author information
-   * @param {boolean} options.trackTokens - Whether to track token usage
    * @returns {Promise<Object>} - Generated report with usage statistics if trackTokens is enabled
    */
-  async generateReportFromCommits({ repository, commits, title, includeCode, branchInfo, authorInfo, trackTokens = true }) {
+  async _generateReportFromCommits(options) {
+    const { repository, commits, title, includeCode, branchInfo, authorInfo, trackTokens = true } = options;
+    
     try {
       console.log(`Generating report for ${repository} with ${commits.length} commits`);
 
@@ -335,21 +259,75 @@ ${includeCode && commit.diff ? `\nChanges:\n${commit.diff.substring(0, 500)}${co
         result.model = response.model || openaiConfig.models.reportGeneration;
       }
       
-      console.log('OpenAI report generated:', {
-        resultType: typeof result,
-        hasContent: !!result.content,
-        contentType: typeof result.content,
-        contentLength: result.content.length,
-        contentSample: result.content.substring(0, 200) + '...',
-        trackingTokens: trackTokens,
-        tokenUsage: trackTokens ? result.usage : 'Not tracked'
-      });
-      
       return result;
     } catch (error) {
       console.error('Error generating report with OpenAI:', error);
-      throw new Error('Failed to generate report: ' + error.message);
+      throw error;
     }
+  },
+  
+  /**
+   * Public interface for report generation that returns a job ID
+   * and triggers background processing
+   * 
+   * @param {Object} options - Report generation options
+   * @param {string} reportId - Optional report ID to update when complete
+   * @returns {Promise<Object>} - Job information with ID and status
+   */
+  async generateReportFromCommits(options, reportId = null) {
+    try {
+      // Lazy load QueueService to avoid circular dependency
+      if (!QueueService) {
+        QueueService = require('./QueueService');
+      }
+      
+      // Add options to include reportId
+      const jobOptions = {
+        ...options,
+        reportId
+      };
+      
+      // Add job to the queue
+      const jobInfo = await QueueService.addReportGenerationJob(jobOptions);
+      
+      return {
+        id: jobInfo.id,
+        status: 'pending'
+      };
+    } catch (error) {
+      console.error('Error queueing report generation:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get the status of a summary generation job
+   * 
+   * @param {string} jobId - The job ID
+   * @returns {Promise<Object>} - Job status information
+   */
+  async getSummaryJobStatus(jobId) {
+    // Lazy load QueueService to avoid circular dependency
+    if (!QueueService) {
+      QueueService = require('./QueueService');
+    }
+    
+    return await QueueService.getSummaryJobStatus(jobId);
+  },
+  
+  /**
+   * Get the status of a report generation job
+   * 
+   * @param {string} jobId - The job ID
+   * @returns {Promise<Object>} - Job status information
+   */
+  async getReportJobStatus(jobId) {
+    // Lazy load QueueService to avoid circular dependency
+    if (!QueueService) {
+      QueueService = require('./QueueService');
+    }
+    
+    return await QueueService.getReportJobStatus(jobId);
   }
 };
 

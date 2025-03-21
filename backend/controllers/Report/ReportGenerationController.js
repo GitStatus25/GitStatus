@@ -30,89 +30,75 @@ exports.generateReport = async (req, res) => {
     const hasReachedLimit = await ReportUsageTrackerService.hasReachedReportLimit(userId);
     if (hasReachedLimit) {
       return res.status(403).json({ 
-        error: 'Monthly report generation limit reached',
-        limitReached: true
+        error: 'Report limit reached', 
+        message: 'You have reached your monthly report generation limit.',
+        upgrade: true
       });
     }
     
-    // Fetch commit details
+    // Set report type
+    const reportType = includeCode ? 'detailed' : 'summary';
+    
+    // Get commits
+    console.log(`Fetching ${commitIds.length} commits from GitHub for ${repository}`);
     const commits = await GitHubCommitService.getCommitsByIds({
       accessToken,
       repository,
       commitIds
     });
     
-    if (!commits || commits.length === 0) {
-      return res.status(404).json({ error: 'No commits found for the specified IDs' });
-    }
+    // Create a hash of the commit IDs for caching
+    const commitsHash = Buffer.from(commitIds.sort().join(',')).toString('base64');
     
-    // Get user's plan limits
-    const user = await User.findById(userId).populate('plan');
-    if (!user || !user.plan) {
-      return res.status(500).json({ error: 'User plan not found' });
-    }
-    
-    // Get unique commit count
-    const uniqueCommits = new Set(commits.map(commit => commit.commitId || commit.sha));
-    const uniqueCommitCount = uniqueCommits.size;
-    
-    // Determine report type based on unique commit count
-    const reportType = uniqueCommitCount <= user.plan.limits.commitsPerStandardReport ? 'standard' : 'large';
-    
-    // Check if commit count exceeds the limit for the report type
-    if (reportType === 'large' && uniqueCommitCount > user.plan.limits.commitsPerLargeReport) {
-      return res.status(400).json({
-        error: `Report exceeds maximum commits allowed for large reports (${user.plan.limits.commitsPerLargeReport} commits)`,
-        limit: user.plan.limits.commitsPerLargeReport
-      });
-    }
-    
-    // Generate a hash to uniquely identify this set of commits
-    const commitsHash = ReportService.generateCommitsHash(commits);
-    
-    // Check if a report with this exact set of commits already exists
-    const existingReport = await ReportService.findReportByCommitsHash(commitsHash);
+    // Check if we have a cached report
+    const existingReport = await Report.findOne({
+      commitsHash,
+      user: userId
+    }).sort({ createdAt: -1 });
     
     if (existingReport) {
-      // Update the access stats and return existing report
-      await ReportService.updateReportAccessStats(existingReport);
+      console.log(`Found existing report (${existingReport.id}) for these commits`);
       isCachedReport = true;
-      return res.json({
-        message: 'Existing report found with identical commits',
-        reportId: existingReport.id,
-        cached: true
-      });
+      
+      // Update access count and last accessed timestamp
+      existingReport.accessCount += 1;
+      existingReport.lastAccessed = new Date();
+      await existingReport.save();
+      
+      // If PDF is still processing, use existing info
+      if (existingReport.pdfUrl === 'pending') {
+        return res.json({
+          id: existingReport.id,
+          title: existingReport.name,
+          repository: existingReport.repository,
+          createdAt: existingReport.createdAt,
+          pdfUrl: existingReport.pdfUrl,
+          pdfJobId: existingReport.pdfJobId,
+          pdfStatus: 'pending',
+          cached: true
+        });
+      }
+      
+      // If PDF is ready, return it
+      if (existingReport.pdfUrl && existingReport.pdfUrl !== 'failed') {
+        const urls = await ReportService.generateReportUrls(existingReport);
+        return res.json({
+          id: existingReport.id,
+          title: existingReport.name,
+          repository: existingReport.repository,
+          createdAt: existingReport.createdAt,
+          pdfUrl: existingReport.pdfUrl,
+          viewUrl: urls.viewUrl,
+          downloadUrl: urls.downloadUrl,
+          cached: true
+        });
+      }
     }
     
-    // Initialize token tracking
-    let inputTokenCount = 0;
-    let outputTokenCount = 0;
-    let modelName = 'gpt-4';
+    // Create a set of unique commits to track
+    const uniqueCommits = new Set(commitIds);
     
-    // Generate report content
-    const reportContent = await OpenAIService.generateReportFromCommits({
-      repository,
-      commits,
-      title,
-      includeCode: includeCode || false,
-      branchInfo: branches?.join(', '),
-      authorInfo: authors?.join(', '),
-      trackTokens: true
-    });
-    
-    // Extract token usage
-    if (reportContent.usage) {
-      inputTokenCount = reportContent.usage.promptTokens || 0;
-      outputTokenCount = reportContent.usage.completionTokens || 0;
-      modelName = reportContent.model || 'gpt-4o-mini';
-    }
-    
-    // Determine content for PDF
-    const reportContentText = typeof reportContent === 'string' ? 
-      reportContent : 
-      (reportContent.content || JSON.stringify(reportContent));
-    
-    // Create report in database
+    // Create initial report in database
     const report = await createReport({
       userId: req.user.id,
       title,
@@ -126,20 +112,29 @@ exports.generateReport = async (req, res) => {
     });
     
     try {
-      // Generate PDF in background using our robust processor
-      const options = {
-        title: report.name,
-        content: reportContentText,
-        repository: report.repository,
-        startDate: report.startDate,
-        endDate: report.endDate
+      // Queue report generation in background
+      const reportOptions = {
+        repository, 
+        commits, 
+        title, 
+        includeCode, 
+        branchInfo: branches?.join(', ') || 'All branches',
+        authorInfo: authors?.join(', ') || 'All authors',
+        trackTokens: true,
+        reportId: report.id
       };
       
-      // Add job to the queue
-      const jobInfo = await PDFService.generatePDF(options, report.id);
+      // Add report generation job to queue
+      const reportJobInfo = await OpenAIService.generateReportFromCommits(reportOptions, report.id);
       
-      // Update report with job ID
-      report.pdfJobId = jobInfo.id;
+      // Update report with report job ID
+      report.reportJobId = reportJobInfo.id;
+      await report.save();
+      
+      // Generate PDF in background using our robust processor (this is already queued)
+      // Will be triggered after report generation completes with real content
+      // For now, we'll set it to pending
+      report.pdfStatus = 'pending';
       await report.save();
       
       // Track usage statistics if not cached
@@ -148,9 +143,9 @@ exports.generateReport = async (req, res) => {
           userId,
           reportType,
           uniqueCommitCount: uniqueCommits.size,
-          inputTokenCount,
-          outputTokenCount,
-          modelName
+          inputTokenCount: 0, // Will be updated when the job completes
+          outputTokenCount: 0, // Will be updated when the job completes
+          modelName: 'queued'
         });
       }
       
@@ -159,9 +154,9 @@ exports.generateReport = async (req, res) => {
         title: report.name,
         repository,
         createdAt: report.createdAt,
-        pdfUrl: report.pdfUrl,
-        pdfJobId: report.pdfJobId,
-        pdfStatus: 'pending'
+        pdfUrl: 'pending',
+        reportJobId: report.reportJobId,
+        reportStatus: 'pending'
       });
       
     } catch (error) {
@@ -265,6 +260,54 @@ exports.getPdfStatus = async (req, res) => {
       return res.status(404).json({ message: 'Report not found' });
     }
     res.status(500).json({ message: 'Error getting PDF status', error: error.message });
+  }
+};
+
+/**
+ * Get report generation status
+ */
+exports.getReportStatus = async (req, res) => {
+  try {
+    const report = await ReportService.getReportById(req.params.id, req.user.id);
+    
+    // If report content is already available
+    if (report.content) {
+      return res.json({
+        status: 'completed',
+        progress: 100,
+        reportId: report.id
+      });
+    }
+    
+    // If report generation failed
+    if (report.reportStatus === 'failed') {
+      return res.json({
+        status: 'failed',
+        error: report.reportError || 'Report generation failed'
+      });
+    }
+    
+    // If job is in progress
+    if (report.reportJobId) {
+      const jobStatus = await OpenAIService.getReportJobStatus(report.reportJobId);
+      return res.json({
+        status: jobStatus.status,
+        progress: jobStatus.progress,
+        jobId: jobStatus.id
+      });
+    }
+    
+    // Default pending status
+    return res.json({
+      status: 'pending',
+      progress: 0
+    });
+  } catch (error) {
+    console.error('Error getting report generation status:', error);
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+    res.status(500).json({ message: 'Error getting report status', error: error.message });
   }
 };
 
