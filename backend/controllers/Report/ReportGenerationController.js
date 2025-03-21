@@ -195,6 +195,7 @@ exports.generateReport = async (req, res) => {
         // Update report with report job ID
         report.reportJobId = reportJobInfo.id;
         report.reportStatus = 'pending';
+        console.log(report)
         await report.save();
       }
       
@@ -442,7 +443,7 @@ async function createReport({ userId, title, repository, branches, authors, star
     .map(c => c.author?.name || c.commit?.author?.name);
   
   const uniqueAuthors = [...new Set(authorsFromCommits)];
-  
+
   const report = new Report({
     user: userId,
     name: title,
@@ -454,7 +455,7 @@ async function createReport({ userId, title, repository, branches, authors, star
     commits: commits.map(commit => ({
       commitId: commit.sha,
       message: commit.commit?.message || commit.message || 'No message',
-      author: commit.author?.login || commit.author?.name || commit.commit?.author?.name || 'Unknown',
+      author: commit.committer?.login || commit.committer?.name || commit.commit?.committer?.name || 'Unknown',
       date: commit.commit?.author?.date || commit.date || new Date(),
       summary: commit.summary || ''
     })),

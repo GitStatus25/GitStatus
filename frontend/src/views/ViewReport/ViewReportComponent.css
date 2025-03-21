@@ -1,5 +1,71 @@
 .view-report-container {
-  animation: fadeIn 0.8s ease-in-out;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.view-report-paper {
+  padding: 24px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.view-report-back-button-container {
+  margin-bottom: 24px;
+}
+
+.view-report-loading-container,
+.view-report-error-container,
+.view-report-no-data-container {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.loading-text,
+.error-title,
+.no-data-text {
+  margin-top: 16px;
+}
+
+.error-message {
+  margin-top: 8px;
+  max-width: 600px;
+  text-align: center;
+}
+
+.view-report-grid {
+  margin-top: 24px;
+}
+
+.view-report-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.report-content {
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.report-text p {
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+@media (max-width: 960px) {
+  .view-report-container {
+    padding: 16px;
+  }
+  
+  .view-report-paper {
+    padding: 16px;
+  }
 }
 
 .back-button {

@@ -668,6 +668,46 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * Get commit summary generation status
+   * @param {string} reportId - Report ID
+   * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
+   * @returns {Promise} - API response with status information
+   */
+  getCommitSummaryStatus: async (reportId, signal) => {
+    try {
+      const response = await axios.get(`/api/reports/${reportId}/summary-status`, { signal });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        return { canceled: true };
+      }
+      console.error('Error getting commit summary status:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get report generation status
+   * @param {string} reportId - Report ID
+   * @param {AbortSignal} [signal] - Optional AbortSignal for request cancellation
+   * @returns {Promise} - API response with status information
+   */
+  getReportStatus: async (reportId, signal) => {
+    try {
+      const response = await axios.get(`/api/reports/${reportId}/report-status`, { signal });
+      return response.data;
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        return { canceled: true };
+      }
+      console.error('Error getting report status:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

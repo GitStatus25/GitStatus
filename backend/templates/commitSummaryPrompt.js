@@ -3,7 +3,7 @@
  * This ensures consistent formatting and prevents redundant text in summaries
  */
 
-const getCommitSummaryPrompt = ({ repository, commitSha, authorName, message, diff }) => {
+const getCommitSummaryPrompt = ({ commitSha, authorName, message, diff }) => {
   return `
 Analyze this commit and provide a concise technical summary of the changes made.
 
@@ -15,7 +15,6 @@ IMPORTANT INSTRUCTIONS:
 5. Be specific about what was implemented, fixed, or modified
 6. If the commit message is clear and specific, incorporate its information
 
-Repository: ${repository}
 Commit: ${commitSha}
 Author: ${authorName}
 Message: ${message}

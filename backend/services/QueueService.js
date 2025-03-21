@@ -81,6 +81,7 @@ summaryQueue.process(async (job) => {
   try {
     console.log(`Processing summary generation job ${job.id}`);
     const { commit, repository, trackTokens, reportId } = job.data;
+    console.log(commit )
     
     // Update job progress
     await job.progress(10);
@@ -94,22 +95,19 @@ summaryQueue.process(async (job) => {
     }
     
     // Generate summary
-    const maxDiffLength = 15000;
-    const truncatedDiff = commit.diff && commit.diff.length > maxDiffLength 
-      ? commit.diff.substring(0, maxDiffLength) + '... [truncated]'
-      : commit.diff;
+    const truncatedDiff = commit.files.map(file => file.diff).join('\n')
     
     await job.progress(30);
-    
-    // Call OpenAI to analyze the commit
-    const summary = await OpenAIService.analyzeCommit({
+
+    const commitFinal = {
       commitMessage: commit.message,
-      diff: truncatedDiff,
-      repository,
+      commitDiff: truncatedDiff,
       commitSha: commit.sha,
-      authorName: commit.author?.name || commit.author?.login || 'Unknown'
-    });
-    
+      commitAuthor: commit.author?.name || commit.author?.login || 'Unknown',
+      commitDate: commit.date || new Date()
+    }
+    // Call OpenAI to analyze the commit
+    const summary = await OpenAIService.analyzeCommit(commitFinal);
     await job.progress(70);
     
     // Save to database
@@ -125,8 +123,10 @@ summaryQueue.process(async (job) => {
       createdAt: new Date()
     });
     
+    console.log(commitSummary)
+
     await commitSummary.save();
-    
+  
     await job.progress(100);
     
     // Return the summary
@@ -194,7 +194,7 @@ reportQueue.process(async (job) => {
         };
         
         // Add PDF generation job
-        const pdfJobInfo = await this.addPdfGenerationJob(pdfOptions, reportId);
+        const pdfJobInfo = await PDFService.generatePDF(pdfOptions, reportId);
         
         // Update report with PDF job ID
         await Report.findByIdAndUpdate(reportId, {
@@ -224,8 +224,13 @@ reportQueue.process(async (job) => {
 });
 
 // Handle completed jobs
-pdfQueue.on('completed', (job, result) => {
+pdfQueue.on('completed', async (job, result) => {
   console.log(`PDF job ${job.id} completed with result:`, result);
+  const report = await Report.findById(job.data.reportId);
+  if (report) {
+    report.pdfStatus = 'completed';
+    await report.save();
+  }
 });
 
 summaryQueue.on('completed', async (job, result) => {

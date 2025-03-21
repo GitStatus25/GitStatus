@@ -1,32 +1,6 @@
 const Plan = require('../models/Plan');
 
 class PlanService {
-  /**
-   * Initialize default plan if it doesn't exist
-   */
-  static async initializeDefaultPlan() {
-    try {
-      const defaultPlan = await Plan.findOne({ isDefault: true });
-      
-      if (!defaultPlan) {
-        await Plan.create({
-          name: 'free',
-          displayName: 'Free Plan',
-          description: 'Basic GitHub analytics for individual developers',
-          limits: {
-            reportsPerMonth: 50,
-            commitsPerStandardReport: 5,
-            commitsPerLargeReport: 20
-          },
-          isDefault: true
-        });
-        console.log('Default plan created successfully');
-      }
-    } catch (error) {
-      console.error('Error initializing default plan:', error);
-      throw error;
-    }
-  }
 
   /**
    * Get default plan

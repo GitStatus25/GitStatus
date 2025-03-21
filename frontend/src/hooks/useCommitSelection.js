@@ -138,7 +138,7 @@ const useCommitSelection = () => {
 
       const report = await api.generateReport(reportParams);
       
-      // Close both modals and navigate to the report view page
+      // Close both modals and navigate to the report view page immediately
       modalStore.closeModal('viewCommits');
       modalStore.closeModal('createReport');
       navigate(`/reports/${report.reportId || report.id}`);

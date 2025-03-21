@@ -3,6 +3,7 @@ import {
   Box,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   Table,
   TableBody,
@@ -18,8 +19,16 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import PersonIcon from '@mui/icons-material/Person';
 import './ViewReportCommitListComponent.css';
 
-const ViewReportCommitListComponentTemplate = ({ commits = [], formatDate }) => {
+const ViewReportCommitListComponentTemplate = ({ 
+  commits = [], 
+  formatDate, 
+  summaryStatus = 'pending', 
+  summaryProgress = 0 
+}) => {
   const theme = useTheme();
+
+  // Helper to determine if we should show loading UI
+  const isLoading = summaryStatus === 'pending' || summaryStatus === 'waiting' || summaryStatus === 'active';
 
   return (
     <Card 
@@ -44,6 +53,19 @@ const ViewReportCommitListComponentTemplate = ({ commits = [], formatDate }) => 
           >
             Included Commits
           </Typography>
+          {isLoading && (
+            <Box display="flex" alignItems="center" ml={2}>
+              <CircularProgress 
+                size={24} 
+                thickness={5} 
+                variant={summaryProgress > 0 ? "determinate" : "indeterminate"}
+                value={summaryProgress}
+              />
+              <Typography variant="body2" color="text.secondary" ml={1}>
+                Generating summaries ({summaryProgress}%)
+              </Typography>
+            </Box>
+          )}
         </Box>
         
         <Divider className="divider" />
@@ -104,23 +126,32 @@ const ViewReportCommitListComponentTemplate = ({ commits = [], formatDate }) => 
                      (commit.timestamp ? formatDate(commit.timestamp) : 'No date')}
                   </TableCell>
                   <TableCell>
-                    <Tooltip 
-                      title={
-                        <Typography variant="body2" className="tooltip-text">
+                    {isLoading && commit.pendingJobId ? (
+                      <Box display="flex" alignItems="center">
+                        <CircularProgress size={16} thickness={5} /> 
+                        <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                          Generating...
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Tooltip 
+                        title={
+                          <Typography variant="body2" className="tooltip-text">
+                            {commit.summary || commit.aiSummary || 'No summary available'}
+                          </Typography>
+                        }
+                        arrow
+                        placement="top"
+                      >
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          className="truncated-text"
+                        >
                           {commit.summary || commit.aiSummary || 'No summary available'}
                         </Typography>
-                      }
-                      arrow
-                      placement="top"
-                    >
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        className="truncated-text"
-                      >
-                        {commit.summary || commit.aiSummary || 'No summary available'}
-                      </Typography>
-                    </Tooltip>
+                      </Tooltip>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

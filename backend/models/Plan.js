@@ -10,37 +10,39 @@ const planSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  rateLimit: {
+  displayName: {
     type: String,
     required: true,
+    unique: false,
     trim: true
   },
-  price: {
+  description: {
     type: String,
     required: true,
-    trim: true
-  },
-  features: {
-    type: String,
+    unique: false,
     trim: true
   },
   limits: {
     reportsPerMonth: {
       type: Number,
-      default: 100
+      default: 50
     },
-    commitsPerMonth: {
+    commitsPerStandardReport: {
       type: Number,
-      default: 1000
+      default: 5
     },
-    tokensPerMonth: {
+    commitsPerLargeReport: {
       type: Number,
-      default: 10000
+      default: 20
     }
   },
   isActive: {
     type: Boolean,
     default: true
+  },
+  isDefault: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
@@ -59,43 +61,20 @@ planSchema.statics.createDefaultPlans = async function() {
   try {
     const count = await this.countDocuments();
     if (count === 0) {
-      const defaultPlans = [
+      const defaultPlan =
         {
           name: 'Free',
-          rateLimit: '100 req/day',
-          price: '$0',
-          features: 'Basic access',
-          limits: {
-            reportsPerMonth: 5,
-            commitsPerMonth: 100,
-            tokensPerMonth: 10000
-          }
-        },
-        {
-          name: 'Professional',
-          rateLimit: '1000 req/day',
-          price: '$10/month',
-          features: 'Advanced features',
+          displayName: 'Free Plan',
+          description: 'Free plan with limited features',
           limits: {
             reportsPerMonth: 50,
-            commitsPerMonth: 1000,
-            tokensPerMonth: 100000
-          }
-        },
-        {
-          name: 'Enterprise',
-          rateLimit: 'Unlimited',
-          price: '$99/month',
-          features: 'All features',
-          limits: {
-            reportsPerMonth: 500,
-            commitsPerMonth: 10000,
-            tokensPerMonth: 1000000
-          }
+            commitsPerStandardReport: 5,
+            commitsPerLargeReport: 20
+          },
+          isDefault: true
         }
-      ];
 
-      await this.insertMany(defaultPlans);
+      await this.create(defaultPlan);
       console.log('Default plans created');
     }
   } catch (error) {

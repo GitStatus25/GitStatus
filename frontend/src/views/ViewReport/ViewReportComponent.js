@@ -1,30 +1,55 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useReportData } from '../../hooks';
+import React, { useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import ViewReportComponentTemplate from './ViewReportComponent.jsx';
+import { useReportData } from '../../hooks';
 
 /**
- * Page component for viewing a generated report - contains only business logic
- * Data fetching and state management are now handled by useReportData hook
+ * ViewReport component - Renders a single report view
  */
 const ViewReportComponent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { report, loading, error, pdfStatus, pdfProgress } = useReportData(id);
+  
+  // Get report data using custom hook
+  const { 
+    report,
+    loading,
+    error,
+    pdfStatus,
+    pdfProgress,
+    summaryStatus,
+    summaryProgress,
+    reportStatus,
+    reportProgress,
+    pdfPreviewFailed,
+    iframeRef,
+    handleIframeLoad,
+    handleIframeError,
+    formatDate
+  } = useReportData(id);
 
-  const handleNavigateBack = () => {
+  // Navigate back to dashboard
+  const handleNavigateBack = useCallback(() => {
     navigate('/dashboard');
-  };
+  }, [navigate]);
 
-  // Pass all required props to the template
   return (
     <ViewReportComponentTemplate
+      report={report}
       loading={loading}
       error={error}
-      report={report}
+      onBack={handleNavigateBack}
       pdfStatus={pdfStatus}
       pdfProgress={pdfProgress}
-      handleNavigateBack={handleNavigateBack}
+      summaryStatus={summaryStatus}
+      summaryProgress={summaryProgress}
+      reportStatus={reportStatus}
+      reportProgress={reportProgress}
+      pdfPreviewFailed={pdfPreviewFailed}
+      iframeRef={iframeRef}
+      handleIframeLoad={handleIframeLoad}
+      handleIframeError={handleIframeError}
+      formatDate={formatDate}
     />
   );
 };

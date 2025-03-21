@@ -235,24 +235,23 @@ class GitHubCommitService {
             const response = await axios.get(url, { headers });
             
             // Format the commit
+            console.log("files",response.data.files)
             return {
               sha: response.data.sha,
               message: response.data.commit.message,
               author: {
-                login: response.data.author?.login,
-                name: response.data.commit.author.name,
-                email: response.data.commit.author.email,
-                avatarUrl: response.data.author?.avatarUrl
+                login: response.data.committer?.login,
+                avatarUrl: response.data.committer?.avatarUrl
               },
               date: response.data.commit.author.date,
-              htmlUrl: response.data.htmlUrl,
+              htmlUrl: response.data.commit.url,
               files: response.data.files ? response.data.files.map(file => ({
                 filename: file.filename,
                 status: file.status,
                 additions: file.additions,
                 deletions: file.deletions,
                 changes: file.changes,
-                patch: file.patch
+                diff: file.patch
               })) : []
             };
           } catch (error) {

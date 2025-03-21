@@ -129,19 +129,19 @@ const openaiService = {
   /**
    * Analyze a commit using OpenAI
    */
-  async analyzeCommit({ commitMessage, diff, repository, commitSha, authorName }) {
+  async analyzeCommit({ commitMessage, commitDiff, commitSha, commitAuthor, commitDate }) {
     try {
       // Truncate the diff if it's too large
       const maxDiffLength = 15000;
-      const truncatedDiff = diff.length > maxDiffLength 
-        ? diff.substring(0, maxDiffLength) + '... [diff truncated due to size]'
-        : diff;
+      console.log(commitDiff)
+      const truncatedDiff = commitDiff.length > maxDiffLength 
+        ? commitDiff.substring(0, maxDiffLength) + '... [diff truncated due to size]'
+        : commitDiff;
       
       // Use the template for OpenAI
       const prompt = getCommitSummaryPrompt({
-        repository: repository || 'unknown',
         commitSha: commitSha || 'unknown',
-        authorName: authorName || 'Unknown',
+        authorName: commitAuthor || 'Unknown',
         message: commitMessage,
         diff: truncatedDiff
       });

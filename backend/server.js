@@ -31,7 +31,7 @@ const PORT = process.env.PORT || 5000;
     await dbService.connect();
 
     // Initialize default plan
-    await PlanService.initializeDefaultPlan();
+    await Plan.createDefaultPlans();
     console.log('Plan initialization complete');
     
     // Run scheduled queue cleanup (once a day)
