@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 
 /**
@@ -11,176 +11,283 @@ export const useReportData = (reportId) => {
   const [error, setError] = useState(null);
   
   // PDF generation status state
-  const [pdfStatus, setPdfStatus] = useState('loading');
+  const [pdfStatus, setPdfStatus] = useState('pending');
   const [pdfProgress, setPdfProgress] = useState(0);
-  const [pdfPollInterval, setPdfPollInterval] = useState(null);
+  const [summaryStatus, setSummaryStatus] = useState('pending');
+  const [summaryProgress, setSummaryProgress] = useState(0);
+  const [reportStatus, setReportStatus] = useState('pending');
+  const [reportProgress, setReportProgress] = useState(0);
+  const [pdfPreviewFailed, setPdfPreviewFailed] = useState(false);
+  
+  // Refs for the polling intervals
+  const pdfPollInterval = useRef(null);
+  const summaryPollInterval = useRef(null);
+  const reportPollInterval = useRef(null);
+  
+  // Don't store AbortController in a ref that persists across renders
+  // Instead, create a new one for each operation
+  
+  const iframeRef = useRef(null);
+
+  // Clean up intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfPollInterval.current) clearInterval(pdfPollInterval.current);
+      if (summaryPollInterval.current) clearInterval(summaryPollInterval.current);
+      if (reportPollInterval.current) clearInterval(reportPollInterval.current);
+    };
+  }, []);
 
   // Fetch report data
   useEffect(() => {
+    // Create a new AbortController for this specific effect run
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
     const fetchReport = async () => {
+      if (!reportId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const fetchedReport = await api.getReportById(reportId);
+        setError(null);
+
+        // Use the signal created in this effect
+        const reportData = await api.getReportById(reportId, signal);
+
+        // Don't update state if the component unmounted
+        if (signal.aborted) return;
         
-        // Initialize authors set with any existing report authors
-        const authors = new Set();
-        if (fetchedReport.author) {
-          fetchedReport.author.split(', ').forEach(author => authors.add(author));
+        setReport(reportData);
+
+        // Initialize status states based on report data
+        if (reportData.summaryStatus) {
+          setSummaryStatus(reportData.summaryStatus);
         }
         
-        // Fetch commit details if we have commits
-        if (fetchedReport.commits?.length > 0) {
-          const commitIds = fetchedReport.commits.map(commit => 
-            commit.sha || commit.commitId || commit.id
-          ).filter(Boolean);
+        if (reportData.reportStatus) {
+          setReportStatus(reportData.reportStatus);
+        }
+        
+        if (reportData.pdfUrl && reportData.pdfUrl !== 'pending' && reportData.pdfUrl !== 'failed') {
+          setPdfStatus('completed');
+          setPdfProgress(100);
+        } else if (reportData.pdfUrl === 'failed') {
+          setPdfStatus('failed');
+        } else {
+          setPdfStatus('pending');
+        }
+
+        // Start polling for summary status if pending
+        if (reportData.summaryStatus !== 'completed' && reportData.summaryStatus !== 'failed') {
+          startSummaryPolling(reportId);
+        }
+
+        // Start polling for report status if pending and summary is completed
+        if (reportData.reportStatus !== 'completed' && reportData.reportStatus !== 'failed' && 
+            reportData.summaryStatus === 'completed') {
+          startReportPolling(reportId);
+        }
+
+        // Start polling for PDF status if pending and report is completed
+        if ((reportData.pdfUrl === 'pending' || !reportData.pdfUrl) && reportData.reportStatus === 'completed') {
+          startPdfPolling(reportId);
+        }
+      } catch (error) {
+        // Don't update state if the component unmounted or request was canceled
+        if (signal.aborted || error.name === 'AbortError' || error.name === 'CanceledError') {
+          console.log('Request was aborted or canceled');
+          return;
+        }
+        
+        console.error('Error fetching report:', error);
+        setError(error.message || 'Failed to load report');
+      } finally {
+        // Don't update state if the component unmounted
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchReport();
+
+    // Cleanup function for this effect only
+    return () => {
+      controller.abort();
+    };
+  }, [reportId]);
+
+  // Function to start polling for commit summary status
+  const startSummaryPolling = (reportId) => {
+    if (summaryPollInterval.current) {
+      clearInterval(summaryPollInterval.current);
+    }
+
+    // Function to check summary status
+    const checkSummaryStatus = async () => {
+      // Create a new controller for each polling request
+      const controller = new AbortController();
+      
+      try {
+        const statusResponse = await api.getCommitSummaryStatus(reportId, controller.signal);
+        
+        setSummaryStatus(statusResponse.status);
+        if (statusResponse.progress) {
+          setSummaryProgress(statusResponse.progress);
+        }
+        
+        // If complete or failed, stop polling
+        if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
+          clearInterval(summaryPollInterval.current);
+          summaryPollInterval.current = null;
           
-          if (commitIds.length > 0) {
-            try {
-              // Try to get detailed commit info with author and summary
-              const commitDetails = await api.getCommitDetails({
-                repository: fetchedReport.repository,
-                commitIds
-              });
-              
-              // Merge the commit details with the existing commits
-              fetchedReport.commits = fetchedReport.commits.map(commit => {
-                const commitId = commit.sha || commit.commitId || commit.id;
-                const details = commitDetails.find(c => c.commitId === commitId || c.id === commitId);
-                
-                // Add author to the set if available
-                if (details?.author?.name) {
-                  authors.add(details.author.name);
-                } else if (details?.author?.login) {
-                  authors.add(details.author.login);
-                } else if (typeof details?.author === 'string') {
-                  authors.add(details.author);
-                }
-                
-                return details ? { ...commit, ...details } : commit;
-              });
-              
-              // Update the report's allAuthors
-              fetchedReport.allAuthors = Array.from(authors);
-            } catch (error) {
-              console.error('Error fetching commit details:', error);
-            }
+          // If completed, start report polling
+          if (statusResponse.status === 'completed') {
+            setReport(prev => ({
+              ...prev,
+              summaryStatus: 'completed'
+            }));
+            startReportPolling(reportId);
           }
         }
-        
-        // Handle PDF status
-        if (fetchedReport.pdfUrl === 'pending' || fetchedReport.pdfJobId) {
-          setPdfStatus('generating');
-        } else if (fetchedReport.pdfUrl === 'failed') {
-          setPdfStatus('failed');
-        } else if (fetchedReport.pdfUrl) {
-          setPdfStatus('completed');
-        }
-        
-        setReport(fetchedReport);
-        setError(null);
       } catch (error) {
-        console.error('Error fetching report:', error);
-        setError('Failed to load report');
-      } finally {
-        setLoading(false);
+        // Only log errors that aren't from aborted requests
+        if (error.name !== 'AbortError' && error.name !== 'CanceledError') {
+          console.error('Error checking commit summary status:', error);
+        }
       }
     };
     
-    if (reportId) {
-      fetchReport();
-    }
-  }, [reportId]);
+    // Poll immediately
+    checkSummaryStatus();
+    
+    // Start polling every 3 seconds
+    summaryPollInterval.current = setInterval(checkSummaryStatus, 3000);
+  };
 
-  // PDF status polling function
-  const checkPdfStatus = useCallback(async () => {
-    if (!reportId || !report) {
-      clearInterval(pdfPollInterval);
-      setPdfPollInterval(null);
-      return;
-    }
-
-    // If we already have a completed PDF URL, stop polling
-    if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
-      console.log('PDF already completed, stopping polling');
-      clearInterval(pdfPollInterval);
-      setPdfPollInterval(null);
-      return;
+  // Function to start polling for report generation status
+  const startReportPolling = (reportId) => {
+    if (reportPollInterval.current) {
+      clearInterval(reportPollInterval.current);
     }
 
-    try {
-      console.log('Checking PDF status for report:', reportId);
-      const statusResponse = await api.getPdfStatus(reportId);
-      console.log('PDF status response:', statusResponse);
+    // Function to check report status
+    const checkReportStatus = async () => {
+      // Create a new controller for each polling request
+      const controller = new AbortController();
       
-      setPdfStatus(statusResponse.status);
-      if (statusResponse.progress) {
-        setPdfProgress(statusResponse.progress);
-      }
-      
-      // If complete or failed, stop polling
-      if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
-        console.log(`PDF generation ${statusResponse.status}, stopping polling`);
-        clearInterval(pdfPollInterval);
-        setPdfPollInterval(null);
+      try {
+        const statusResponse = await api.getReportStatus(reportId, controller.signal);
         
-        // If completed, update the report with the new URLs
-        if (statusResponse.status === 'completed' && statusResponse.viewUrl && statusResponse.downloadUrl) {
-          setReport(prev => ({
-            ...prev,
-            pdfUrl: statusResponse.pdfUrl || prev.pdfUrl,
-            viewUrl: statusResponse.viewUrl,
-            downloadUrl: statusResponse.downloadUrl
-          }));
+        setReportStatus(statusResponse.status);
+        if (statusResponse.progress) {
+          setReportProgress(statusResponse.progress);
         }
         
-        // Update the report's PDF URL if it's completed but not reflected in report yet
-        if (statusResponse.status === 'completed' && statusResponse.pdfUrl && report.pdfUrl === 'pending') {
-          setReport(prev => ({
-            ...prev,
-            pdfUrl: statusResponse.pdfUrl
-          }));
+        // If complete or failed, stop polling
+        if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
+          clearInterval(reportPollInterval.current);
+          reportPollInterval.current = null;
+          
+          // If completed, update report content and start PDF polling
+          if (statusResponse.status === 'completed') {
+            // Create a new controller for this request
+            const refreshController = new AbortController();
+            
+            try {
+              // Refresh the report to get the content
+              const updatedReport = await api.getReportById(reportId, refreshController.signal);
+              setReport(updatedReport);
+              setReportStatus('completed');
+              
+              // Start PDF polling if needed
+              if (!updatedReport.pdfUrl || updatedReport.pdfUrl === 'pending') {
+                startPdfPolling(reportId);
+              }
+            } catch (refreshError) {
+              // Only log errors that aren't from aborted requests
+              if (refreshError.name !== 'AbortError' && refreshError.name !== 'CanceledError') {
+                console.error('Error refreshing report:', refreshError);
+              }
+            }
+          }
         }
-      }
-    } catch (error) {
-      console.error('Error checking PDF status:', error);
-    }
-  }, [reportId, report, pdfPollInterval]);
-
-  // Poll for PDF generation status
-  useEffect(() => {
-    // Only start polling when we have a pending PDF that needs generation
-    if (reportId && report && !pdfPollInterval && 
-        ((report.pdfUrl === 'pending' || report.pdfJobId) && 
-         pdfStatus !== 'completed' && pdfStatus !== 'failed')) {
-      console.log('Starting PDF status polling for report:', reportId);
-      
-      // Check immediately
-      checkPdfStatus();
-      
-      // Then set up interval (every 3 seconds)
-      const interval = setInterval(checkPdfStatus, 3000);
-      setPdfPollInterval(interval);
-    } else if (pdfPollInterval && (pdfStatus === 'completed' || pdfStatus === 'failed' || 
-               (report?.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed'))) {
-      // If PDF is complete or failed, ensure we stop polling
-      console.log('PDF status is resolved, stopping polling');
-      clearInterval(pdfPollInterval);
-      setPdfPollInterval(null);
-    }
-
-    // Clean up interval on unmount
-    return () => {
-      if (pdfPollInterval) {
-        clearInterval(pdfPollInterval);
+      } catch (error) {
+        // Only log errors that aren't from aborted requests
+        if (error.name !== 'AbortError' && error.name !== 'CanceledError') {
+          console.error('Error checking report status:', error);
+        }
       }
     };
-  }, [reportId, report, pdfPollInterval, checkPdfStatus, pdfStatus]);
+    
+    // Poll immediately
+    checkReportStatus();
+    
+    // Start polling every 3 seconds
+    reportPollInterval.current = setInterval(checkReportStatus, 3000);
+  };
 
-  // Format date helper function
-  const formatDate = useCallback((date) => {
-    if (!date) return '';
-    return new Date(date).toLocaleDateString();
-  }, []);
+  // Function to start polling for PDF status
+  const startPdfPolling = (reportId) => {
+    if (pdfPollInterval.current) {
+      clearInterval(pdfPollInterval.current);
+    }
+
+    // Function to check PDF status
+    const checkPdfStatus = async () => {
+      // Create a new controller for each polling request
+      const controller = new AbortController();
+      
+      try {
+        const statusResponse = await api.getPdfStatus(reportId, controller.signal);
+        
+        setPdfStatus(statusResponse.status);
+        if (statusResponse.progress) {
+          setPdfProgress(statusResponse.progress);
+        }
+        
+        // If complete or failed, stop polling
+        if (statusResponse.status === 'completed' || statusResponse.status === 'failed') {
+          clearInterval(pdfPollInterval.current);
+          pdfPollInterval.current = null;
+          
+          // If completed, update the report with the new URLs
+          if (statusResponse.status === 'completed' && statusResponse.viewUrl && statusResponse.downloadUrl) {
+            setReport(prev => ({
+              ...prev,
+              pdfUrl: statusResponse.pdfUrl || prev.pdfUrl,
+              viewUrl: statusResponse.viewUrl,
+              downloadUrl: statusResponse.downloadUrl
+            }));
+          }
+        }
+      } catch (error) {
+        // Only log errors that aren't from aborted requests
+        if (error.name !== 'AbortError' && error.name !== 'CanceledError') {
+          console.error('Error checking PDF status:', error);
+        }
+      }
+    };
+    
+    // Poll immediately
+    checkPdfStatus();
+    
+    // Start polling every 3 seconds
+    pdfPollInterval.current = setInterval(checkPdfStatus, 3000);
+  };
+
+  // Handle iframe loading success
+  const handleIframeLoad = () => {
+    setPdfPreviewFailed(false);
+  };
+
+  // Handle iframe loading error
+  const handleIframeError = () => {
+    setPdfPreviewFailed(true);
+  };
 
   return {
     report,
@@ -188,7 +295,19 @@ export const useReportData = (reportId) => {
     error,
     pdfStatus,
     pdfProgress,
-    formatDate
+    summaryStatus,
+    summaryProgress,
+    reportStatus,
+    reportProgress,
+    pdfPreviewFailed,
+    iframeRef,
+    handleIframeLoad,
+    handleIframeError,
+    formatDate: (dateString) => {
+      if (!dateString) return 'No date';
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    }
   };
 };
 
