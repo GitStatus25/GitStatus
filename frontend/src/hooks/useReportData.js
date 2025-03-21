@@ -148,8 +148,10 @@ export const useReportData = (reportId) => {
 
   // Poll for PDF generation status
   useEffect(() => {
-    // Start polling when component mounts and we have an ID
-    if (reportId && report && !pdfPollInterval && (report.pdfUrl === 'pending' || report.pdfJobId)) {
+    // Only start polling when we have a pending PDF that needs generation
+    if (reportId && report && !pdfPollInterval && 
+        ((report.pdfUrl === 'pending' || report.pdfJobId) && 
+         pdfStatus !== 'completed' && pdfStatus !== 'failed')) {
       console.log('Starting PDF status polling for report:', reportId);
       
       // Check immediately
@@ -158,13 +160,12 @@ export const useReportData = (reportId) => {
       // Then set up interval (every 3 seconds)
       const interval = setInterval(checkPdfStatus, 3000);
       setPdfPollInterval(interval);
-    } else if (reportId && report && report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
-      // If we already have a completed PDF URL, make sure we're not polling
-      console.log('PDF already completed, no polling needed');
-      if (pdfPollInterval) {
-        clearInterval(pdfPollInterval);
-        setPdfPollInterval(null);
-      }
+    } else if (pdfPollInterval && (pdfStatus === 'completed' || pdfStatus === 'failed' || 
+               (report?.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed'))) {
+      // If PDF is complete or failed, ensure we stop polling
+      console.log('PDF status is resolved, stopping polling');
+      clearInterval(pdfPollInterval);
+      setPdfPollInterval(null);
     }
 
     // Clean up interval on unmount
@@ -173,7 +174,7 @@ export const useReportData = (reportId) => {
         clearInterval(pdfPollInterval);
       }
     };
-  }, [reportId, report, pdfPollInterval, checkPdfStatus]);
+  }, [reportId, report, pdfPollInterval, checkPdfStatus, pdfStatus]);
 
   // Format date helper function
   const formatDate = useCallback((date) => {
