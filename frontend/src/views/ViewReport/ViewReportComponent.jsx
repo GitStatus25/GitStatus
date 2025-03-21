@@ -19,6 +19,7 @@ import {
   ViewReportCommitListComponent,
   ViewReportPDFPreviewComponent
 } from '../../partials/ViewReport';
+import Layout from '../../partials/Layout';
 import './ViewReportComponent.css';
 
 const ViewReportComponentTemplate = ({
@@ -62,131 +63,137 @@ const ViewReportComponentTemplate = ({
     return 'pending';
   };
 
-  return (
-    <Container maxWidth="xl" className="view-report-container">
-      <Paper 
-        elevation={3}
-        className="view-report-paper"
-        sx={{ backgroundColor: 'background.paper' }}
-      >
-        <Box className="view-report-back-button-container">
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={onBack}
-            className="back-button"
-          >
-            Back to Dashboard
-          </Button>
-        </Box>
+  const title = report ? (report.title || report.name || 'View Report') : 'View Report';
 
-        {loading ? (
-          <Box className="view-report-loading-container">
-            <CircularProgress size={60} thickness={5} />
-            <Typography variant="h6" className="loading-text">
-              Loading report...
-            </Typography>
+  return (
+    <Layout title={title}>
+      <Container maxWidth="xl" className="view-report-container">
+        <Paper 
+          elevation={3}
+          className="view-report-paper"
+          sx={{ backgroundColor: 'background.paper' }}
+        >
+          <Box className="view-report-back-button-container">
+            <Button
+              variant="outlined"
+              startIcon={<ArrowBackIcon />}
+              onClick={onBack}
+              className="back-button"
+            >
+              Back to Dashboard
+            </Button>
           </Box>
-        ) : error ? (
-          <Box className="view-report-error-container">
-            <Typography variant="h6" color="error" className="error-title">
-              Error Loading Report
-            </Typography>
-            <Typography variant="body1" className="error-message">
-              {error}
-            </Typography>
-          </Box>
-        ) : !report ? (
-          <Box className="view-report-no-data-container">
-            <Typography variant="h6" className="no-data-text">
-              No report found
-            </Typography>
-          </Box>
-        ) : (
-          <Box className="view-report-content">
-            {/* Status Stepper */}
-            <Box mb={4} p={2} bgcolor="background.default" borderRadius={1}>
-              <Stepper activeStep={getActiveStep()}>
-                {steps.map((step, index) => (
-                  <Step key={step.label} completed={step.status === 'completed'}>
-                    <StepLabel error={step.status === 'failed'}>
-                      <Box>
-                        {step.label}
-                        {step.status !== 'completed' && step.status !== 'failed' && (
-                          <Box display="flex" alignItems="center" mt={1}>
-                            <CircularProgress 
-                              size={16} 
-                              thickness={5} 
-                              variant={step.progress > 0 ? "determinate" : "indeterminate"}
-                              value={step.progress}
-                            />
-                            <Typography variant="caption" ml={1}>
-                              {step.progress > 0 ? `${step.progress}%` : 'Processing...'}
-                            </Typography>
-                          </Box>
-                        )}
-                        {step.status === 'failed' && (
-                          <Typography variant="caption" color="error">Failed</Typography>
-                        )}
-                      </Box>
-                    </StepLabel>
-                  </Step>
-                ))}
-              </Stepper>
+
+          {loading ? (
+            <Box className="view-report-loading-container">
+              <CircularProgress size={60} thickness={5} />
+              <Typography variant="h6" className="loading-text">
+                Loading report...
+              </Typography>
             </Box>
-            
-            <ViewReportReportHeaderComponent report={report} />
-            
-            <Grid container spacing={4} className="view-report-grid">
-              <Grid item xs={12}>
-                <ViewReportReportMetadataComponent report={report} formatDate={formatDate} />
-              </Grid>
+          ) : error ? (
+            <Box className="view-report-error-container">
+              <Typography variant="h6" color="error" className="error-title">
+                Error Loading Report
+              </Typography>
+              <Typography variant="body1" className="error-message">
+                {error}
+              </Typography>
+            </Box>
+          ) : !report ? (
+            <Box className="view-report-no-data-container">
+              <Typography variant="h6" className="no-data-text">
+                No report found
+              </Typography>
+            </Box>
+          ) : (
+            <Box className="view-report-content">
+              {/* Status Stepper */}
+              <Box mb={4} p={2} bgcolor="background.default" borderRadius={1}>
+                <Stepper activeStep={getActiveStep()}>
+                  {steps.map((step, index) => (
+                    <Step key={step.label} completed={step.status === 'completed'}>
+                      <StepLabel error={step.status === 'failed'}>
+                        <Box>
+                          {step.label}
+                          {step.status !== 'completed' && step.status !== 'failed' && (
+                            <Box display="flex" alignItems="center" mt={1}>
+                              <CircularProgress 
+                                size={16} 
+                                thickness={5} 
+                                variant={step.progress > 0 ? "determinate" : "indeterminate"}
+                                value={step.progress}
+                              />
+                              <Typography variant="caption" ml={1}>
+                                {step.progress > 0 ? `${step.progress}%` : 'Processing...'}
+                              </Typography>
+                            </Box>
+                          )}
+                          {step.status === 'failed' && (
+                            <Typography variant="caption" color="error">Failed</Typography>
+                          )}
+                        </Box>
+                      </StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Box>
               
-              <Grid item xs={12}>
-                <Box className="view-report-sections">
-                  <ViewReportCommitListComponent 
-                    commits={report.commits || []} 
-                    formatDate={formatDate}
-                    summaryStatus={summaryStatus}
-                    summaryProgress={summaryProgress}
-                  />
-                  
-                  {/* Only show report content if it exists and summaries are complete */}
-                  {report.content && summaryStatus === 'completed' && (
-                    <Paper className="report-content" sx={{ mt: 3, p: 3, bgcolor: 'background.paper' }}>
-                      <Typography variant="h5" component="h2" gutterBottom>
-                        Report Content
-                      </Typography>
-                      <Typography variant="body1" component="div" className="report-text">
-                        {report.content.split('\n').map((paragraph, index) => (
-                          <p key={index}>{paragraph}</p>
-                        ))}
-                      </Typography>
-                    </Paper>
-                  )}
-                  
-                  {reportStatus !== 'completed' && summaryStatus === 'completed' && (
-                    <Alert severity="info" sx={{ mt: 3 }}>
-                      Report content is being generated. Progress: {reportProgress}%
-                    </Alert>
-                  )}
-                  
-                  <ViewReportPDFPreviewComponent
-                    report={report}
-                    pdfStatus={pdfStatus}
-                    pdfProgress={pdfProgress}
-                    pdfPreviewFailed={pdfPreviewFailed}
-                    iframeRef={iframeRef}
-                    handleIframeLoad={handleIframeLoad}
-                    handleIframeError={handleIframeError}
-                  />
-                </Box>
+              <ViewReportReportHeaderComponent report={report} />
+              
+              <Grid container spacing={4} className="view-report-grid">
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <ViewReportReportMetadataComponent report={report} formatDate={formatDate} />
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={12} md={8}>
+                  <Box className="view-report-sections">
+                    <ViewReportCommitListComponent 
+                      commits={report.commits || []} 
+                      formatDate={formatDate}
+                      summaryStatus={summaryStatus}
+                      summaryProgress={summaryProgress}
+                    />
+                    
+                    {/* Only show report content if it exists and summaries are complete */}
+                    {report.content && summaryStatus === 'completed' && (
+                      <Paper className="report-content" sx={{ mt: 3, p: 3, bgcolor: 'background.paper' }}>
+                        <Typography variant="h5" component="h2" gutterBottom>
+                          Report Content
+                        </Typography>
+                        <Typography variant="body1" component="div" className="report-text">
+                          {report.content.split('\n').map((paragraph, index) => (
+                            <p key={index}>{paragraph}</p>
+                          ))}
+                        </Typography>
+                      </Paper>
+                    )}
+                    
+                    {reportStatus !== 'completed' && summaryStatus === 'completed' && (
+                      <Alert severity="info" sx={{ mt: 3 }}>
+                        Report content is being generated. Progress: {reportProgress}%
+                      </Alert>
+                    )}
+                    
+                    <ViewReportPDFPreviewComponent
+                      report={report}
+                      pdfStatus={pdfStatus}
+                      pdfProgress={pdfProgress}
+                      pdfPreviewFailed={pdfPreviewFailed}
+                      iframeRef={iframeRef}
+                      handleIframeLoad={handleIframeLoad}
+                      handleIframeError={handleIframeError}
+                    />
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        )}
-      </Paper>
-    </Container>
+            </Box>
+          )}
+        </Paper>
+      </Container>
+    </Layout>
   );
 };
 
