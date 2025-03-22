@@ -6,11 +6,16 @@
 const Bull = require('bull'); 
 const S3Service = require('./S3Service');
 const Report = require('../models/Report');
+const User = require('../models/User');
 const fs = require('fs').promises;
 // Will be loaded lazily to avoid circular dependency
 let PDFService;
 let OpenAIService;
 let CommitSummary;
+let TokenUsageTrackerService;
+let ReportUsageTrackerService;
+let CommitUsageTrackerService;
+let UsageStats;
 
 // Create Redis connection configuration
 const redisConfig = {
@@ -301,7 +306,9 @@ summaryQueue.on('completed', async (job, result) => {
               branchInfo: report.branch,
               authorInfo: report.author,
               trackTokens: true,
-              reportId: report.id
+              reportId: report.id,
+              userId: report.user,               // Add userId from report
+              commitCount: commitSummaries.length // Add commit count for report type calculation
             };
             
             // Add report generation job to queue
@@ -320,8 +327,81 @@ summaryQueue.on('completed', async (job, result) => {
   }
 });
 
-reportQueue.on('completed', (job, result) => {
+reportQueue.on('completed', async (job, result) => {
   console.log(`Report job ${job.id} completed with ${result.content ? result.content.length : 0} characters`);
+  
+  try {
+    // Get userId from job data
+    const { userId, reportId } = job.data;
+    
+    if (!userId) {
+      console.error(`Job ${job.id} completed but no userId found in job data`);
+      return;
+    }
+    
+    // Ensure User model is loaded
+    if (!User) {
+      User = require('../models/User');
+    }
+    
+    // Find user and handle potential null case, ensuring the plan is populated
+    const user = await User.findById(userId).populate('plan');
+    if (!user) {
+      console.error(`User not found for ID: ${userId} in job ${job.id}`);
+      return;
+    }
+    
+    // Lazy load services if needed
+    if (!ReportUsageTrackerService) {
+      UsageStats = require('./UsageStats');
+      ReportUsageTrackerService = UsageStats.ReportUsageTrackerService;
+      TokenUsageTrackerService = UsageStats.TokenUsageTrackerService;
+      CommitUsageTrackerService = UsageStats.CommitUsageTrackerService;
+    }
+    
+    // Now safely access user.plan
+    const reportType = (job.data.commitCount > user.plan.limits.commitsPerStandardReport) ? 'large' : 'standard';
+    const uniqueCommitCount = job.data.commitCount || 0;
+    
+    // Track report generation
+    await ReportUsageTrackerService.trackReportGeneration(userId, reportType);
+    
+    // Track commit analysis
+    await CommitUsageTrackerService.trackCommitAnalysis(userId, uniqueCommitCount);
+    
+    // Update token usage if available in result
+    if (result.usage) {
+      // Extract token usage from result
+      const { promptTokens, completionTokens, totalTokens } = result.usage;
+      const modelName = result.model || 'gpt-4o-mini';
+      
+      // Token costs - matching what's used in ReportGenerationController
+      const tokenCosts = {
+        'gpt-4': { input: 0.000002027, output: 0.00001011 },
+        'gpt-4-mini': { input: 0.000000156, output: 0.000000606 },
+        'gpt-4o': { input: 0.000002027, output: 0.00001011 },
+        'gpt-4o-mini': { input: 0.000000156, output: 0.000000606 }
+      };
+      
+      const { input: inputCost, output: outputCost } = tokenCosts[modelName] || tokenCosts['gpt-4o-mini'];
+      const estimatedCost = (promptTokens * inputCost) + (completionTokens * outputCost);
+      
+      // Track token usage
+      await TokenUsageTrackerService.trackTokenUsage(
+        userId,
+        promptTokens,
+        completionTokens,
+        modelName,
+        estimatedCost,
+        promptTokens * inputCost,
+        completionTokens * outputCost
+      );
+      
+      console.log(`Updated token usage for job ${job.id}: ${totalTokens} tokens (${promptTokens} input, ${completionTokens} output)`);
+    }
+  } catch (error) {
+    console.error(`Error processing report completion for job ${job.id}:`, error);
+  }
 });
 
 // Handle failed jobs

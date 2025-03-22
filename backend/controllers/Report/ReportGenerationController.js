@@ -186,7 +186,9 @@ exports.generateReport = async (req, res) => {
           branchInfo: branches?.join(', ') || 'All branches',
           authorInfo: authors?.join(', ') || 'All authors',
           trackTokens: true,
-          reportId: report.id
+          reportId: report.id,
+          userId,          // Add userId to be used in the completion handler
+          commitCount: uniqueCommits.size  // Add commitCount for report type calculation
         };
         
         // Add report generation job to queue
@@ -197,18 +199,6 @@ exports.generateReport = async (req, res) => {
         report.reportStatus = 'pending';
         console.log(report)
         await report.save();
-      }
-      
-      // Track usage statistics if not cached
-      if (!isCachedReport) {
-        await trackReportUsage({
-          userId,
-          reportType,
-          uniqueCommitCount: uniqueCommits.size,
-          inputTokenCount: 0, // Will be updated when the job completes
-          outputTokenCount: 0, // Will be updated when the job completes
-          modelName: 'queued'
-        });
       }
       
       return res.json({
@@ -467,37 +457,6 @@ async function createReport({ userId, title, repository, branches, authors, star
   
   await report.save();
   return report;
-}
-
-async function trackReportUsage({ userId, reportType, uniqueCommitCount, inputTokenCount, outputTokenCount, modelName }) {
-  // Track report generation
-  await ReportUsageTrackerService.trackReportGeneration(userId, reportType);
-  
-  // Track commit analysis
-  await CommitUsageTrackerService.trackCommitAnalysis(
-    userId,
-    uniqueCommitCount,
-    uniqueCommitCount
-  );
-  
-  // Track token usage
-  const tokenCosts = {
-    'gpt-4': { input: 0.000002027, output: 0.00001011 },
-    'gpt-4-mini': { input: 0.000000156, output: 0.000000606 }
-  };
-  
-  const { input: inputCost, output: outputCost } = tokenCosts[modelName] || tokenCosts['gpt-4-mini'];
-  const estimatedCost = (inputTokenCount * inputCost) + (outputTokenCount * outputCost);
-  
-  await TokenUsageTrackerService.trackTokenUsage(
-    userId,
-    inputTokenCount,
-    outputTokenCount,
-    modelName,
-    estimatedCost,
-    inputTokenCount * inputCost,
-    outputTokenCount * outputCost
-  );
 }
 
 async function handleReportGenerationError(error, report) {
