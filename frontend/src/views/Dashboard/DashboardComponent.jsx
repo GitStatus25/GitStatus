@@ -189,9 +189,10 @@ const DashboardComponentTemplate = ({
                               {report.pdfUrl && report.pdfUrl !== 'pending' && (
                                 <Tooltip title="Download PDF">
                                   <IconButton 
-                                    component={RouterLink}
-                                    to={report.pdfUrl}
+                                    component={Link}
+                                    href={report.downloadUrl}
                                     target="_blank"
+                                    rel="noopener noreferrer"
                                     className="report-action-button download-button"
                                     size="small"
                                   >
