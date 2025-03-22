@@ -33,6 +33,7 @@ const ViewReportComponent = () => {
     navigate('/dashboard');
   }, [navigate]);
 
+
   return (
     <ViewReportComponentTemplate
       report={report}

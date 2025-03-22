@@ -33,7 +33,7 @@ const DiffViewerComponentTemplate = ({ patch, theme }) => {
           return (
             <Box key={index} className={`diff-line ${lineType}`}>
               <Box className="line-number">{index + 1}</Box>
-              <Box className="line-content">{line}</Box>
+              <Box className="line-content">{line.substring(1)}</Box>
             </Box>
           );
         })}

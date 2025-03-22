@@ -18,6 +18,8 @@ const ViewReportReportMetadataComponent = ({ report }) => {
     });
   };
 
+  report.allAuthors = [...new Set(report.commits.map(commit => commit.author))];
+
   return (
     <ViewReportReportMetadataComponentTemplate
       report={report}

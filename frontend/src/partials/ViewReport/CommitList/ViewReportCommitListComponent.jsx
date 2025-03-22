@@ -22,8 +22,8 @@ import './ViewReportCommitListComponent.css';
 const ViewReportCommitListComponentTemplate = ({ 
   commits = [], 
   formatDate, 
-  summaryStatus = 'pending', 
-  summaryProgress = 0 
+  summaryStatus, 
+  summaryProgress
 }) => {
   const theme = useTheme();
 
@@ -53,7 +53,7 @@ const ViewReportCommitListComponentTemplate = ({
           >
             Included Commits
           </Typography>
-          {isLoading && (
+          {isLoading && summaryStatus != 'completed' && (
             <Box display="flex" alignItems="center" ml={2}>
               <CircularProgress 
                 size={24} 
@@ -98,7 +98,7 @@ const ViewReportCommitListComponentTemplate = ({
                     <Box className="author-container">
                       <PersonIcon className="author-icon" />
                       <Typography variant="body2">
-                        {commit.author?.name || commit.author?.login || 'Unknown'}
+                        {commit.author || 'Unknown'}
                       </Typography>
                     </Box>
                   </TableCell>

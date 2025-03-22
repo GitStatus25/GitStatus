@@ -14,7 +14,6 @@ const ViewCommitsModal = () => {
     selectedCommits,
     expandedCommit,
     expandedFiles,
-    loading,
     error,
     loadingCommits,
     toggleCommitSelection,
@@ -29,12 +28,16 @@ const ViewCommitsModal = () => {
   // Get user stats from dedicated hook
   const {
     userStats,
-    loading: loadingStats,
+    loadingStats,
     error: statsError
   } = useUserStats();
 
+  const loading = loadingCommits && loadingStats;
+
   // Combine errors if needed
   const combinedError = error || statsError;
+
+  console.log(commits)
 
   return (
     <ViewCommitsModalComponent

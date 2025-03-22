@@ -54,9 +54,9 @@ const AdminDashboardComponent = ({
     displayName: '', 
     description: '',
     limits: {
-      reportsPerMonth: 100,
-      commitsPerMonth: 1000,
-      tokensPerMonth: 10000
+      reportsPerMonth: 50,
+      commitsPerStandardReport: 5,
+      commitsPerLargeReport: 20
     },
     isActive: true,
     isDefault: false
@@ -78,9 +78,9 @@ const AdminDashboardComponent = ({
       displayName: '', 
       description: '',
       limits: {
-        reportsPerMonth: 100,
-        commitsPerMonth: 1000,
-        tokensPerMonth: 10000
+        reportsPerMonth: 50,
+        commitsPerStandardReport: 5,
+        commitsPerLargeReport: 20
       },
       isActive: true,
       isDefault: false
@@ -125,9 +125,9 @@ const AdminDashboardComponent = ({
       description: plan.description,
       features: plan.features || '',
       limits: {
-        reportsPerMonth: plan.limits?.reportsPerMonth || 100,
-        commitsPerMonth: plan.limits?.commitsPerMonth || 1000,
-        tokensPerMonth: plan.limits?.tokensPerMonth || 10000
+        reportsPerMonth: plan.limits?.reportsPerMonth || 50,
+        commitsPerStandardReport: plan.limits?.commitsPerStandardReport || 5,
+        commitsPerLargeReport: plan.limits?.commitsPerLargeReport || 20
       },
       isActive: plan.isActive ?? true,
       isDefault: plan.isDefault ?? false
@@ -521,8 +521,8 @@ const AdminDashboardComponent = ({
                     <TableCell>Display Name</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell>Reports/Month</TableCell>
-                    <TableCell>Commits/Month</TableCell>
-                    <TableCell>Tokens/Month</TableCell>
+                    <TableCell>Commits/Standard</TableCell>
+                    <TableCell>Commits/Large</TableCell>
                     <TableCell>Active</TableCell>
                     <TableCell>Default</TableCell>
                     <TableCell>Actions</TableCell>
@@ -534,9 +534,9 @@ const AdminDashboardComponent = ({
                       <TableCell>{plan.name}</TableCell>
                       <TableCell>{plan.displayName}</TableCell>
                       <TableCell>{plan.description}</TableCell>
-                      <TableCell>{plan.limits?.reportsPerMonth || 100}</TableCell>
-                      <TableCell>{plan.limits?.commitsPerMonth || 1000}</TableCell>
-                      <TableCell>{plan.limits?.tokensPerMonth || 10000}</TableCell>
+                      <TableCell>{plan.limits?.reportsPerMonth || 50}</TableCell>
+                      <TableCell>{plan.limits?.commitsPerStandardReport || 5}</TableCell>
+                      <TableCell>{plan.limits?.commitsPerLargeReport || 20}</TableCell>
                       <TableCell>
                         <Switch 
                           checked={plan.isActive ?? true} 
@@ -628,23 +628,23 @@ const AdminDashboardComponent = ({
               <Grid item xs={4}>
                 <TextField
                   margin="dense"
-                  label="Commits Per Month"
+                  label="Commits Per Standard Report"
                   type="number"
                   fullWidth
                   variant="outlined"
-                  value={newPlan.limits.commitsPerMonth}
-                  onChange={handleNewPlanChange('limits.commitsPerMonth')}
+                  value={newPlan.limits.commitsPerStandardReport}
+                  onChange={handleNewPlanChange('limits.commitsPerStandardReport')}
                 />
               </Grid>
               <Grid item xs={4}>
                 <TextField
                   margin="dense"
-                  label="Tokens Per Month"
+                  label="Commits Per Large Report"
                   type="number"
                   fullWidth
                   variant="outlined"
-                  value={newPlan.limits.tokensPerMonth}
-                  onChange={handleNewPlanChange('limits.tokensPerMonth')}
+                  value={newPlan.limits.commitsPerLargeReport}
+                  onChange={handleNewPlanChange('limits.commitsPerLargeReport')}
                 />
               </Grid>
             </Grid>

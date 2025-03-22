@@ -18,6 +18,7 @@ const AnalyticsDashboardComponent = () => {
   })));
   
   const { userStats: stats, loading, error, refetch } = useUserStats();
+  console.log(stats)
 
   useEffect(() => {
     // If authentication is complete and user is not authenticated, redirect to login

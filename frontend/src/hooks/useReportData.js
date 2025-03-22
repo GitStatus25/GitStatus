@@ -57,6 +57,8 @@ export const useReportData = (reportId) => {
         // Use the signal created in this effect
         const reportData = await api.getReportById(reportId, signal);
 
+        console.log(reportData)
+
         // Don't update state if the component unmounted
         if (signal.aborted) return;
         
@@ -133,7 +135,6 @@ export const useReportData = (reportId) => {
       
       try {
         const statusResponse = await api.getCommitSummaryStatus(reportId, controller.signal);
-        
         setSummaryStatus(statusResponse.status);
         if (statusResponse.progress) {
           setSummaryProgress(statusResponse.progress);

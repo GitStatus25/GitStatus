@@ -237,13 +237,7 @@ const ViewCommitsModalComponent = ({
                               <AccordionDetails sx={{ p: 0 }}>
                                 <Box className="diff-container">
                                   <DiffViewer
-                                    oldCode={file.patch ? file.patch.split('\n').filter(line => 
-                                      line.startsWith('-') && !line.startsWith('---')
-                                    ).map(line => line.substring(1)).join('\n') : ''}
-                                    newCode={file.patch ? file.patch.split('\n').filter(line => 
-                                      line.startsWith('+') && !line.startsWith('+++')
-                                    ).map(line => line.substring(1)).join('\n') : ''}
-                                    language={file.filename.split('.').pop()}
+                                    patch={file.patch}
                                   />
                                 </Box>
                               </AccordionDetails>
