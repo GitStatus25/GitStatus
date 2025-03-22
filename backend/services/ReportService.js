@@ -1,4 +1,5 @@
 const Report = require('../models/Report');
+const CommitSummary = require('../models/CommitSummary');
 const S3Service = require('./S3Service');
 const crypto = require('crypto');
 const { NotFoundError } = require('../utils/errors');
@@ -107,13 +108,72 @@ const generateReportUrls = async (report) => {
 };
 
 /**
+ * Get commit summaries for a list of commit IDs
+ * 
+ * @param {string} repository - Repository name
+ * @param {Array} commitIds - Array of commit IDs
+ * @returns {Promise<Object>} - Object mapping commit IDs to their summaries
+ */
+const getCommitSummaries = async (repository, commitIds) => {
+  try {
+    if (!commitIds || commitIds.length === 0) {
+      return {};
+    }
+
+    // Find all commit summaries for the given repository and commit IDs
+    const summaries = await CommitSummary.find({
+      repository,
+      commitId: { $in: commitIds }
+    });
+
+    // Create a map of commit ID to summary
+    const summaryMap = {};
+    summaries.forEach(summary => {
+      summaryMap[summary.commitId] = {
+        author: summary.author,
+        summary: summary.summary,
+        date: summary.date,
+        message: summary.message
+      };
+    });
+
+    return summaryMap;
+  } catch (error) {
+    console.error('Error fetching commit summaries:', error);
+    return {};
+  }
+};
+
+/**
  * Format report for client response
  * 
  * @param {Object} report - Report document
  * @param {Object} urls - Object with viewUrl and downloadUrl
+ * @param {Object} commitSummaries - Optional object mapping commit IDs to their summaries
  * @returns {Object} - Formatted report
  */
-const formatReportResponse = (report, urls = {}) => {
+const formatReportResponse = async (report, urls = {}, commitSummaries = null) => {
+  // If commit summaries aren't provided, fetch them
+  if (!commitSummaries && report.repository && report.commits) {
+    const commitIds = report.commits.map(commit => commit.commitId);
+    commitSummaries = await getCommitSummaries(report.repository, commitIds);
+  }
+
+  // Enhance commits with data from commit summaries if available
+  const enhancedCommits = report.commits.map(commit => {
+    const summary = commitSummaries && commitSummaries[commit.commitId];
+    if (summary) {
+      return {
+        ...commit.toObject(),
+        author: summary.author || commit.author,
+        summary: summary.summary || commit.summary,
+        message: summary.message || commit.message,
+        date: summary.date || commit.date
+      };
+    }
+    return commit;
+  });
+
   return {
     id: report.id,
     title: report.name,
@@ -128,7 +188,10 @@ const formatReportResponse = (report, urls = {}) => {
     createdAt: report.createdAt,
     accessCount: report.accessCount || 1,
     lastAccessed: report.lastAccessed || report.createdAt,
-    commits: report.commits || []
+    commits: enhancedCommits,
+    summaryStatus: report.summaryStatus,
+    reportStatus: report.reportStatus,
+    content: report.content
   };
 };
 
@@ -238,5 +301,6 @@ module.exports = {
   generateReportUrls,
   formatReportResponse,
   generatePdfReport,
-  getPdfStatus
+  getPdfStatus,
+  getCommitSummaries
 }; 

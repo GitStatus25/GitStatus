@@ -16,13 +16,14 @@ exports.getReports = async (req, res) => {
         
         if (report.pdfUrl && report.pdfUrl !== 'pending' && report.pdfUrl !== 'failed') {
           try {
-            downloadUrl = await ReportService.generateReportUrls(report);
+            const urls = await ReportService.generateReportUrls(report);
+            downloadUrl = urls.downloadUrl || '';
           } catch (error) {
             console.error(`Error getting download URL for report ${report.id}:`, error);
           }
         }
         
-        return ReportService.formatReportResponse(report, { downloadUrl });
+        return await ReportService.formatReportResponse(report, { downloadUrl });
       })
     );
     
@@ -46,8 +47,9 @@ exports.getReportById = async (req, res) => {
     // Generate pre-signed URLs for viewing and downloading
     const urls = await ReportService.generateReportUrls(report);
     
-    // Return formatted report
-    res.json(ReportService.formatReportResponse(report, urls));
+    // Return formatted report with commit summaries
+    const formattedReport = await ReportService.formatReportResponse(report, urls);
+    res.json(formattedReport);
   } catch (error) {
     console.error('Error fetching report:', error);
     if (error instanceof NotFoundError) {
